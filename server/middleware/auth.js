@@ -151,10 +151,9 @@ const createRateLimit = (windowMs, max, message) => {
   });
 };
 
-module.exports = {
-  authenticateToken,
-  requireAdmin,
-  checkPermission,
-  checkUserStatus,
-  createRateLimit
-}; 
+module.exports = authenticateToken;
+module.exports.authenticateToken = authenticateToken;
+module.exports.requireAdmin = requireAdmin;
+module.exports.checkPermission = checkPermission;
+module.exports.checkUserStatus = checkUserStatus;
+module.exports.createRateLimit = createRateLimit; 

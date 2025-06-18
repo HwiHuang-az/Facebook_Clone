@@ -1,3 +1,4 @@
+const { sequelize } = require('../config/database');
 const User = require('./User');
 const Post = require('./Post');
 const Comment = require('./Comment');
@@ -69,6 +70,7 @@ Comment.hasMany(Notification, { foreignKey: 'commentId', as: 'notifications' });
 Notification.belongsTo(Comment, { foreignKey: 'commentId', as: 'comment' });
 
 module.exports = {
+  sequelize,
   User,
   Post,
   Comment,

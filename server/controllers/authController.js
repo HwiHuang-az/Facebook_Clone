@@ -105,7 +105,8 @@ const register = async (req, res) => {
     console.error('Register error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi đăng ký'
+      message: 'Lỗi server khi đăng ký',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -183,7 +184,8 @@ const login = async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi đăng nhập'
+      message: 'Lỗi server khi đăng nhập',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -231,7 +233,8 @@ const getCurrentUser = async (req, res) => {
     console.error('Get current user error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi khi lấy thông tin user'
+      message: 'Lỗi khi lấy thông tin user',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -246,6 +249,7 @@ const logout = async (req, res) => {
       message: 'Đăng xuất thành công'
     });
   } catch (error) {
+    console.error('Logout error:', error);
     res.status(500).json({
       success: false,
       message: 'Lỗi khi đăng xuất'
@@ -289,7 +293,8 @@ const changePassword = async (req, res) => {
     console.error('Change password error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi khi đổi mật khẩu'
+      message: 'Lỗi khi đổi mật khẩu',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -326,11 +331,38 @@ const forgotPassword = async (req, res) => {
   }
 };
 
+// @desc    Refresh token
+// @route   POST /api/auth/refresh-token
+// @access  Private
+const refreshToken = async (req, res) => {
+  try {
+    // Tạo token mới
+    const token = jwt.sign(
+      { userId: req.user.userId },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: process.env.JWT_EXPIRE || '7d' }
+    );
+
+    res.json({
+      success: true,
+      message: 'Refresh token thành công',
+      token
+    });
+  } catch (error) {
+    console.error('Refresh token error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server'
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
   getCurrentUser,
   logout,
   changePassword,
-  forgotPassword
+  forgotPassword,
+  refreshToken
 }; 
