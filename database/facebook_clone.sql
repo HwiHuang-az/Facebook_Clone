@@ -157,7 +157,7 @@ CREATE TABLE story_views (
 );
 
 -- Bảng Groups
-CREATE TABLE groups (
+CREATE TABLE `groups` (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
     description TEXT,
@@ -177,7 +177,7 @@ CREATE TABLE group_members (
     user_id INT NOT NULL,
     role ENUM('admin', 'moderator', 'member') DEFAULT 'member',
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     UNIQUE KEY unique_membership (group_id, user_id)
 );
