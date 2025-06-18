@@ -65,37 +65,32 @@ const Header = () => {
   const navigationItems = [
     { 
       path: '/', 
-      Icon: HomeIcon, 
-      IconSolid: HomeIconSolid, 
       label: 'Trang chủ',
+      icon: '🏠',
       isActive: location.pathname === '/'
     },
     { 
       path: '/friends', 
-      Icon: UserGroupIcon, 
-      IconSolid: UserGroupIconSolid, 
       label: 'Bạn bè',
+      icon: '👥',
       isActive: location.pathname.startsWith('/friends')
     },
     { 
       path: '/watch', 
-      Icon: TvIcon, 
-      IconSolid: TvIconSolid, 
       label: 'Video',
+      icon: '📺',
       isActive: location.pathname.startsWith('/watch')
     },
     { 
       path: '/marketplace', 
-      Icon: BuildingStorefrontIcon, 
-      IconSolid: BuildingStorefrontIconSolid, 
       label: 'Marketplace',
+      icon: '🏪',
       isActive: location.pathname.startsWith('/marketplace')
     },
     { 
       path: '/groups', 
-      Icon: RectangleGroupIcon, 
-      IconSolid: RectangleGroupIconSolid, 
       label: 'Nhóm',
+      icon: '👥',
       isActive: location.pathname.startsWith('/groups')
     },
   ];
@@ -128,7 +123,7 @@ const Header = () => {
             {/* Search Box */}
             <form onSubmit={handleSearch} className="flex-1 max-w-60">
               <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">🔍</span>
                 <input
                   type="text"
                   placeholder="Tìm kiếm trên Facebook"
@@ -143,7 +138,7 @@ const Header = () => {
           {/* Center Section - Navigation */}
           <nav className="hidden md:flex items-center justify-center flex-1 max-w-2xl">
             <div className="flex space-x-2">
-              {navigationItems.map(({ path, Icon, IconSolid, label, isActive }) => (
+              {navigationItems.map(({ path, icon, label, isActive }) => (
                 <Link
                   key={path}
                   to={path}
@@ -154,11 +149,7 @@ const Header = () => {
                   }`}
                   title={label}
                 >
-                  {isActive ? (
-                    <IconSolid className="h-6 w-6" />
-                  ) : (
-                    <Icon className="h-6 w-6" />
-                  )}
+                  <span className="text-2xl">{icon}</span>
                   {isActive && (
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-facebook-600 rounded-t-full"></div>
                   )}
@@ -177,7 +168,7 @@ const Header = () => {
                 className="flex items-center justify-center w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-full transition-colors duration-200"
                 title="Tạo"
               >
-                <PlusIcon className="h-5 w-5 text-gray-700" />
+                <span className="text-lg">➕</span>
               </button>
               
               {showCreateMenu && (
@@ -225,7 +216,7 @@ const Header = () => {
                 className="flex items-center justify-center w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-full transition-colors duration-200 relative"
                 title="Messenger"
               >
-                <ChatBubbleLeftRightIcon className="h-5 w-5 text-gray-700" />
+                <span className="text-lg">💬</span>
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
               </button>
               
@@ -262,7 +253,7 @@ const Header = () => {
                 className="flex items-center justify-center w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-full transition-colors duration-200 relative"
                 title="Thông báo"
               >
-                <BellIcon className="h-5 w-5 text-gray-700" />
+                <span className="text-lg">🔔</span>
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">5</span>
               </button>
               
@@ -303,7 +294,7 @@ const Header = () => {
                   alt={user?.firstName}
                   className="w-8 h-8 rounded-full"
                 />
-                <ChevronDownIcon className="h-4 w-4 text-gray-600" />
+                <span className="text-gray-600">⌄</span>
               </button>
               
               {showAccountMenu && (
@@ -327,21 +318,21 @@ const Header = () => {
                   <div className="py-2">
                     <Link to="/settings" className="flex items-center px-4 py-3 hover:bg-gray-100 transition-colors">
                       <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                        <Cog6ToothIcon className="h-5 w-5 text-gray-600" />
+                        <span>⚙️</span>
                       </div>
                       <span className="text-gray-900">Cài đặt & quyền riêng tư</span>
                     </Link>
                     
                     <Link to="/help" className="flex items-center px-4 py-3 hover:bg-gray-100 transition-colors">
                       <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                        <QuestionMarkCircleIcon className="h-5 w-5 text-gray-600" />
+                        <span>❓</span>
                       </div>
                       <span className="text-gray-900">Trợ giúp & hỗ trợ</span>
                     </Link>
                     
                     <button className="flex items-center w-full px-4 py-3 hover:bg-gray-100 transition-colors">
                       <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                        <MoonIcon className="h-5 w-5 text-gray-600" />
+                        <span>🌙</span>
                       </div>
                       <span className="text-gray-900">Màn hình & trợ năng</span>
                     </button>
@@ -351,7 +342,7 @@ const Header = () => {
                       className="flex items-center w-full px-4 py-3 hover:bg-gray-100 transition-colors"
                     >
                       <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                        <ArrowRightOnRectangleIcon className="h-5 w-5 text-gray-600" />
+                        <span>🚪</span>
                       </div>
                       <span className="text-gray-900">Đăng xuất</span>
                     </button>
