@@ -1,13 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const auth = require('../middleware/auth');
 const { Post, User, Comment, Like, Friendship } = require('../models');
 const { Op } = require('sequelize');
 
-// @route   GET /api/posts
-// @desc    Get all posts (newsfeed)
-// @access  Private
-router.get('/', auth, async (req, res) => {
+// Lấy tất cả posts (newsfeed)
+const getAllPosts = async (req, res) => {
   try {
     const userId = req.user.id;
     const { limit = 10, page = 1 } = req.query;
@@ -27,7 +22,7 @@ router.get('/', auth, async (req, res) => {
       return friendship.user1Id === userId ? friendship.user2Id : friendship.user1Id;
     });
 
-    // Thêm user hiện tại vào danh sách
+    // Thêm user hiện tại vào danh sách để xem posts của chính mình
     friendIds.push(userId);
 
     // Lấy posts từ bạn bè và chính mình
@@ -100,15 +95,14 @@ router.get('/', auth, async (req, res) => {
     console.error('Get all posts error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi lấy danh sách bài viết'
+      message: 'Lỗi server khi lấy danh sách bài viết',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-// @route   POST /api/posts
-// @desc    Create new post
-// @access  Private
-router.post('/', auth, async (req, res) => {
+// Tạo post mới
+const createPost = async (req, res) => {
   try {
     const userId = req.user.id;
     const { content, privacy = 'friends', imageUrl, videoUrl } = req.body;
@@ -160,15 +154,14 @@ router.post('/', auth, async (req, res) => {
     console.error('Create post error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi tạo bài viết'
+      message: 'Lỗi server khi tạo bài viết',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-// @route   GET /api/posts/:id
-// @desc    Get single post
-// @access  Private
-router.get('/:id', auth, async (req, res) => {
+// Lấy một post cụ thể
+const getPost = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -189,6 +182,17 @@ router.get('/:id', auth, async (req, res) => {
               model: User,
               as: 'author',
               attributes: ['id', 'firstName', 'lastName', 'profilePicture']
+            },
+            {
+              model: Like,
+              as: 'likes',
+              include: [
+                {
+                  model: User,
+                  as: 'user',
+                  attributes: ['id', 'firstName', 'lastName']
+                }
+              ]
             }
           ]
         },
@@ -213,6 +217,33 @@ router.get('/:id', auth, async (req, res) => {
       });
     }
 
+    // Kiểm tra quyền xem post
+    if (post.privacy === 'private' && post.userId !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền xem bài viết này'
+      });
+    }
+
+    if (post.privacy === 'friends' && post.userId !== userId) {
+      // Kiểm tra friendship
+      const friendship = await Friendship.findOne({
+        where: {
+          [Op.or]: [
+            { user1Id: userId, user2Id: post.userId, status: 'accepted' },
+            { user1Id: post.userId, user2Id: userId, status: 'accepted' }
+          ]
+        }
+      });
+
+      if (!friendship) {
+        return res.status(403).json({
+          success: false,
+          message: 'Bạn không có quyền xem bài viết này'
+        });
+      }
+    }
+
     // Thêm thông tin đã like hay chưa
     const userLike = post.likes.find(like => like.userId === userId);
     const postWithLikeStatus = {
@@ -231,15 +262,14 @@ router.get('/:id', auth, async (req, res) => {
     console.error('Get post error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi lấy bài viết'
+      message: 'Lỗi server khi lấy bài viết',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-// @route   PUT /api/posts/:id
-// @desc    Update post
-// @access  Private
-router.put('/:id', auth, async (req, res) => {
+// Cập nhật post
+const updatePost = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -262,6 +292,14 @@ router.put('/:id', auth, async (req, res) => {
       });
     }
 
+    // Validate input
+    if (!content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nội dung bài viết không được để trống'
+      });
+    }
+
     // Cập nhật post
     await post.update({
       content,
@@ -269,25 +307,35 @@ router.put('/:id', auth, async (req, res) => {
       updatedAt: new Date()
     });
 
+    // Lấy post sau khi update
+    const updatedPost = await Post.findByPk(id, {
+      include: [
+        {
+          model: User,
+          as: 'author',
+          attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified']
+        }
+      ]
+    });
+
     res.json({
       success: true,
       message: 'Cập nhật bài viết thành công',
-      data: { post }
+      data: { post: updatedPost }
     });
 
   } catch (error) {
     console.error('Update post error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi cập nhật bài viết'
+      message: 'Lỗi server khi cập nhật bài viết',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-// @route   DELETE /api/posts/:id
-// @desc    Delete post
-// @access  Private
-router.delete('/:id', auth, async (req, res) => {
+// Xóa post
+const deletePost = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -321,15 +369,14 @@ router.delete('/:id', auth, async (req, res) => {
     console.error('Delete post error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi xóa bài viết'
+      message: 'Lỗi server khi xóa bài viết',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-// @route   POST /api/posts/:id/like
-// @desc    Like/Unlike post
-// @access  Private
-router.post('/:id/like', auth, async (req, res) => {
+// Like/Unlike post
+const toggleLikePost = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -374,9 +421,124 @@ router.post('/:id/like', auth, async (req, res) => {
     console.error('Toggle like post error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi thích/bỏ thích bài viết'
+      message: 'Lỗi server khi thích/bỏ thích bài viết',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-module.exports = router; 
+// Lấy posts của một user cụ thể
+const getUserPosts = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const currentUserId = req.user.id;
+    const { limit = 10, page = 1 } = req.query;
+    const offset = (page - 1) * limit;
+
+    // Kiểm tra quyền xem posts
+    let whereCondition = {
+      userId: userId,
+      isActive: true
+    };
+
+    if (currentUserId !== parseInt(userId)) {
+      // Kiểm tra friendship nếu không phải chính mình
+      const friendship = await Friendship.findOne({
+        where: {
+          [Op.or]: [
+            { user1Id: currentUserId, user2Id: userId, status: 'accepted' },
+            { user1Id: userId, user2Id: currentUserId, status: 'accepted' }
+          ]
+        }
+      });
+
+      if (friendship) {
+        // Là bạn bè -> có thể xem posts friends và public
+        whereCondition.privacy = { [Op.in]: ['public', 'friends'] };
+      } else {
+        // Không phải bạn bè -> chỉ xem được posts public
+        whereCondition.privacy = 'public';
+      }
+    }
+
+    const posts = await Post.findAndCountAll({
+      where: whereCondition,
+      include: [
+        {
+          model: User,
+          as: 'author',
+          attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified']
+        },
+        {
+          model: Comment,
+          as: 'comments',
+          limit: 3,
+          order: [['createdAt', 'DESC']],
+          include: [
+            {
+              model: User,
+              as: 'author',
+              attributes: ['id', 'firstName', 'lastName', 'profilePicture']
+            }
+          ]
+        },
+        {
+          model: Like,
+          as: 'likes',
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['id', 'firstName', 'lastName']
+            }
+          ]
+        }
+      ],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['createdAt', 'DESC']]
+    });
+
+    // Thêm thông tin đã like hay chưa
+    const postsWithLikeStatus = posts.rows.map(post => {
+      const userLike = post.likes.find(like => like.userId === currentUserId);
+      return {
+        ...post.toJSON(),
+        isLiked: !!userLike,
+        likesCount: post.likes.length,
+        commentsCount: post.comments.length
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        posts: postsWithLikeStatus,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: posts.count,
+          totalPages: Math.ceil(posts.count / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get user posts error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi lấy bài viết của người dùng',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+module.exports = {
+  getAllPosts,
+  createPost,
+  getPost,
+  updatePost,
+  deletePost,
+  toggleLikePost,
+  getUserPosts
+}; 

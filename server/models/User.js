@@ -52,7 +52,7 @@ const User = sequelize.define('User', {
   location: {
     type: DataTypes.STRING(100)
   },
-  workplace: {
+  work: {
     type: DataTypes.STRING(100)
   },
   education: {

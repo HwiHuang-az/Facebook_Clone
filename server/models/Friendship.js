@@ -40,8 +40,9 @@ const Friendship = sequelize.define('Friendship', {
     allowNull: true
   }
 }, {
-  tableName: 'friendships',
+  tableName: 'Friendships',
   timestamps: true,
+  underscored: false,
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   indexes: [

@@ -45,6 +45,10 @@ User.belongsToMany(User, {
   as: 'friends'
 });
 
+// Friendship - User relationship
+Friendship.belongsTo(User, { foreignKey: 'user1Id', as: 'user1' });
+Friendship.belongsTo(User, { foreignKey: 'user2Id', as: 'user2' });
+
 // User - Message relationship (sender)
 User.hasMany(Message, { foreignKey: 'senderId', as: 'sentMessages' });
 Message.belongsTo(User, { foreignKey: 'senderId', as: 'sender' });

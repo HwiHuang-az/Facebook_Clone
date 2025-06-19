@@ -1,13 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const auth = require('../middleware/auth');
 const { Comment, User, Post, Like } = require('../models');
 const { Op } = require('sequelize');
 
-// @route   GET /api/comments/post/:postId
-// @desc    Get comments for a post
-// @access  Private
-router.get('/post/:postId', auth, async (req, res) => {
+// Lấy comments của một post
+const getPostComments = async (req, res) => {
   try {
     const { postId } = req.params;
     const { limit = 20, page = 1 } = req.query;
@@ -27,7 +22,7 @@ router.get('/post/:postId', auth, async (req, res) => {
     const comments = await Comment.findAndCountAll({
       where: {
         postId: postId,
-        parentCommentId: null, // Chỉ lấy comment gốc
+        parentCommentId: null, // Chỉ lấy comment gốc, không phải reply
         isActive: true
       },
       include: [
@@ -48,6 +43,17 @@ router.get('/post/:postId', auth, async (req, res) => {
               model: User,
               as: 'author',
               attributes: ['id', 'firstName', 'lastName', 'profilePicture']
+            },
+            {
+              model: Like,
+              as: 'likes',
+              include: [
+                {
+                  model: User,
+                  as: 'user',
+                  attributes: ['id', 'firstName', 'lastName']
+                }
+              ]
             }
           ]
         },
@@ -68,13 +74,24 @@ router.get('/post/:postId', auth, async (req, res) => {
       order: [['createdAt', 'ASC']]
     });
 
-    // Thêm thông tin đã like hay chưa
+    // Thêm thông tin đã like hay chưa cho comments và replies
     const commentsWithLikeStatus = comments.rows.map(comment => {
       const userLike = comment.likes.find(like => like.userId === userId);
+      
+      const repliesWithLikeStatus = comment.replies.map(reply => {
+        const replyUserLike = reply.likes.find(like => like.userId === userId);
+        return {
+          ...reply.toJSON(),
+          isLiked: !!replyUserLike,
+          likesCount: reply.likes.length
+        };
+      });
+
       return {
         ...comment.toJSON(),
         isLiked: !!userLike,
-        likesCount: comment.likes.length
+        likesCount: comment.likes.length,
+        replies: repliesWithLikeStatus
       };
     });
 
@@ -95,15 +112,14 @@ router.get('/post/:postId', auth, async (req, res) => {
     console.error('Get post comments error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi lấy bình luận'
+      message: 'Lỗi server khi lấy bình luận',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-// @route   POST /api/comments
-// @desc    Create new comment
-// @access  Private
-router.post('/', auth, async (req, res) => {
+// Tạo comment mới
+const createComment = async (req, res) => {
   try {
     const userId = req.user.id;
     const { postId, content, parentCommentId } = req.body;
@@ -123,6 +139,17 @@ router.post('/', auth, async (req, res) => {
         success: false,
         message: 'Không tìm thấy bài viết'
       });
+    }
+
+    // Nếu là reply, kiểm tra parent comment có tồn tại không
+    if (parentCommentId) {
+      const parentComment = await Comment.findByPk(parentCommentId);
+      if (!parentComment) {
+        return res.status(404).json({
+          success: false,
+          message: 'Không tìm thấy bình luận gốc'
+        });
+      }
     }
 
     // Tạo comment mới
@@ -162,15 +189,14 @@ router.post('/', auth, async (req, res) => {
     console.error('Create comment error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi tạo bình luận'
+      message: 'Lỗi server khi tạo bình luận',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-// @route   PUT /api/comments/:id
-// @desc    Update comment
-// @access  Private
-router.put('/:id', auth, async (req, res) => {
+// Cập nhật comment
+const updateComment = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -207,25 +233,35 @@ router.put('/:id', auth, async (req, res) => {
       updatedAt: new Date()
     });
 
+    // Lấy comment sau khi update
+    const updatedComment = await Comment.findByPk(id, {
+      include: [
+        {
+          model: User,
+          as: 'author',
+          attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified']
+        }
+      ]
+    });
+
     res.json({
       success: true,
       message: 'Cập nhật bình luận thành công',
-      data: { comment }
+      data: { comment: updatedComment }
     });
 
   } catch (error) {
     console.error('Update comment error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi cập nhật bình luận'
+      message: 'Lỗi server khi cập nhật bình luận',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-// @route   DELETE /api/comments/:id
-// @desc    Delete comment
-// @access  Private
-router.delete('/:id', auth, async (req, res) => {
+// Xóa comment
+const deleteComment = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -265,15 +301,14 @@ router.delete('/:id', auth, async (req, res) => {
     console.error('Delete comment error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi xóa bình luận'
+      message: 'Lỗi server khi xóa bình luận',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-// @route   POST /api/comments/:id/like
-// @desc    Like/Unlike comment
-// @access  Private
-router.post('/:id/like', auth, async (req, res) => {
+// Like/Unlike comment
+const toggleLikeComment = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -318,9 +353,96 @@ router.post('/:id/like', auth, async (req, res) => {
     console.error('Toggle like comment error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi thích/bỏ thích bình luận'
+      message: 'Lỗi server khi thích/bỏ thích bình luận',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-module.exports = router; 
+// Lấy replies của một comment
+const getCommentReplies = async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const { limit = 10, page = 1 } = req.query;
+    const userId = req.user.id;
+    const offset = (page - 1) * limit;
+
+    // Kiểm tra parent comment có tồn tại không
+    const parentComment = await Comment.findByPk(commentId);
+    if (!parentComment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy bình luận'
+      });
+    }
+
+    // Lấy replies
+    const replies = await Comment.findAndCountAll({
+      where: {
+        parentCommentId: commentId,
+        isActive: true
+      },
+      include: [
+        {
+          model: User,
+          as: 'author',
+          attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified']
+        },
+        {
+          model: Like,
+          as: 'likes',
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['id', 'firstName', 'lastName']
+            }
+          ]
+        }
+      ],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['createdAt', 'ASC']]
+    });
+
+    // Thêm thông tin đã like hay chưa
+    const repliesWithLikeStatus = replies.rows.map(reply => {
+      const userLike = reply.likes.find(like => like.userId === userId);
+      return {
+        ...reply.toJSON(),
+        isLiked: !!userLike,
+        likesCount: reply.likes.length
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        replies: repliesWithLikeStatus,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: replies.count,
+          totalPages: Math.ceil(replies.count / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get comment replies error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi lấy phản hồi bình luận',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+module.exports = {
+  getPostComments,
+  createComment,
+  updateComment,
+  deleteComment,
+  toggleLikeComment,
+  getCommentReplies
+}; 

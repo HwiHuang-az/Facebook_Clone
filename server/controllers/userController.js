@@ -1,13 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const auth = require('../middleware/auth');
 const { User, Post, Friendship, PrivacySetting } = require('../models');
 const { Op } = require('sequelize');
+const multer = require('multer');
+const path = require('path');
 
-// @route   GET /api/users/profile/:id
-// @desc    Get user profile
-// @access  Private
-router.get('/profile/:id', auth, async (req, res) => {
+// Lấy thông tin profile của user
+const getUserProfile = async (req, res) => {
   try {
     const { id } = req.params;
     const currentUserId = req.user.id;
@@ -24,7 +21,7 @@ router.get('/profile/:id', auth, async (req, res) => {
           model: Post,
           as: 'posts',
           where: { isActive: true },
-          required: false,
+          required: false, 
           limit: 10,
           order: [['createdAt', 'DESC']],
           include: [
@@ -45,9 +42,17 @@ router.get('/profile/:id', auth, async (req, res) => {
       });
     }
 
-    // Kiểm tra friendship status
+    // Kiểm tra quyền truy cập profile
+    let canViewProfile = true;
     let friendshipStatus = 'none';
+
     if (currentUserId !== parseInt(id)) {
+      // Kiểm tra privacy settings
+      const privacySetting = await PrivacySetting.findOne({
+        where: { userId: id }
+      });
+
+      // Kiểm tra friendship status
       const friendship = await Friendship.findOne({
         where: {
           [Op.or]: [
@@ -60,6 +65,18 @@ router.get('/profile/:id', auth, async (req, res) => {
       if (friendship) {
         friendshipStatus = friendship.status;
       }
+
+      // Kiểm tra quyền xem profile
+      if (privacySetting && privacySetting.profileVisibility === 'friends_only') {
+        canViewProfile = friendshipStatus === 'accepted';
+      }
+    }
+
+    if (!canViewProfile) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền xem profile này'
+      });
     }
 
     res.json({
@@ -75,15 +92,14 @@ router.get('/profile/:id', auth, async (req, res) => {
     console.error('Get user profile error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi lấy thông tin profile'
+      message: 'Lỗi server khi lấy thông tin profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-// @route   PUT /api/users/profile
-// @desc    Update user profile
-// @access  Private
-router.put('/profile', auth, async (req, res) => {
+// Cập nhật profile
+const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     const {
@@ -106,7 +122,7 @@ router.put('/profile', auth, async (req, res) => {
     }
 
     // Cập nhật thông tin user
-    await User.update(
+    const updatedUser = await User.update(
       {
         firstName,
         lastName,
@@ -117,7 +133,10 @@ router.put('/profile', auth, async (req, res) => {
         relationshipStatus,
         dateOfBirth
       },
-      { where: { id: userId } }
+      {
+        where: { id: userId },
+        returning: true
+      }
     );
 
     // Lấy thông tin user sau khi update
@@ -139,15 +158,14 @@ router.put('/profile', auth, async (req, res) => {
     console.error('Update profile error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi cập nhật profile'
+      message: 'Lỗi server khi cập nhật profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-// @route   GET /api/users/search
-// @desc    Search users
-// @access  Private
-router.get('/search', auth, async (req, res) => {
+// Tìm kiếm users
+const searchUsers = async (req, res) => {
   try {
     const { q, limit = 10, page = 1 } = req.query;
     const currentUserId = req.user.id;
@@ -183,10 +201,34 @@ router.get('/search', auth, async (req, res) => {
       order: [['firstName', 'ASC']]
     });
 
+    // Lấy friendship status cho mỗi user
+    const userIds = users.rows.map(user => user.id);
+    const friendships = await Friendship.findAll({
+      where: {
+        [Op.or]: [
+          { user1Id: currentUserId, user2Id: { [Op.in]: userIds } },
+          { user1Id: { [Op.in]: userIds }, user2Id: currentUserId }
+        ]
+      }
+    });
+
+    // Map friendship status
+    const usersWithFriendship = users.rows.map(user => {
+      const friendship = friendships.find(f => 
+        (f.user1Id === currentUserId && f.user2Id === user.id) ||
+        (f.user1Id === user.id && f.user2Id === currentUserId)
+      );
+
+      return {
+        ...user.toJSON(),
+        friendshipStatus: friendship ? friendship.status : 'none'
+      };
+    });
+
     res.json({
       success: true,
       data: {
-        users: users.rows,
+        users: usersWithFriendship,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
@@ -200,20 +242,22 @@ router.get('/search', auth, async (req, res) => {
     console.error('Search users error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi tìm kiếm người dùng'
+      message: 'Lỗi server khi tìm kiếm người dùng',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-// @route   GET /api/users/:id/friends
-// @desc    Get user's friends list
-// @access  Private
-router.get('/:id/friends', auth, async (req, res) => {
+// Lấy danh sách bạn bè
+const getFriends = async (req, res) => {
   try {
     const { id } = req.params;
     const { limit = 20, page = 1 } = req.query;
+    const currentUserId = req.user.id;
+
     const offset = (page - 1) * limit;
 
+    // Lấy danh sách friendship với status = 'accepted'
     const friendships = await Friendship.findAndCountAll({
       where: {
         [Op.or]: [
@@ -226,6 +270,7 @@ router.get('/:id/friends', auth, async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
+    // Lấy thông tin chi tiết của bạn bè
     const friendIds = friendships.rows.map(friendship => {
       return friendship.user1Id === parseInt(id) ? friendship.user2Id : friendship.user1Id;
     });
@@ -254,9 +299,93 @@ router.get('/:id/friends', auth, async (req, res) => {
     console.error('Get friends error:', error);
     res.status(500).json({
       success: false,
-      message: 'Lỗi server khi lấy danh sách bạn bè'
+      message: 'Lỗi server khi lấy danh sách bạn bè',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-});
+};
 
-module.exports = router; 
+// Upload ảnh đại diện
+const uploadProfilePicture = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng chọn file ảnh'
+      });
+    }
+
+    // Cập nhật đường dẫn ảnh đại diện
+    const profilePicturePath = `/uploads/profiles/${req.file.filename}`;
+    
+    await User.update(
+      { profilePicture: profilePicturePath },
+      { where: { id: userId } }
+    );
+
+    res.json({
+      success: true,
+      message: 'Upload ảnh đại diện thành công',
+      data: {
+        profilePicture: profilePicturePath
+      }
+    });
+
+  } catch (error) {
+    console.error('Upload profile picture error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi upload ảnh đại diện',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Upload ảnh bìa
+const uploadCoverPhoto = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng chọn file ảnh'
+      });
+    }
+
+    // Cập nhật đường dẫn ảnh bìa
+    const coverPhotoPath = `/uploads/covers/${req.file.filename}`;
+    
+    await User.update(
+      { coverPhoto: coverPhotoPath },
+      { where: { id: userId } }
+    );
+
+    res.json({
+      success: true,
+      message: 'Upload ảnh bìa thành công',
+      data: {
+        coverPhoto: coverPhotoPath
+      }
+    });
+
+  } catch (error) {
+    console.error('Upload cover photo error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi upload ảnh bìa',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+module.exports = {
+  getUserProfile,
+  updateProfile,
+  searchUsers,
+  getFriends,
+  uploadProfilePicture,
+  uploadCoverPhoto
+}; 
