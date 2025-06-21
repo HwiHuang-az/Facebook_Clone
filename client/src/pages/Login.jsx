@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'react-hot-toast';
+import ErrorDisplay from '../components/UI/ErrorDisplay';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ const Login = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
+  const [errors, setErrors] = useState([]);
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -24,13 +26,19 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors([]);
 
     try {
       await login(formData.email, formData.password);
       toast.success('Đăng nhập thành công!');
       navigate('/');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Đăng nhập thất bại');
+      const errorData = error.response?.data;
+      if (errorData?.errors) {
+        setErrors(errorData.errors);
+      } else {
+        toast.error(errorData?.message || 'Đăng nhập thất bại');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -56,6 +64,9 @@ const Login = () => {
           {/* Right Side - Login Form */}
           <div className="max-w-md w-full mx-auto lg:mx-0">
             <div className="bg-white rounded-lg shadow-facebook p-6">
+              {/* Error Display */}
+              <ErrorDisplay errors={errors} className="mb-4" />
+              
               {/* Login Form */}
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
@@ -167,6 +178,7 @@ const SignUpModal = ({ onClose }) => {
     gender: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState([]);
   const { register } = useAuth();
 
   const handleInputChange = (e) => {
@@ -179,45 +191,25 @@ const SignUpModal = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors([]);
 
     try {
       await register(formData);
       toast.success('Đăng ký thành công!');
       onClose();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Đăng ký thất bại');
+      const errorData = error.response?.data;
+      if (errorData?.errors) {
+        setErrors(errorData.errors);
+      } else {
+        toast.error(errorData?.message || 'Đăng ký thất bại');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Generate date options
-  const generateDays = () => {
-    const days = [];
-    for (let i = 1; i <= 31; i++) {
-      days.push(<option key={i} value={i}>{i}</option>);
-    }
-    return days;
-  };
 
-  const generateMonths = () => {
-    const months = [
-      'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
-      'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
-    ];
-    return months.map((month, index) => (
-      <option key={index + 1} value={index + 1}>{month}</option>
-    ));
-  };
-
-  const generateYears = () => {
-    const currentYear = new Date().getFullYear();
-    const years = [];
-    for (let i = currentYear; i >= currentYear - 100; i--) {
-      years.push(<option key={i} value={i}>{i}</option>);
-    }
-    return years;
-  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -236,6 +228,11 @@ const SignUpModal = ({ onClose }) => {
               ×
             </button>
           </div>
+        </div>
+
+        {/* Error Display */}
+        <div className="px-4">
+          <ErrorDisplay errors={errors} />
         </div>
 
         {/* Form */}
@@ -287,34 +284,17 @@ const SignUpModal = ({ onClose }) => {
           {/* Date of Birth */}
           <div>
             <label className="text-sm text-gray-500 mb-1 block">
-              Ngày sinh <span className="text-gray-400">ⓘ</span>
+              Ngày sinh
             </label>
-            <div className="grid grid-cols-3 gap-2">
-              <select
-                required
-                className="px-2 py-2 border border-gray-300 rounded-facebook text-gray-900 focus:outline-none focus:ring-1 focus:ring-facebook-600 focus:border-facebook-600"
-                onChange={(e) => setFormData({...formData, dateOfBirth: `${formData.dateOfBirth.split('-')[0] || new Date().getFullYear()}-${e.target.value.padStart(2, '0')}-${formData.dateOfBirth.split('-')[2] || '01'}`})}
-              >
-                <option value="">Tháng</option>
-                {generateMonths()}
-              </select>
-              <select
-                required
-                className="px-2 py-2 border border-gray-300 rounded-facebook text-gray-900 focus:outline-none focus:ring-1 focus:ring-facebook-600 focus:border-facebook-600"
-                onChange={(e) => setFormData({...formData, dateOfBirth: `${formData.dateOfBirth.split('-')[0] || new Date().getFullYear()}-${formData.dateOfBirth.split('-')[1] || '01'}-${e.target.value.padStart(2, '0')}`})}
-              >
-                <option value="">Ngày</option>
-                {generateDays()}
-              </select>
-              <select
-                required
-                className="px-2 py-2 border border-gray-300 rounded-facebook text-gray-900 focus:outline-none focus:ring-1 focus:ring-facebook-600 focus:border-facebook-600"
-                onChange={(e) => setFormData({...formData, dateOfBirth: `${e.target.value}-${formData.dateOfBirth.split('-')[1] || '01'}-${formData.dateOfBirth.split('-')[2] || '01'}`})}
-              >
-                <option value="">Năm</option>
-                {generateYears()}
-              </select>
-            </div>
+            <input
+              name="dateOfBirth"
+              type="date"
+              required
+              max={new Date().toISOString().split('T')[0]}
+              value={formData.dateOfBirth}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-facebook text-gray-900 focus:outline-none focus:ring-1 focus:ring-facebook-600 focus:border-facebook-600"
+            />
           </div>
 
           {/* Gender */}

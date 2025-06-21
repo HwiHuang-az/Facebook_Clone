@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const { User, Post, Friendship, PrivacySetting } = require('../models');
+const { validateProfile } = require('../middleware/validation');
+const { User, Post, Friendship } = require('../models');
 const { Op } = require('sequelize');
 
 // @route   GET /api/users/profile/:id
@@ -83,7 +84,7 @@ router.get('/profile/:id', auth, async (req, res) => {
 // @route   PUT /api/users/profile
 // @desc    Update user profile
 // @access  Private
-router.put('/profile', auth, async (req, res) => {
+router.put('/profile', auth, validateProfile, async (req, res) => {
   try {
     const userId = req.user.id;
     const {

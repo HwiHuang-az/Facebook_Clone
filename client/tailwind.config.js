@@ -9,16 +9,16 @@ module.exports = {
       colors: {
         // Facebook Brand Colors
         facebook: {
-          50: '#eff3ff',
-          100: '#dbe4fd',
-          200: '#bfcffc',
-          300: '#93b4f9',
-          400: '#6090f4',
-          500: '#3b71ef',
-          600: '#1c5cdc', // Facebook chính
-          700: '#1e4db7',
-          800: '#1e3f94',
-          900: '#1e3876',
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#1877f2',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
         },
         // Gray colors giống Facebook
         gray: {
@@ -41,7 +41,7 @@ module.exports = {
       },
       fontFamily: {
         'facebook': ['Helvetica', 'Arial', 'sans-serif'],
-        'segoe': ['"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        'segoe': ['Segoe UI', 'Segoe UI Historic', 'Segoe UI Emoji', 'Tahoma', 'Geneva', 'Verdana', 'sans-serif'],
       },
       fontSize: {
         'xxs': '0.625rem',
@@ -78,11 +78,11 @@ module.exports = {
         },
       },
       boxShadow: {
-        'facebook': '0 2px 4px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1)',
+        'facebook': '0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1)',
         'facebook-hover': '0 4px 8px rgba(0, 0, 0, .12), 0 12px 24px rgba(0, 0, 0, .15)',
-        'facebook-button': '0 1px 0 rgba(0, 0, 0, .15)',
+        'facebook-button': '0 1px 2px rgba(0, 0, 0, 0.1)',
         'card': '0 1px 2px rgba(0, 0, 0, 0.1)',
-        'dropdown': '0 2px 12px rgba(0, 0, 0, 0.15)',
+        'dropdown': '0 8px 30px rgba(0, 0, 0, 0.12)',
         'modal': '0 4px 30px rgba(0, 0, 0, 0.3)',
       },
       borderRadius: {

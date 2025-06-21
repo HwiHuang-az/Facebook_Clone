@@ -5,7 +5,7 @@ CREATE DATABASE IF NOT EXISTS facebook_clone;
 USE facebook_clone;
 
 -- Bảng Users
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE users (
 );
 
 -- Bảng Posts
-CREATE TABLE posts (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS posts (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     content TEXT,
@@ -46,7 +46,7 @@ CREATE TABLE posts (
 );
 
 -- Bảng Comments
-CREATE TABLE comments (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS comments (
     id INT PRIMARY KEY AUTO_INCREMENT,
     post_id INT NOT NULL,
     user_id INT NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE comments (
 );
 
 -- Bảng Likes
-CREATE TABLE likes (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS likes (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     post_id INT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE likes (
 );
 
 -- Bảng Friend Requests
-CREATE TABLE friend_requests (
+CREATE TABLE IF NOT EXISTS friend_requests (
     id INT PRIMARY KEY AUTO_INCREMENT,
     sender_id INT NOT NULL,
     receiver_id INT NOT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE friend_requests (
 );
 
 -- Bảng Friendships
-CREATE TABLE friendships (
+CREATE TABLE IF NOT EXISTS friendships (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user1_id INT NOT NULL,
     user2_id INT NOT NULL,
@@ -101,7 +101,7 @@ CREATE TABLE friendships (
 );
 
 -- Bảng Messages
-CREATE TABLE messages (
+CREATE TABLE IF NOT EXISTS messages (
     id INT PRIMARY KEY AUTO_INCREMENT,
     sender_id INT NOT NULL,
     receiver_id INT NOT NULL,
@@ -115,7 +115,7 @@ CREATE TABLE messages (
 );
 
 -- Bảng Notifications
-CREATE TABLE notifications (
+CREATE TABLE IF NOT EXISTS notifications (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     from_user_id INT NOT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE notifications (
 );
 
 -- Bảng Stories
-CREATE TABLE stories (
+CREATE TABLE IF NOT EXISTS stories (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     content TEXT,
@@ -146,7 +146,7 @@ CREATE TABLE stories (
 );
 
 -- Bảng Story Views
-CREATE TABLE story_views (
+CREATE TABLE IF NOT EXISTS story_views (
     id INT PRIMARY KEY AUTO_INCREMENT,
     story_id INT NOT NULL,
     user_id INT NOT NULL,
@@ -157,7 +157,7 @@ CREATE TABLE story_views (
 );
 
 -- Bảng Groups
-CREATE TABLE `groups` (
+CREATE TABLE IF NOT EXISTS `groups` (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
     description TEXT,
@@ -171,7 +171,7 @@ CREATE TABLE `groups` (
 );
 
 -- Bảng Group Members
-CREATE TABLE group_members (
+CREATE TABLE IF NOT EXISTS group_members (
     id INT PRIMARY KEY AUTO_INCREMENT,
     group_id INT NOT NULL,
     user_id INT NOT NULL,
@@ -183,7 +183,7 @@ CREATE TABLE group_members (
 );
 
 -- Bảng Pages
-CREATE TABLE pages (
+CREATE TABLE IF NOT EXISTS pages (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
     username VARCHAR(50) UNIQUE,
@@ -229,7 +229,7 @@ INSERT INTO posts (user_id, content, privacy) VALUES
 (4, 'Cuối tuần rồi! Ai có kế hoạch gì thú vị không?', 'public');
 
 -- Bảng Events (Sự kiện)
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS events (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(200) NOT NULL,
     description TEXT,
@@ -247,7 +247,7 @@ CREATE TABLE events (
 );
 
 -- Bảng Event Responses
-CREATE TABLE event_responses (
+CREATE TABLE IF NOT EXISTS event_responses (
     id INT PRIMARY KEY AUTO_INCREMENT,
     event_id INT NOT NULL,
     user_id INT NOT NULL,
@@ -260,7 +260,7 @@ CREATE TABLE event_responses (
 );
 
 -- Bảng Marketplace (Chợ)
-CREATE TABLE marketplace_items (
+CREATE TABLE IF NOT EXISTS marketplace_items (
     id INT PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(200) NOT NULL,
     description TEXT,
@@ -279,7 +279,7 @@ CREATE TABLE marketplace_items (
 );
 
 -- Bảng Saved Posts
-CREATE TABLE saved_posts (
+CREATE TABLE IF NOT EXISTS saved_posts (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     post_id INT NOT NULL,
@@ -291,7 +291,7 @@ CREATE TABLE saved_posts (
 );
 
 -- Bảng Post Shares
-CREATE TABLE post_shares (
+CREATE TABLE IF NOT EXISTS post_shares (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     post_id INT NOT NULL,
@@ -302,7 +302,7 @@ CREATE TABLE post_shares (
 );
 
 -- Bảng Blocked Users
-CREATE TABLE blocked_users (
+CREATE TABLE IF NOT EXISTS blocked_users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     blocker_id INT NOT NULL,
     blocked_id INT NOT NULL,
@@ -314,7 +314,7 @@ CREATE TABLE blocked_users (
 );
 
 -- Bảng Reports
-CREATE TABLE reports (
+CREATE TABLE IF NOT EXISTS reports (
     id INT PRIMARY KEY AUTO_INCREMENT,
     reporter_id INT NOT NULL,
     reported_user_id INT NULL,
@@ -332,7 +332,7 @@ CREATE TABLE reports (
 );
 
 -- Bảng User Sessions (for security)
-CREATE TABLE user_sessions (
+CREATE TABLE IF NOT EXISTS user_sessions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     session_token VARCHAR(255) NOT NULL,
@@ -347,7 +347,7 @@ CREATE TABLE user_sessions (
 -- ===== ADMIN PANEL TABLES (Trang quản trị) =====
 
 -- Bảng Admin Users
-CREATE TABLE admin_users (
+CREATE TABLE IF NOT EXISTS admin_users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     role ENUM('super_admin', 'admin', 'moderator', 'content_reviewer') NOT NULL,
@@ -363,7 +363,7 @@ CREATE TABLE admin_users (
 );
 
 -- Bảng Admin Actions Log
-CREATE TABLE admin_actions (
+CREATE TABLE IF NOT EXISTS admin_actions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     admin_id INT NOT NULL,
     action_type ENUM('user_ban', 'user_unban', 'post_delete', 'post_restore', 'comment_delete', 'report_review', 'user_verify', 'content_flag', 'system_config') NOT NULL,
@@ -379,7 +379,7 @@ CREATE TABLE admin_actions (
 );
 
 -- Bảng Content Moderation Queue
-CREATE TABLE moderation_queue (
+CREATE TABLE IF NOT EXISTS moderation_queue (
     id INT PRIMARY KEY AUTO_INCREMENT,
     content_type ENUM('post', 'comment', 'user_profile', 'group', 'page', 'marketplace_item') NOT NULL,
     content_id INT NOT NULL,
@@ -396,7 +396,7 @@ CREATE TABLE moderation_queue (
 );
 
 -- Bảng System Settings
-CREATE TABLE system_settings (
+CREATE TABLE IF NOT EXISTS system_settings (
     id INT PRIMARY KEY AUTO_INCREMENT,
     setting_key VARCHAR(100) UNIQUE NOT NULL,
     setting_value TEXT NOT NULL,
@@ -410,7 +410,7 @@ CREATE TABLE system_settings (
 );
 
 -- Bảng User Penalties (Hình phạt người dùng)
-CREATE TABLE user_penalties (
+CREATE TABLE IF NOT EXISTS user_penalties (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     penalty_type ENUM('warning', 'temporary_ban', 'permanent_ban', 'feature_restriction', 'shadowban') NOT NULL,
@@ -429,7 +429,7 @@ CREATE TABLE user_penalties (
 );
 
 -- Bảng Analytics Dashboard
-CREATE TABLE analytics_daily (
+CREATE TABLE IF NOT EXISTS analytics_daily (
     id INT PRIMARY KEY AUTO_INCREMENT,
     date DATE NOT NULL UNIQUE,
     new_users INT DEFAULT 0,
@@ -449,7 +449,7 @@ CREATE TABLE analytics_daily (
 );
 
 -- Bảng Content Policy Violations
-CREATE TABLE policy_violations (
+CREATE TABLE IF NOT EXISTS policy_violations (
     id INT PRIMARY KEY AUTO_INCREMENT,
     content_type ENUM('post', 'comment', 'profile', 'message', 'group', 'page') NOT NULL,
     content_id INT NOT NULL,
@@ -466,7 +466,7 @@ CREATE TABLE policy_violations (
 );
 
 -- Bảng Feature Flags (Bật/tắt tính năng)
-CREATE TABLE feature_flags (
+CREATE TABLE IF NOT EXISTS feature_flags (
     id INT PRIMARY KEY AUTO_INCREMENT,
     flag_name VARCHAR(100) UNIQUE NOT NULL,
     is_enabled BOOLEAN DEFAULT false,
@@ -480,7 +480,7 @@ CREATE TABLE feature_flags (
 );
 
 -- Bảng Server Monitoring
-CREATE TABLE server_metrics (
+CREATE TABLE IF NOT EXISTS server_metrics (
     id INT PRIMARY KEY AUTO_INCREMENT,
     metric_type ENUM('cpu_usage', 'memory_usage', 'disk_usage', 'network_io', 'database_connections', 'active_sessions') NOT NULL,
     value DECIMAL(10,2) NOT NULL,
@@ -575,7 +575,7 @@ INSERT INTO server_metrics (metric_type, value, unit, server_name) VALUES
 -- ===== BỔ SUNG HỆ THỐNG PHÂN QUYỀN CHI TIẾT =====
 
 -- Bảng User Roles (Vai trò người dùng)
-CREATE TABLE user_roles (
+CREATE TABLE IF NOT EXISTS user_roles (
     id INT PRIMARY KEY AUTO_INCREMENT,
     role_name VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
@@ -586,7 +586,7 @@ CREATE TABLE user_roles (
 );
 
 -- Bảng User Role Assignments  
-CREATE TABLE user_role_assignments (
+CREATE TABLE IF NOT EXISTS user_role_assignments (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     role_id INT NOT NULL,
@@ -601,7 +601,7 @@ CREATE TABLE user_role_assignments (
 );
 
 -- Bảng Privacy Settings (Cài đặt riêng tư)
-CREATE TABLE privacy_settings (
+CREATE TABLE IF NOT EXISTS privacy_settings (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL UNIQUE,
     profile_visibility ENUM('public', 'friends', 'friends_of_friends', 'only_me') DEFAULT 'friends',
@@ -625,7 +625,7 @@ CREATE TABLE privacy_settings (
 );
 
 -- Bảng Content Permissions (Quyền truy cập nội dung)
-CREATE TABLE content_permissions (
+CREATE TABLE IF NOT EXISTS content_permissions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     content_type ENUM('post', 'photo', 'video', 'album', 'story') NOT NULL,
     content_id INT NOT NULL,
@@ -637,7 +637,7 @@ CREATE TABLE content_permissions (
 );
 
 -- Bảng Friend Lists (Danh sách bạn bè tùy chỉnh)
-CREATE TABLE friend_lists (
+CREATE TABLE IF NOT EXISTS friend_lists (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     list_name VARCHAR(100) NOT NULL,
@@ -649,7 +649,7 @@ CREATE TABLE friend_lists (
 );
 
 -- Bảng Friend List Members
-CREATE TABLE friend_list_members (
+CREATE TABLE IF NOT EXISTS friend_list_members (
     id INT PRIMARY KEY AUTO_INCREMENT,
     list_id INT NOT NULL,
     friend_id INT NOT NULL,
@@ -660,7 +660,7 @@ CREATE TABLE friend_list_members (
 );
 
 -- Bảng Content Visibility Rules (Quy tắc hiển thị nội dung)
-CREATE TABLE content_visibility_rules (
+CREATE TABLE IF NOT EXISTS content_visibility_rules (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     rule_name VARCHAR(100) NOT NULL,
@@ -673,7 +673,7 @@ CREATE TABLE content_visibility_rules (
 );
 
 -- Bảng Account Verification Levels (Cấp độ xác minh tài khoản)
-CREATE TABLE verification_levels (
+CREATE TABLE IF NOT EXISTS verification_levels (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL UNIQUE,
     email_verified BOOLEAN DEFAULT false,
