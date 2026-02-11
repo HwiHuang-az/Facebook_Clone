@@ -53,7 +53,8 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(100)
   },
   work: {
-    type: DataTypes.STRING(100)
+    type: DataTypes.STRING(100),
+    field: 'workplace'
   },
   education: {
     type: DataTypes.STRING(100)

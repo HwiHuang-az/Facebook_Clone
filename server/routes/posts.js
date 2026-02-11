@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const { Post, User, Comment, Like, Friendship } = require('../models');
+const upload = require('../middleware/upload');
 const { Op } = require('sequelize');
 
 // @route   GET /api/posts
@@ -108,10 +109,15 @@ router.get('/', auth, async (req, res) => {
 // @route   POST /api/posts
 // @desc    Create new post
 // @access  Private
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, upload.single('image'), async (req, res) => {
   try {
     const userId = req.user.id;
-    const { content, privacy = 'friends', imageUrl, videoUrl } = req.body;
+    const { content, privacy = 'friends', videoUrl } = req.body;
+    let imageUrl = req.body.imageUrl;
+
+    if (req.file) {
+      imageUrl = req.file.path;
+    }
 
     // Validate input
     if (!content && !imageUrl && !videoUrl) {

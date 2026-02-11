@@ -10,6 +10,7 @@ const Like = sequelize.define('Like', {
   userId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'user_id',
     references: {
       model: 'users',
       key: 'id'
@@ -18,6 +19,7 @@ const Like = sequelize.define('Like', {
   postId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: 'post_id',
     references: {
       model: 'posts',
       key: 'id'
@@ -26,6 +28,7 @@ const Like = sequelize.define('Like', {
   commentId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: 'comment_id',
     references: {
       model: 'comments',
       key: 'id'
@@ -38,24 +41,27 @@ const Like = sequelize.define('Like', {
 }, {
   tableName: 'likes',
   timestamps: true,
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
+  createdAt: 'created_at',
+  updatedAt: false,
   indexes: [
     {
-      fields: ['postId']
+      fields: ['user_id']
     },
     {
-      fields: ['commentId']
+      fields: ['post_id']
     },
     {
-      fields: ['userId', 'postId'],
+      fields: ['comment_id']
+    },
+    {
+      fields: ['user_id', 'post_id'],
       unique: true,
-      name: 'unique_user_post_like'
+      name: 'unique_post_like'
     },
     {
-      fields: ['userId', 'commentId'],
+      fields: ['user_id', 'comment_id'],
       unique: true,
-      name: 'unique_user_comment_like'
+      name: 'unique_comment_like'
     }
   ],
   validate: {
@@ -70,4 +76,4 @@ const Like = sequelize.define('Like', {
   }
 });
 
-module.exports = Like; 
+module.exports = Like;

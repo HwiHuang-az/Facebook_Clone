@@ -23,6 +23,7 @@ const Message = sequelize.define('Message', {
   senderId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'sender_id',
     references: {
       model: 'users',
       key: 'id'
@@ -31,54 +32,67 @@ const Message = sequelize.define('Message', {
   receiverId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'receiver_id',
     references: {
       model: 'users',
       key: 'id'
     }
   },
-  messageType: {
-    type: DataTypes.ENUM('text', 'image', 'file', 'emoji', 'sticker'),
-    defaultValue: 'text'
+  imageUrl: {
+    type: DataTypes.STRING(255),
+    field: 'image_url',
+    allowNull: true
   },
-  attachment: {
-    type: DataTypes.STRING(500),
+  videoUrl: {
+    type: DataTypes.STRING(255),
+    field: 'video_url',
     allowNull: true
   },
   isRead: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false
+    defaultValue: false,
+    field: 'is_read'
   },
-  readAt: {
-    type: DataTypes.DATE,
-    allowNull: true
-  },
-  isDeleted: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  },
-  deletedAt: {
-    type: DataTypes.DATE,
-    allowNull: true
-  },
-  conversationId: {
-    type: DataTypes.STRING(100),
-    allowNull: false
-  }
+  // Fields not in SQL schema
+  // messageType: {
+  //   type: DataTypes.ENUM('text', 'image', 'file', 'emoji', 'sticker'),
+  //   defaultValue: 'text'
+  // },
+  // attachment: {
+  //   type: DataTypes.STRING(500),
+  //   allowNull: true
+  // },
+  // readAt: {
+  //   type: DataTypes.DATE,
+  //   allowNull: true
+  // },
+  // isDeleted: {
+  //   type: DataTypes.BOOLEAN,
+  //   defaultValue: false
+  // },
+  // deletedAt: {
+  //   type: DataTypes.DATE,
+  //   allowNull: true
+  // },
+  // conversationId: {
+  //   type: DataTypes.STRING(100),
+  //   allowNull: false
+  // }
 }, {
   tableName: 'messages',
   timestamps: true,
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
+  createdAt: 'created_at',
+  updatedAt: false,
   indexes: [
     {
-      fields: ['senderId', 'receiverId', 'createdAt']
+      fields: ['sender_id', 'receiver_id', 'created_at']
     },
-    {
-      fields: ['conversationId', 'createdAt']
-    },
-    {
-      fields: ['isRead']
-    }
+    // {
+    //   fields: ['conversationId', 'createdAt']
+    // },
+    // {
+    //   fields: ['isRead']
+    // }
   ],
   validate: {
     usersNotSame() {

@@ -10,6 +10,7 @@ const Friendship = sequelize.define('Friendship', {
   user1Id: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'user1_id',
     references: {
       model: 'users',
       key: 'id'
@@ -18,47 +19,39 @@ const Friendship = sequelize.define('Friendship', {
   user2Id: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'user2_id',
     references: {
       model: 'users',
       key: 'id'
     }
   },
-  status: {
-    type: DataTypes.ENUM('pending', 'accepted', 'declined', 'blocked'),
-    defaultValue: 'accepted'
-  },
-  initiatedBy: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id'
-    }
-  },
-  acceptedAt: {
-    type: DataTypes.DATE,
-    allowNull: true
-  }
+  // Fields not in SQL schema
+  // status: {
+  //   type: DataTypes.ENUM('pending', 'accepted', 'declined', 'blocked'),
+  //   defaultValue: 'accepted'
+  // },
+  // initiatedBy: {
+  //   type: DataTypes.INTEGER,
+  //   allowNull: false,
+  //   references: {
+  //     model: 'users',
+  //     key: 'id'
+  //   }
+  // },
+  // acceptedAt: {
+  //   type: DataTypes.DATE,
+  //   allowNull: true
+  // }
 }, {
-  tableName: 'Friendships',
+  tableName: 'friendships',
   timestamps: true,
-  underscored: false,
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
+  createdAt: 'created_at',
+  updatedAt: false,
   indexes: [
     {
-      fields: ['user1Id', 'user2Id'],
+      fields: ['user1_id', 'user2_id'],
       unique: true,
       name: 'unique_friendship'
-    },
-    {
-      fields: ['user1Id']
-    },
-    {
-      fields: ['user2Id']
-    },
-    {
-      fields: ['status']
     }
   ],
   validate: {

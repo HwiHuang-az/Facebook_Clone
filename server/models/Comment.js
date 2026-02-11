@@ -7,6 +7,33 @@ const Comment = sequelize.define('Comment', {
     primaryKey: true,
     autoIncrement: true
   },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    field: 'user_id',
+    references: {
+      model: 'users',
+      key: 'id'
+    }
+  },
+  postId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    field: 'post_id',
+    references: {
+      model: 'posts',
+      key: 'id'
+    }
+  },
+  parentCommentId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    field: 'parent_comment_id',
+    references: {
+      model: 'comments',
+      key: 'id'
+    }
+  },
   content: {
     type: DataTypes.TEXT,
     allowNull: false,
@@ -20,60 +47,42 @@ const Comment = sequelize.define('Comment', {
       }
     }
   },
-  userId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id'
-    }
-  },
-  postId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'posts',
-      key: 'id'
-    }
-  },
-  parentCommentId: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: 'comments',
-      key: 'id'
-    }
-  },
-  isEdited: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  },
-  editedAt: {
-    type: DataTypes.DATE,
-    allowNull: true
+  imageUrl: {
+    type: DataTypes.STRING(255),
+    field: 'image_url'
   },
   likesCount: {
     type: DataTypes.INTEGER,
-    defaultValue: 0
+    defaultValue: 0,
+    field: 'likes_count'
   },
-  repliesCount: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
-  }
+  // Fields not in SQL schema
+  // isEdited: {
+  //   type: DataTypes.BOOLEAN,
+  //   defaultValue: false
+  // },
+  // editedAt: {
+  //   type: DataTypes.DATE,
+  //   allowNull: true
+  // },
+  // repliesCount: {
+  //   type: DataTypes.INTEGER,
+  //   defaultValue: 0
+  // }
 }, {
   tableName: 'comments',
   timestamps: true,
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
   indexes: [
     {
-      fields: ['postId', 'createdAt']
+      fields: ['post_id', 'created_at']
     },
     {
-      fields: ['userId']
+      fields: ['user_id']
     },
     {
-      fields: ['parentCommentId']
+      fields: ['parent_comment_id']
     }
   ]
 });
