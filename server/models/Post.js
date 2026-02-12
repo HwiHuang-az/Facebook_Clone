@@ -54,6 +54,11 @@ const Post = sequelize.define('Post', {
     type: DataTypes.INTEGER,
     defaultValue: 0,
     field: 'shares_count'
+  },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    field: 'is_active'
   }
 }, {
   tableName: 'posts',
@@ -62,4 +67,14 @@ const Post = sequelize.define('Post', {
   updatedAt: 'updated_at'
 });
 
-module.exports = Post; 
+// Instance methods
+Post.prototype.toJSON = function() {
+  const values = { ...this.get() };
+  // Đảm bảo frontend luôn nhận được createdAt dù Sequelize map thế nào
+  if (!values.createdAt && values.created_at) {
+    values.createdAt = values.created_at;
+  }
+  return values;
+};
+
+module.exports = Post;

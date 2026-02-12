@@ -32,11 +32,11 @@ const Notification = sequelize.define('Notification', {
     ),
     allowNull: false
   },
-  // Fields not in SQL schema
-  // title: {
-  //   type: DataTypes.STRING(200),
-  //   allowNull: false
-  // },
+  title: {
+    type: DataTypes.STRING(200),
+    allowNull: false,
+    defaultValue: 'Notification'
+  },
   message: {
     type: DataTypes.STRING(255),
     allowNull: false
@@ -64,18 +64,20 @@ const Notification = sequelize.define('Notification', {
     defaultValue: false,
     field: 'is_read'
   },
-  // readAt: {
-  //   type: DataTypes.DATE,
-  //   allowNull: true
-  // },
-  // actionUrl: {
-  //   type: DataTypes.STRING(500),
-  //   allowNull: true
-  // },
-  // metadata: {
-  //   type: DataTypes.JSON,
-  //   allowNull: true
-  // }
+  readAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'read_at'
+  },
+  actionUrl: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    field: 'action_url'
+  },
+  metadata: {
+    type: DataTypes.JSON,
+    allowNull: true
+  }
 }, {
   tableName: 'notifications',
   timestamps: true,
@@ -100,4 +102,4 @@ const Notification = sequelize.define('Notification', {
   ]
 });
 
-module.exports = Notification; 
+module.exports = Notification;

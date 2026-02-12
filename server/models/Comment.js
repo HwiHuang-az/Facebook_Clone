@@ -56,19 +56,20 @@ const Comment = sequelize.define('Comment', {
     defaultValue: 0,
     field: 'likes_count'
   },
-  // Fields not in SQL schema
-  // isEdited: {
-  //   type: DataTypes.BOOLEAN,
-  //   defaultValue: false
-  // },
-  // editedAt: {
-  //   type: DataTypes.DATE,
-  //   allowNull: true
-  // },
-  // repliesCount: {
-  //   type: DataTypes.INTEGER,
-  //   defaultValue: 0
-  // }
+  isEdited: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    field: 'is_edited'
+  },
+  editedAt: {
+    type: DataTypes.DATE,
+    field: 'edited_at'
+  },
+  repliesCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    field: 'replies_count'
+  }
 }, {
   tableName: 'comments',
   timestamps: true,
@@ -87,4 +88,4 @@ const Comment = sequelize.define('Comment', {
   ]
 });
 
-module.exports = Comment; 
+module.exports = Comment;

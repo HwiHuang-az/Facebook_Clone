@@ -66,6 +66,9 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/posts', require('./routes/posts'));
 app.use('/api/comments', require('./routes/comments'));
 app.use('/api/friendships', require('./routes/friendships'));
+// app.use('/api/saved-posts', require('./routes/saved-posts')); // ← ĐÃ COMMENT
+// app.use('/api/privacy', require('./routes/privacy')); // ← COMMENT CÁI NÀY
+// app.use('/api/blocked-users', require('./routes/blocked-users')); // ← COMMENT CÁI NÀY
 
 // Test route
 app.get('/api', (req, res) => {

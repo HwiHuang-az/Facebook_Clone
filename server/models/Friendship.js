@@ -25,23 +25,22 @@ const Friendship = sequelize.define('Friendship', {
       key: 'id'
     }
   },
-  // Fields not in SQL schema
-  // status: {
-  //   type: DataTypes.ENUM('pending', 'accepted', 'declined', 'blocked'),
-  //   defaultValue: 'accepted'
-  // },
-  // initiatedBy: {
-  //   type: DataTypes.INTEGER,
-  //   allowNull: false,
-  //   references: {
-  //     model: 'users',
-  //     key: 'id'
-  //   }
-  // },
-  // acceptedAt: {
-  //   type: DataTypes.DATE,
-  //   allowNull: true
-  // }
+  status: {
+    type: DataTypes.ENUM('pending', 'accepted', 'declined', 'blocked'),
+    defaultValue: 'accepted',
+    allowNull: false
+  },
+  initiatedBy: {
+    type: DataTypes.INTEGER,
+    defaultValue: 1,
+    allowNull: false,
+    field: 'initiated_by'
+  },
+  acceptedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'accepted_at'
+  }
 }, {
   tableName: 'friendships',
   timestamps: true,

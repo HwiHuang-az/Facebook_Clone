@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 
 export const useFriendships = () => {
   const [loading, setLoading] = useState(false);
@@ -11,7 +11,7 @@ export const useFriendships = () => {
   const sendFriendRequest = useCallback(async (receiverId) => {
     try {
       setLoading(true);
-      const response = await axios.post('/friendships/send-request', { receiverId });
+      const response = await api.post('/friendships/send-request', { receiverId });
       return response.data;
     } catch (error) {
       throw error;
@@ -24,7 +24,7 @@ export const useFriendships = () => {
   const acceptFriendRequest = useCallback(async (friendshipId) => {
     try {
       setLoading(true);
-      const response = await axios.post('/friendships/accept-request', { friendshipId });
+      const response = await api.post('/friendships/accept-request', { friendshipId });
       
       // Cập nhật state
       setRequests(prev => prev.filter(req => req.id !== friendshipId));
@@ -41,7 +41,7 @@ export const useFriendships = () => {
   const rejectFriendRequest = useCallback(async (friendshipId) => {
     try {
       setLoading(true);
-      const response = await axios.post('/friendships/reject-request', { friendshipId });
+      const response = await api.post('/friendships/reject-request', { friendshipId });
       
       // Cập nhật state
       setRequests(prev => prev.filter(req => req.id !== friendshipId));
@@ -58,7 +58,7 @@ export const useFriendships = () => {
   const unfriend = useCallback(async (friendId) => {
     try {
       setLoading(true);
-      const response = await axios.delete('/friendships/unfriend', { data: { friendId } });
+      const response = await api.delete('/friendships/unfriend', { data: { friendId } });
       
       // Cập nhật state
       setFriends(prev => prev.filter(friend => friend.friend.id !== friendId));
@@ -75,7 +75,7 @@ export const useFriendships = () => {
   const getFriendRequests = useCallback(async (page = 1, limit = 10) => {
     try {
       setLoading(true);
-      const response = await axios.get(`/friendships/requests?page=${page}&limit=${limit}`);
+      const response = await api.get(`/friendships/requests?page=${page}&limit=${limit}`);
       setRequests(response.data.data.requests);
       return response.data;
     } catch (error) {
@@ -89,7 +89,7 @@ export const useFriendships = () => {
   const getFriends = useCallback(async (page = 1, limit = 20, search = '') => {
     try {
       setLoading(true);
-      const response = await axios.get(`/friendships/friends?page=${page}&limit=${limit}&search=${search}`);
+      const response = await api.get(`/friendships/friends?page=${page}&limit=${limit}&search=${search}`);
       setFriends(response.data.data.friends);
       return response.data;
     } catch (error) {
@@ -103,7 +103,7 @@ export const useFriendships = () => {
   const getFriendSuggestions = useCallback(async (limit = 10) => {
     try {
       setLoading(true);
-      const response = await axios.get(`/friendships/suggestions?limit=${limit}`);
+      const response = await api.get(`/friendships/suggestions?limit=${limit}`);
       setSuggestions(response.data.data.suggestions);
       return response.data;
     } catch (error) {
@@ -116,7 +116,7 @@ export const useFriendships = () => {
   // Kiểm tra trạng thái kết bạn
   const getFriendshipStatus = useCallback(async (targetUserId) => {
     try {
-      const response = await axios.get(`/friendships/status/${targetUserId}`);
+      const response = await api.get(`/friendships/status/${targetUserId}`);
       return response.data.data;
     } catch (error) {
       console.error('Error getting friendship status:', error);

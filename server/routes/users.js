@@ -27,7 +27,7 @@ router.get('/profile/:id', auth, async (req, res) => {
           where: { isActive: true },
           required: false,
           limit: 10,
-          order: [['createdAt', 'DESC']],
+          order: [['created_at', 'DESC']],
           include: [
             {
               model: User,
@@ -224,7 +224,7 @@ router.get('/:id/friends', auth, async (req, res) => {
       },
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['createdAt', 'DESC']]
+      order: [['created_at', 'DESC']]
     });
 
     const friendIds = friendships.rows.map(friendship => {

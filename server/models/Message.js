@@ -103,4 +103,4 @@ const Message = sequelize.define('Message', {
   }
 });
 
-module.exports = Message; 
+module.exports = Message;

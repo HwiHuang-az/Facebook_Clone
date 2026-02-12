@@ -10,7 +10,7 @@ const Like = sequelize.define('Like', {
   userId: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    field: 'user_id',
+    field: 'user_id', // ← Thêm dòng này
     references: {
       model: 'users',
       key: 'id'
@@ -19,7 +19,7 @@ const Like = sequelize.define('Like', {
   postId: {
     type: DataTypes.INTEGER,
     allowNull: true,
-    field: 'post_id',
+    field: 'post_id', // ← Thêm dòng này
     references: {
       model: 'posts',
       key: 'id'
@@ -28,7 +28,7 @@ const Like = sequelize.define('Like', {
   commentId: {
     type: DataTypes.INTEGER,
     allowNull: true,
-    field: 'comment_id',
+    field: 'comment_id', // ← Thêm dòng này
     references: {
       model: 'comments',
       key: 'id'
@@ -41,11 +41,11 @@ const Like = sequelize.define('Like', {
 }, {
   tableName: 'likes',
   timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: false,
+  createdAt: 'created_at', // ← Sửa thành snake_case
+  updatedAt: false, // ← SQL không có updatedAt cho bảng likes
   indexes: [
     {
-      fields: ['user_id']
+      fields: ['user_id'] // ← Sửa lại indexes
     },
     {
       fields: ['post_id']
@@ -56,12 +56,12 @@ const Like = sequelize.define('Like', {
     {
       fields: ['user_id', 'post_id'],
       unique: true,
-      name: 'unique_post_like'
+      name: 'unique_post_like' // Khớp với SQL
     },
     {
       fields: ['user_id', 'comment_id'],
       unique: true,
-      name: 'unique_comment_like'
+      name: 'unique_comment_like' // Khớp với SQL
     }
   ],
   validate: {

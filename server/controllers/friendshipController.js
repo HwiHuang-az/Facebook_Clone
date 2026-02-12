@@ -281,7 +281,7 @@ const getFriendRequests = async (req, res) => {
           attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified']
         }
       ],
-      order: [['createdAt', 'DESC']],
+      order: [['created_at', 'DESC']],
       limit: parseInt(limit),
       offset: parseInt(offset)
     });
@@ -340,7 +340,7 @@ const getFriends = async (req, res) => {
           required: false
         }
       ],
-      order: [['acceptedAt', 'DESC']],
+      order: [['accepted_at', 'DESC']],
       limit: parseInt(limit),
       offset: parseInt(offset)
     });

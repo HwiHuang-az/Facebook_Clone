@@ -1,32 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import Cookies from 'js-cookie';
 
 const AuthContext = createContext();
-
-// Configure axios defaults
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
-// Add token to all requests
-axios.interceptors.request.use((config) => {
-  const token = Cookies.get('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Handle token expiration
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      Cookies.remove('token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -44,7 +20,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const response = await axios.get('/auth/me');
+        const response = await api.get('/auth/me');
         setUser(response.data.data.user);
         setIsAuthenticated(true);
       } catch (error) {
@@ -61,7 +37,7 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = async (email, password) => {
     try {
-      const response = await axios.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', { email, password });
       const { user, token } = response.data.data;
 
       // Store token in cookie (7 days)
@@ -79,7 +55,7 @@ export const AuthProvider = ({ children }) => {
   // Register function
   const register = async (userData) => {
     try {
-      const response = await axios.post('/auth/register', userData);
+      const response = await api.post('/auth/register', userData);
       const { user, token } = response.data.data;
 
       // Store token in cookie
@@ -97,7 +73,7 @@ export const AuthProvider = ({ children }) => {
   // Logout function
   const logout = async () => {
     try {
-      await axios.post('/auth/logout');
+      await api.post('/auth/logout');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -111,7 +87,7 @@ export const AuthProvider = ({ children }) => {
   // Update user profile
   const updateProfile = async (userData) => {
     try {
-      const response = await axios.put('/users/profile', userData);
+      const response = await api.put('/users/profile', userData);
       setUser(response.data.data.user);
       return response.data;
     } catch (error) {
@@ -122,7 +98,7 @@ export const AuthProvider = ({ children }) => {
   // Change password
   const changePassword = async (currentPassword, newPassword) => {
     try {
-      const response = await axios.post('/auth/change-password', {
+      const response = await api.post('/auth/change-password', {
         currentPassword,
         newPassword
       });

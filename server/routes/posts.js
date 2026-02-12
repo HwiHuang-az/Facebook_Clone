@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const { Post, User, Comment, Like, Friendship } = require('../models');
+const { Post, User, Comment, Like, Friendship, PostShare } = require('../models');
+const postShareController = require('../controllers/postShareController');
 const upload = require('../middleware/upload');
 const { Op } = require('sequelize');
 
@@ -47,7 +48,7 @@ router.get('/', auth, async (req, res) => {
           model: Comment,
           as: 'comments',
           limit: 3,
-          order: [['createdAt', 'DESC']],
+          order: [['created_at', 'DESC']],
           include: [
             {
               model: User,
@@ -70,7 +71,7 @@ router.get('/', auth, async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['createdAt', 'DESC']]
+      order: [['created_at', 'DESC']]
     });
 
     // Thêm thông tin đã like hay chưa
@@ -113,8 +114,9 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
   try {
     const userId = req.user.id;
     const { content, privacy = 'friends', videoUrl } = req.body;
-    let imageUrl = req.body.imageUrl;
+    let { imageUrl } = req.body;
 
+    // Nếu có file upload từ multer
     if (req.file) {
       imageUrl = req.file.path;
     }
@@ -189,7 +191,7 @@ router.get('/:id', auth, async (req, res) => {
         {
           model: Comment,
           as: 'comments',
-          order: [['createdAt', 'ASC']],
+          order: [['created_at', 'ASC']],
           include: [
             {
               model: User,
@@ -384,5 +386,11 @@ router.post('/:id/like', auth, async (req, res) => {
     });
   }
 });
+
+// Share routes
+router.post('/:postId/share', auth, postShareController.sharePost);
+router.get('/:postId/shares', auth, postShareController.getPostShares);
+router.get('/shares/me', auth, postShareController.getUserShares);
+router.delete('/shares/:id', auth, postShareController.deleteShare);
 
 module.exports = router; 

@@ -118,4 +118,4 @@ User.findActive = function() {
   return this.findAll({ where: { isActive: true } });
 };
 
-module.exports = User; 
+module.exports = User;
