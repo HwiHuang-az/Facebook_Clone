@@ -113,7 +113,11 @@ const StorySection = () => {
 
                                     {/* User Profile */}
                                     <div className="absolute top-2 left-2 w-10 h-10 rounded-full border-4 border-blue-600 overflow-hidden shadow-lg z-10 bg-white">
-                                        <img src={group.user.profilePicture} alt={group.user.firstName} className="w-full h-full object-cover" />
+                                        <img
+                                            src={group.user.profilePicture || `https://ui-avatars.com/api/?name=${group.user.firstName}+${group.user.lastName}`}
+                                            alt={group.user.firstName}
+                                            className="w-full h-full object-cover"
+                                        />
                                     </div>
 
                                     {/* User Name */}

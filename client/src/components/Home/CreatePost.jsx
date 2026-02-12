@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../utils/api';
 import { toast } from 'react-hot-toast';
+import {
+    PhotoIcon,
+    FaceSmileIcon,
+    XMarkIcon
+} from '@heroicons/react/24/solid';
 
 const CreatePost = ({ onPostCreated }) => {
     const { user } = useAuth();
@@ -87,9 +92,9 @@ const CreatePost = ({ onPostCreated }) => {
                             />
                             <button
                                 onClick={removeImage}
-                                className="absolute top-2 right-2 bg-gray-800 bg-opacity-50 text-white rounded-full p-1 hover:bg-opacity-70"
+                                className="absolute top-2 right-2 bg-gray-800 bg-opacity-50 text-white rounded-full p-1 hover:bg-opacity-70 transition-colors"
                             >
-                                ✕
+                                <XMarkIcon className="h-4 w-4" />
                             </button>
                         </div>
                     )}
@@ -99,8 +104,8 @@ const CreatePost = ({ onPostCreated }) => {
             <div className="flex justify-between items-center border-t border-gray-200 pt-3">
                 <div className="flex space-x-2">
                     <label className="flex items-center space-x-2 text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-lg cursor-pointer transition-colors">
-                        <span className="text-green-500 text-xl">📷</span>
-                        <span className="font-medium text-sm">Ảnh/Video</span>
+                        <PhotoIcon className="h-6 w-6 text-green-500" />
+                        <span className="font-medium text-[15px]">Ảnh/Video</span>
                         <input
                             type="file"
                             accept="image/*"
@@ -109,8 +114,8 @@ const CreatePost = ({ onPostCreated }) => {
                         />
                     </label>
                     <button className="flex items-center space-x-2 text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-lg cursor-not-allowed opacity-50">
-                        <span className="text-yellow-500 text-xl">😊</span>
-                        <span className="font-medium text-sm">Cảm xúc</span>
+                        <FaceSmileIcon className="h-6 w-6 text-yellow-500" />
+                        <span className="font-medium text-[15px]">Cảm giác</span>
                     </button>
                 </div>
 
@@ -118,8 +123,8 @@ const CreatePost = ({ onPostCreated }) => {
                     onClick={handleSubmit}
                     disabled={loading || (!content.trim() && !image)}
                     className={`px-8 py-2 rounded-lg font-semibold text-white transition-colors ${loading || (!content.trim() && !image)
-                            ? 'bg-blue-300 cursor-not-allowed'
-                            : 'bg-blue-600 hover:bg-blue-700'
+                        ? 'bg-blue-300 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700'
                         }`}
                 >
                     {loading ? 'Đang đăng...' : 'Đăng'}

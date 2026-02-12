@@ -68,7 +68,7 @@ function AppRoutes() {
           path="/profile/:userId?" 
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout hideSidebar={true}>
                 <Profile />
               </Layout>
             </ProtectedRoute>

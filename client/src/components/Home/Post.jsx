@@ -6,6 +6,17 @@ import api from '../../utils/api';
 import Comment from './Comment';
 import { getPostComments, createComment } from '../../services/commentService';
 import { toast } from 'react-hot-toast';
+import {
+    HandThumbUpIcon as HandThumbUpIconSolid
+} from '@heroicons/react/24/solid';
+import {
+    HandThumbUpIcon,
+    ChatBubbleOvalLeftIcon,
+    ArrowUturnRightIcon,
+    EllipsisHorizontalIcon,
+    PaperAirplaneIcon
+} from '@heroicons/react/24/outline';
+import classNames from 'classnames';
 
 const Post = ({ post, onPostUpdate }) => {
     const { user } = useAuth();
@@ -111,7 +122,7 @@ const Post = ({ post, onPostUpdate }) => {
                     </div>
                 </div>
                 <button className="text-gray-400 hover:bg-gray-100 p-2 rounded-full transition-colors">
-                    <span>⋯</span>
+                    <EllipsisHorizontalIcon className="h-5 w-5" />
                 </button>
             </div>
 
@@ -140,7 +151,9 @@ const Post = ({ post, onPostUpdate }) => {
                 <div className="flex items-center space-x-1">
                     {likesCount > 0 && (
                         <>
-                            <span className="flex items-center justify-center w-5 h-5 bg-blue-500 rounded-full text-[10px] text-white">👍</span>
+                            <div className="flex items-center justify-center w-5 h-5 bg-blue-500 rounded-full">
+                                <HandThumbUpIconSolid className="h-3 w-3 text-white" />
+                            </div>
                             <span>{likesCount}</span>
                         </>
                     )}
@@ -159,22 +172,30 @@ const Post = ({ post, onPostUpdate }) => {
                 <div className="flex justify-between py-1">
                     <button
                         onClick={handleLike}
-                        className={`flex items-center space-x-2 px-3 py-2 rounded-lg flex-1 justify-center transition-colors ${isLiked ? 'text-blue-600 font-semibold bg-blue-50' : 'text-gray-600 hover:bg-gray-100'
-                            }`}
+                        className={classNames(
+                            "flex items-center space-x-2 px-3 py-2 rounded-lg flex-1 justify-center transition-colors",
+                            isLiked ? "text-blue-600 font-semibold" : "text-gray-600 hover:bg-gray-100"
+                        )}
                     >
-                        <span className={isLiked ? "scale-110" : ""}>👍</span>
+                        {isLiked ? (
+                            <HandThumbUpIconSolid className="h-5 w-5" />
+                        ) : (
+                            <HandThumbUpIcon className="h-5 w-5" />
+                        )}
                         <span>Thích</span>
                     </button>
                     <button
                         onClick={toggleComments}
-                        className={`flex items-center space-x-2 text-gray-600 px-3 py-2 rounded-lg flex-1 justify-center transition-colors ${showComments ? 'bg-gray-100' : 'hover:bg-gray-100'
-                            }`}
+                        className={classNames(
+                            "flex items-center space-x-2 text-gray-600 px-3 py-2 rounded-lg flex-1 justify-center transition-colors",
+                            showComments ? "bg-gray-100" : "hover:bg-gray-100"
+                        )}
                     >
-                        <span>💬</span>
+                        <ChatBubbleOvalLeftIcon className="h-5 w-5" />
                         <span>Bình luận</span>
                     </button>
                     <button className="flex items-center space-x-2 text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-lg flex-1 justify-center transition-colors">
-                        <span>↗️</span>
+                        <ArrowUturnRightIcon className="h-5 w-5" />
                         <span>Chia sẻ</span>
                     </button>
                 </div>
@@ -208,9 +229,9 @@ const Post = ({ post, onPostUpdate }) => {
                             <button
                                 type="submit"
                                 disabled={!commentText.trim()}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 disabled:text-gray-400 p-1"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 disabled:text-gray-400 p-1 hover:bg-gray-50 rounded-full transition-colors"
                             >
-                                ➤
+                                <PaperAirplaneIcon className="h-5 w-5" />
                             </button>
                         </form>
                     </div>

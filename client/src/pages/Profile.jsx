@@ -2,126 +2,37 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../utils/api';
 import Post from '../components/Home/Post';
-import CreatePost from '../components/Home/CreatePost';
 import { useAuth } from '../hooks/useAuth';
 import { useFriendships } from '../hooks/useFriendships';
 import { toast } from 'react-hot-toast';
+import CreateStoryModal from '../components/Profile/CreateStoryModal';
+import EditProfileModal from '../components/Profile/EditProfileModal';
 import ImageCropperModal from '../components/Profile/ImageCropperModal';
 import PhotoPickerModal from '../components/Profile/PhotoPickerModal';
-import CreateStoryModal from '../components/Profile/CreateStoryModal';
-
-const EditProfileModal = ({ user, onClose, onUpdate }) => {
-  const [formData, setFormData] = useState({
-    firstName: user.firstName || '',
-    lastName: user.lastName || '',
-    bio: user.bio || '',
-    location: user.location || '',
-    work: user.work || '',
-    education: user.education || '',
-    relationshipStatus: user.relationshipStatus || 'Độc thân',
-  });
-  const [provinces, setProvinces] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchProvinces = async () => {
-      try {
-        const response = await fetch('https://provinces.open-api.vn/api/?depth=1');
-        const data = await response.json();
-        setProvinces(data);
-      } catch (error) {
-        console.error('Fetch provinces error:', error);
-      }
-    };
-    fetchProvinces();
-  }, []);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      const res = await api.put('/users/profile', formData);
-      if (res.data.success) {
-        toast.success('Cập nhật thành công');
-        onUpdate();
-        onClose();
-      }
-    } catch (error) {
-      console.error('Update profile error:', error);
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg w-full max-w-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top duration-300">
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-bold text-center flex-1">Chỉnh sửa trang cá nhân</h2>
-          <button onClick={onClose} className="text-gray-500 hover:bg-gray-100 p-2 rounded-full transition-colors">✕</button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Họ</label>
-              <input name="firstName" value={formData.firstName} onChange={handleChange} className="w-full bg-gray-50 p-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all" required />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Tên</label>
-              <input name="lastName" value={formData.lastName} onChange={handleChange} className="w-full bg-gray-50 p-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all" required />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Tiểu sử</label>
-            <textarea name="bio" value={formData.bio} onChange={handleChange} className="w-full bg-gray-50 p-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none h-20 resize-none" placeholder="Mô tả về bản thân..." />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">🏢 Công việc</label>
-            <input name="work" value={formData.work} onChange={handleChange} className="w-full bg-gray-50 p-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Làm việc tại..." />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">🎓 Học vấn</label>
-            <input name="education" value={formData.education} onChange={handleChange} className="w-full bg-gray-50 p-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Học tại..." />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">📍 Tỉnh/Thành phố hiện tại</label>
-            <select
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
-              className="w-full bg-gray-50 p-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-            >
-              <option value="">Chọn Tỉnh/Thành phố...</option>
-              {provinces.map(p => (
-                <option key={p.code} value={p.name}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">💞 Tình trạng mối quan hệ</label>
-            <select name="relationshipStatus" value={formData.relationshipStatus} onChange={handleChange} className="w-full bg-gray-50 p-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-              <option value="Độc thân">Độc thân</option>
-              <option value="Hẹn hò">Hẹn hò</option>
-              <option value="Đã kết hôn">Đã kết hôn</option>
-              <option value="Phức tạp">Phức tạp</option>
-            </select>
-          </div>
-          <div className="pt-6 flex space-x-3">
-            <button type="button" onClick={onClose} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all">Hủy</button>
-            <button type="submit" disabled={loading} className={`flex-1 py-3 rounded-xl font-bold text-white shadow-lg transition-all ${loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'}`}>
-              {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
+import {
+  CameraIcon,
+  PlusIcon,
+  PencilIcon,
+  EllipsisHorizontalIcon,
+  ChevronDownIcon,
+  VideoCameraIcon,
+  PhotoIcon,
+  FlagIcon,
+  AdjustmentsVerticalIcon,
+  ListBulletIcon,
+  Squares2X2Icon,
+  BriefcaseIcon,
+  AcademicCapIcon,
+  HomeIcon,
+  HeartIcon,
+  UserIcon,
+  CakeIcon,
+  Cog6ToothIcon
+} from '@heroicons/react/24/solid';
+import {
+  MapPinIcon
+} from '@heroicons/react/24/outline';
+import classNames from 'classnames';
 
 const Profile = () => {
   const { userId } = useParams();
@@ -135,11 +46,18 @@ const Profile = () => {
   const [postLoading, setPostLoading] = useState(true);
   const [friendsLoading, setFriendsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('posts');
+  const [aboutSubTab, setAboutSubTab] = useState('overview');
+  const [viewMode, setViewMode] = useState('list');
   const [actionLoading, setActionLoading] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+  const [isPhotoPickerOpen, setIsPhotoPickerOpen] = useState(false);
+  const [pickerType, setPickerType] = useState(null);
   const [cropImage, setCropImage] = useState(null);
   const [cropType, setCropType] = useState(null);
+
+  const profileInputRef = React.useRef(null);
+  const coverInputRef = React.useRef(null);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -204,14 +122,8 @@ const Profile = () => {
     }
   }, [activeTab, fetchFriends]);
 
-  const profileInputRef = React.useRef(null);
-  const coverInputRef = React.useRef(null);
-
-  const [isPhotoPickerOpen, setIsPhotoPickerOpen] = useState(false);
-  const [pickerType, setPickerType] = useState(null);
-
   const handleSourceSelect = (source, type) => {
-    setCropImage(source); // source could be dataURL or external URL
+    setCropImage(source);
     setCropType(type);
     setIsPhotoPickerOpen(false);
   };
@@ -269,17 +181,12 @@ const Profile = () => {
         await acceptFriendRequest(friendshipId);
         toast.success('Đã chấp nhận lời mời kết bạn');
       } else if (actionType === 'cancel' || actionType === 'reject') {
-        // Based on useFriendships, reject uses friendshipId.
-        // Send request cancel might need a separate endpoint or reuse reject/delete.
-        // For now, let's assume reject works for both if friendshipId is provided.
         await api.post('/friendships/reject-request', { friendshipId });
         toast.success(actionType === 'cancel' ? 'Đã hủy yêu cầu' : 'Đã từ chối lời mời');
       } else if (actionType === 'unfriend') {
         await unfriend(targetId);
         toast.success('Đã hủy kết bạn');
       }
-
-      // Refresh profile to update status
       fetchProfile();
     } catch (error) {
       console.error('Friend action error:', error);
@@ -297,11 +204,10 @@ const Profile = () => {
     );
   }
 
-  const { user, friendshipStatus, isOwnProfile, friendsCount, postsCount } = profileData || {};
+  const { user, friendshipStatus, isOwnProfile, friendsCount } = profileData || {};
 
   const renderFriendButtons = () => {
     if (isOwnProfile) return null;
-
     if (friendshipStatus === 'none') {
       return (
         <button
@@ -313,7 +219,6 @@ const Profile = () => {
         </button>
       );
     }
-
     if (friendshipStatus === 'sent') {
       return (
         <button
@@ -325,7 +230,6 @@ const Profile = () => {
         </button>
       );
     }
-
     if (friendshipStatus === 'received') {
       return (
         <div className="flex space-x-2">
@@ -346,7 +250,6 @@ const Profile = () => {
         </div>
       );
     }
-
     if (friendshipStatus === 'accepted') {
       return (
         <button
@@ -358,344 +261,697 @@ const Profile = () => {
         </button>
       );
     }
-
     return null;
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="bg-gray-100 min-h-screen">
       {/* Hidden File Inputs */}
-      <input
-        type="file"
-        ref={profileInputRef}
-        onChange={(e) => handleFileSelect(e, 'profile')}
-        className="hidden"
-        accept="image/*"
-      />
-      <input
-        type="file"
-        ref={coverInputRef}
-        onChange={(e) => handleFileSelect(e, 'cover')}
-        className="hidden"
-        accept="image/*"
-      />
+      <input type="file" ref={profileInputRef} onChange={(e) => handleFileSelect(e, 'profile')} className="hidden" accept="image/*" />
+      <input type="file" ref={coverInputRef} onChange={(e) => handleFileSelect(e, 'cover')} className="hidden" accept="image/*" />
 
-      {/* Cover Photo */}
-      <div className="bg-white rounded-lg shadow-facebook overflow-hidden mb-4 relative group">
-        <div className="h-48 md:h-80 bg-gradient-to-r from-blue-400 to-purple-500 relative">
-          {user?.coverPhoto && (
-            <img src={user.coverPhoto} alt="Cover" className="w-full h-full object-cover" />
-          )}
-
-          {isOwnProfile && (
-            <button
-              onClick={() => {
-                setPickerType('cover');
-                setIsPhotoPickerOpen(true);
-              }}
-              className="absolute bottom-4 right-4 bg-white text-gray-800 px-3 py-2 rounded-lg font-semibold shadow-md hover:bg-gray-100 transition-colors flex items-center space-x-2"
-            >
-              <span>📷</span>
-              <span className="hidden md:inline">Chỉnh sửa ảnh bìa</span>
-            </button>
-          )}
-
-          <div className="absolute -bottom-12 left-4 md:left-8 flex items-end space-x-4">
-            <div className="w-24 h-24 md:w-40 md:h-40 bg-gray-300 rounded-full border-4 border-white overflow-hidden relative group">
-              {user?.profilePicture ? (
-                <img src={user.profilePicture} alt={user.firstName} className="w-full h-full object-cover" />
+      {/* Header Container */}
+      <div className="bg-white shadow-sm overflow-hidden">
+        <div className="max-w-5xl mx-auto">
+          {/* Cover Photo Area - Limited scope for absolute overlays */}
+          <div className="relative group">
+            <div className="h-48 md:h-[350px] w-full bg-gray-200 rounded-b-lg overflow-hidden relative">
+              {user?.coverPhoto ? (
+                <img src={user.coverPhoto} alt="Cover" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-blue-500 text-white text-4xl font-bold">
-                  {user?.firstName?.charAt(0)}
-                </div>
+                <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-300"></div>
               )}
 
               {isOwnProfile && (
                 <button
                   onClick={() => {
-                    setPickerType('profile');
+                    setPickerType('cover');
                     setIsPhotoPickerOpen(true);
                   }}
-                  className="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                  className="absolute bottom-4 right-4 bg-white text-gray-900 px-3 py-2 rounded-lg font-semibold shadow-md hover:bg-gray-100 transition-colors flex items-center space-x-2 z-10"
                 >
-                  <span className="text-white text-2xl">📷</span>
+                  <CameraIcon className="h-5 w-5" />
+                  <span className="hidden md:inline font-semibold">Chỉnh sửa ảnh bìa</span>
                 </button>
               )}
             </div>
-            <div className="mb-14">
-              <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-md">
-                {user?.firstName} {user?.lastName}
-              </h1>
-              <p className="text-white opacity-90 drop-shadow-sm font-medium">{friendsCount || 0} bạn bè</p>
+          </div>
+
+          {/* Profile Header Info & Actions (Flow Area) */}
+          <div className="px-4 md:px-8 pb-4">
+            <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-4 -mt-12 md:-mt-16 relative z-10">
+              {/* Left Side: Profile Pic and Info */}
+              <div className="flex flex-col md:flex-row items-center md:items-end gap-4">
+                {/* Profile Picture (Now in flow, but with negative margin to overlap) */}
+                <div className="relative group">
+                  <div className="w-40 h-40 md:w-[168px] md:h-[168px] rounded-full border-4 border-white bg-white overflow-hidden shadow-sm">
+                    {user?.profilePicture ? (
+                      <img src={user.profilePicture} alt={user.firstName} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 text-5xl font-bold">
+                        {user?.firstName?.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => {
+                        setPickerType('profile');
+                        setIsPhotoPickerOpen(true);
+                      }}
+                      className="absolute bottom-2 right-2 p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition-colors shadow-sm border border-white"
+                    >
+                      <CameraIcon className="h-5 w-5 text-gray-900" />
+                    </button>
+                  )}
+                </div>
+
+                {/* User Info */}
+                <div className="text-center md:text-left pb-2">
+                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+                    {user?.firstName} {user?.lastName}
+                  </h1>
+                  <div className="flex flex-col md:flex-row items-center md:space-x-2 mt-1">
+                    <span className="text-gray-600 font-bold text-[15px]">{friendsCount || 0} bạn bè</span>
+                    {user?.location && (
+                      <>
+                        <span className="hidden md:inline text-gray-400">•</span>
+                        <div className="flex items-center text-gray-400">
+                          <MapPinIcon className="h-4 w-4 mr-0.5" />
+                          <span className="text-[14px] font-bold">{user.location}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Friends Avatars Preview */}
+                  {friends.length > 0 && (
+                    <div className="flex mt-2 justify-center md:justify-start -space-x-2 overflow-hidden">
+                      {friends.slice(0, 8).map((friend, i) => (
+                        <img
+                          key={friend.id}
+                          className="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-gray-200"
+                          src={friend.profilePicture || `https://ui-avatars.com/api/?name=${friend.firstName}+${friend.lastName}`}
+                          alt=""
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Side: Small Action Buttons */}
+              <div className="flex items-center gap-2 pb-2">
+                {isOwnProfile ? (
+                  <>
+                    <button
+                      onClick={() => setIsStoryModalOpen(true)}
+                      className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors flex items-center space-x-1.5"
+                    >
+                      <PlusIcon className="h-4 w-4" />
+                      <span>Thêm vào tin</span>
+                    </button>
+                    <button
+                      onClick={() => setIsEditModalOpen(true)}
+                      className="bg-gray-200 text-gray-900 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-gray-300 transition-colors flex items-center space-x-1.5"
+                    >
+                      <PencilIcon className="h-4 w-4" />
+                      <span>Chỉnh sửa</span>
+                    </button>
+                    <button className="bg-gray-200 p-1.5 rounded-lg hover:bg-gray-300 transition-colors">
+                      <ChevronDownIcon className="h-4 w-4 text-gray-900" />
+                    </button>
+                  </>
+                ) : (
+                  <div className="flex space-x-2">
+                    {renderFriendButtons()}
+                    <button className="bg-gray-200 text-gray-900 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-gray-300 transition-colors">
+                      Nhắn tin
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="h-16 md:h-20 bg-white"></div>
+            <div className="border-t mt-4"></div>
 
-        {/* Profile Actions */}
-        <div className="p-4 flex justify-end items-center border-b">
-          <div className="flex space-x-2">
-            {isOwnProfile ? (
-              <>
-                <button
-                  onClick={() => setIsStoryModalOpen(true)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                >
-                  + Thêm vào tin
-                </button>
-                <button
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
-                >
-                  ✏️ Chỉnh sửa trang cá nhân
-                </button>
-              </>
-            ) : (
-              <>
-                {renderFriendButtons()}
-                <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
-                  Nhắn tin
-                </button>
-              </>
-            )}
-          </div>
-        </div>
+            {/* Desktop Navigation */}
+            <div className="flex flex-col md:flex-row items-center justify-between">
+              <div className="flex overflow-x-auto no-scrollbar py-1 w-full md:w-auto">
+                {[
+                  { id: 'posts', label: 'Tất cả' },
+                  { id: 'about', label: 'Giới thiệu' },
+                  { id: 'friends', label: 'Bạn bè' },
+                  { id: 'photos', label: 'Ảnh' },
+                  { id: 'reels', label: 'Reels' },
+                  { id: 'more', label: 'Xem thêm', hasArrow: true },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => tab.id !== 'more' && setActiveTab(tab.id)}
+                    className={classNames(
+                      "px-4 py-4 text-[15px] font-semibold transition-colors relative whitespace-nowrap",
+                      activeTab === tab.id ? "text-blue-600" : "text-gray-600 hover:bg-gray-100 rounded-lg my-1"
+                    )}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{tab.label}</span>
+                      {tab.hasArrow && <ChevronDownIcon className="h-4 w-4" />}
+                    </div>
+                    {activeTab === tab.id && (
+                      <div className="absolute bottom-0 left-4 right-4 h-1 bg-blue-600 rounded-t-lg"></div>
+                    )}
+                  </button>
+                ))}
+              </div>
 
-        {/* Edit Profile Modal */}
-        {isEditModalOpen && (
-          <EditProfileModal
-            user={user}
-            onClose={() => setIsEditModalOpen(false)}
-            onUpdate={fetchProfile}
-          />
-        )}
-
-        {/* Image Cropper Modal */}
-        {cropImage && (
-          <ImageCropperModal
-            imageSrc={cropImage}
-            type={cropType}
-            onClose={() => setCropImage(null)}
-            onCropComplete={performUpload}
-          />
-        )}
-
-        {/* Photo Picker Modal */}
-        {isPhotoPickerOpen && (
-          <PhotoPickerModal
-            userId={user?.id}
-            type={pickerType}
-            onClose={() => setIsPhotoPickerOpen(false)}
-            onSelect={(url) => handleSourceSelect(url, pickerType)}
-            onUploadClick={() => {
-              setIsPhotoPickerOpen(false);
-              if (pickerType === 'profile') profileInputRef.current.click();
-              else coverInputRef.current.click();
-            }}
-          />
-        )}
-
-        {/* Create Story Modal */}
-        {isStoryModalOpen && (
-          <CreateStoryModal
-            userId={user?.id}
-            onClose={() => setIsStoryModalOpen(false)}
-            onCreated={fetchProfile}
-          />
-        )}
-
-        {/* Profile Tabs */}
-        <div className="px-4">
-          <div className="flex space-x-1 md:space-x-8 text-gray-600 font-semibold overflow-x-auto whitespace-nowrap">
-            {['posts', 'intro', 'friends', 'photos', 'videos'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`py-4 px-2 md:px-4 capitalize transition-all border-b-4 ${activeTab === tab ? 'border-blue-600 text-blue-600' : 'border-transparent hover:bg-gray-100 rounded-md'
-                  }`}
-              >
-                {tab === 'posts' ? 'Bài viết' :
-                  tab === 'intro' ? 'Giới thiệu' :
-                    tab === 'friends' ? 'Bạn bè' :
-                      tab === 'photos' ? 'Ảnh' : 'Video'}
-              </button>
-            ))}
+              {/* More Desktop Actions */}
+              <div className="hidden md:flex py-1 items-center">
+                <div className="bg-gray-200 p-2 rounded-lg hover:bg-gray-300 cursor-pointer flex items-center justify-center">
+                  <EllipsisHorizontalIcon className="h-5 w-5 text-gray-900" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left Sidebar - Always show Intro on small screens, or as part of tabs on larger? 
-            Facebook usually shows Intro/Photos/Friends on the left and Posts on the right. */}
-        <div className="space-y-4">
-          {/* Intro */}
-          <div className="bg-white rounded-lg shadow-facebook p-4">
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Giới thiệu</h3>
-            <div className="space-y-4 text-gray-700">
-              {user?.bio && <p className="text-center italic text-gray-600 pb-2 border-b">{user.bio}</p>}
-              <div className="flex items-center space-x-3">
-                <span className="text-xl">🏢</span>
-                <span>{user?.work ? `Làm việc tại ${user.work}` : 'Chưa cập nhật nơi làm việc'}</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <span className="text-xl">🎓</span>
-                <span>{user?.education ? `Học tại ${user.education}` : 'Chưa cập nhật học vấn'}</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <span className="text-xl">📍</span>
-                <span>{user?.location ? `Sống tại ${user.location}` : 'Chưa cập nhật địa chỉ'}</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <span className="text-xl">💞</span>
-                <span className="capitalize">{user?.relationshipStatus || 'Độc thân'}</span>
-              </div>
-            </div>
-            {isOwnProfile && (
-              <button
-                onClick={() => setIsEditModalOpen(true)}
-                className="w-full mt-4 bg-gray-100 hover:bg-gray-200 font-semibold text-gray-700 py-2 rounded-lg transition-colors"
-              >
-                Chỉnh sửa chi tiết
-              </button>
-            )}
-          </div>
-
-          {/* Photos (Mock) */}
-          <div className="bg-white rounded-lg shadow-facebook p-4">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-xl font-bold text-gray-900">Ảnh</h3>
-              <button onClick={() => setActiveTab('photos')} className="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded transition-colors">Xem tất cả</button>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((photo) => (
-                <div key={photo} className="aspect-square bg-gray-200 rounded-lg hover:opacity-80 transition-opacity cursor-pointer"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-4">
+      {/* Profile Page Content Area */}
+      <div className="max-w-5xl mx-auto px-4 py-4">
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Left Column - Intro & Photos Sidebar */}
           {activeTab === 'posts' && (
-            <>
-              {/* Create Post */}
-              {isOwnProfile && <CreatePost onPostCreated={fetchUserPosts} />}
+            <div className="lg:w-[40%] space-y-4 text-gray-900">
+              <div className="bg-white rounded-lg shadow-sm p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold">Thông tin cá nhân</h2>
+                  {isOwnProfile && <PencilIcon className="h-4 w-4 text-gray-500 cursor-pointer hover:bg-gray-100 p-1 rounded" />}
+                </div>
 
-              {/* Posts Feed */}
-              <div className="space-y-4">
-                {postLoading ? (
-                  <div className="text-center py-4 text-gray-500">Đang tải bài viết...</div>
-                ) : posts.length === 0 ? (
-                  <div className="bg-white p-8 rounded-lg shadow-facebook text-center text-gray-500">
-                    Chưa có bài viết nào để hiển thị.
+                <div className="space-y-4">
+                  {user?.location && (
+                    <div className="flex items-start space-x-3 text-[15px]">
+                      <HomeIcon className="h-5 w-5 text-gray-500 mt-0.5" />
+                      <span>Sống ở <span className="font-bold">{user.location}</span></span>
+                    </div>
+                  )}
+                  {user?.hometown && (
+                    <div className="flex items-start space-x-3 text-[15px]">
+                      <MapPinIcon className="h-5 w-5 text-gray-500 mt-0.5" />
+                      <span>Đến từ <span className="font-bold">{user.hometown}</span></span>
+                    </div>
+                  )}
+                  {user?.dateOfBirth && (
+                    <div className="flex items-start space-x-3 text-[15px]">
+                      <CakeIcon className="h-5 w-5 text-gray-500 mt-0.5" />
+                      <span>Sinh nhật <span className="font-bold">{new Date(user.dateOfBirth).toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })}</span></span>
+                    </div>
+                  )}
+                  <div className="flex items-start space-x-3 text-[15px]">
+                    <HeartIcon className="h-5 w-5 text-gray-500 mt-0.5" />
+                    <span className="capitalize">{user?.relationshipStatus ? (user.relationshipStatus === 'single' ? 'Độc thân' : user.relationshipStatus === 'in_relationship' ? 'Hẹn hò' : user.relationshipStatus === 'married' ? 'Đã kết hôn' : 'Phức tạp') : 'Độc thân'}</span>
                   </div>
-                ) : (
-                  posts.map((post) => (
-                    <Post key={post.id} post={post} />
-                  ))
-                )}
+                  {user?.gender && (
+                    <div className="flex items-start space-x-3 text-[15px]">
+                      <UserIcon className="h-5 w-5 text-gray-500 mt-0.5" />
+                      <span>{user.gender === 'male' ? 'Nam' : user.gender === 'female' ? 'Nữ' : 'Khác'}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </>
-          )}
 
-          {activeTab === 'intro' && (
-            <div className="bg-white rounded-lg shadow-facebook p-6">
-              <h3 className="text-2xl font-bold mb-4">Giới thiệu</h3>
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-semibold text-gray-500 text-sm mb-2">CÔNG VIỆC</h4>
-                  <p className="text-lg">{user?.work || 'Chưa cập nhật'}</p>
+              {/* Work & Education Section */}
+              {(user?.work || user?.education) && (
+                <div className="bg-white rounded-lg shadow-sm p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold">Công việc & Học vấn</h2>
+                    {isOwnProfile && (
+                      <button onClick={() => setIsEditModalOpen(true)} className="text-gray-500 hover:bg-gray-100 p-1.5 rounded-full transition-colors">
+                        <PencilIcon className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-4">
+                    {user?.work && (
+                      <div className="flex items-start space-x-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold text-xs shrink-0">
+                          {user.work.substring(0, 4).toUpperCase()}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-[15px]">{user.work}</p>
+                          <p className="text-sm text-gray-500">Nhân viên</p>
+                        </div>
+                      </div>
+                    )}
+                    {user?.education && (
+                      <div className="flex items-start space-x-3">
+                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600 font-bold text-xs shrink-0">
+                          {user.education.substring(0, 4).toUpperCase()}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-[15px]">{user.education}</p>
+                          <p className="text-sm text-gray-500">Sinh viên</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-gray-500 text-sm mb-2">HỌC VẤN</h4>
-                  <p className="text-lg">{user?.education || 'Chưa cập nhật'}</p>
+              )}
+
+              {/* Photos Widget */}
+              <div className="bg-white rounded-lg shadow-sm p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold">Ảnh</h2>
+                  <button className="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded font-semibold text-[15px]">Xem tất cả ảnh</button>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-gray-500 text-sm mb-2">ĐỊA CHỈ</h4>
-                  <p className="text-lg">{user?.location || 'Chưa cập nhật'}</p>
+                <div className="grid grid-cols-3 gap-2 rounded-lg overflow-hidden min-h-[100px]">
+                  {posts.filter(p => p.imageUrl).slice(0, 9).length > 0 ? (
+                    posts.filter(p => p.imageUrl).slice(0, 9).map((post, i) => (
+                      <img key={i} src={post.imageUrl} className="h-28 w-full object-cover hover:opacity-90 cursor-pointer shadow-sm border" alt="" />
+                    ))
+                  ) : (
+                    <div className="col-span-3 text-center py-4 text-gray-500 text-sm">Chưa có ảnh nào</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Friends Widget */}
+              <div className="bg-white rounded-lg shadow-sm p-4">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold">Bạn bè</h2>
+                    <span className="text-gray-500 text-[15px]">{friendsCount || 0} người bạn</span>
+                  </div>
+                  <button className="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded font-semibold text-[15px]">Xem tất cả bạn bè</button>
+                </div>
+                <div className="grid grid-cols-3 gap-x-2 gap-y-4">
+                  {friends.slice(0, 9).map((friend) => (
+                    <div key={friend.id} onClick={() => { setActiveTab('posts'); window.location.href = `/profile/${friend.id}` }} className="cursor-pointer group">
+                      <img
+                        src={friend.profilePicture || `https://ui-avatars.com/api/?name=${friend.firstName}+${friend.lastName}`}
+                        className="h-28 w-full object-cover rounded-lg group-hover:opacity-90 shadow-sm"
+                        alt=""
+                      />
+                      <p className="text-[13px] font-bold mt-1 truncate">{friend.firstName} {friend.lastName}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           )}
 
-          {activeTab === 'friends' && (
-            <div className="bg-white rounded-lg shadow-facebook p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold">Bạn bè</h3>
-                <span className="text-gray-500 font-medium">{friendsCount || 0} người bạn</span>
-              </div>
+          {/* Right Column - Timeline/Feed */}
+          <div className={classNames(
+            "space-y-4",
+            activeTab === 'posts' ? "lg:w-[60%]" : "lg:w-full"
+          )}>
+            {activeTab === 'posts' && (
+              <>
+                {isOwnProfile && (
+                  <div className="bg-white rounded-lg shadow-sm p-4">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <img src={user?.profilePicture || `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}`} className="w-10 h-10 rounded-full" alt="" />
+                      <button className="flex-1 bg-gray-100 hover:bg-gray-200 rounded-full py-2 px-4 text-left text-gray-500">
+                        Bạn đang nghĩ gì?
+                      </button>
+                    </div>
+                    <div className="flex border-t pt-2">
+                      <button className="flex-1 flex items-center justify-center py-2 hover:bg-gray-100 rounded-lg space-x-2 transition-colors">
+                        <VideoCameraIcon className="h-6 w-6 text-red-500" />
+                        <span className="text-gray-600 font-semibold text-sm">Video trực tiếp</span>
+                      </button>
+                      <button className="flex-1 flex items-center justify-center py-2 hover:bg-gray-100 rounded-lg space-x-2 transition-colors">
+                        <PhotoIcon className="h-6 w-6 text-green-500" />
+                        <span className="text-gray-600 font-semibold text-sm">Ảnh/video</span>
+                      </button>
+                      <button className="flex-1 flex items-center justify-center py-2 hover:bg-gray-100 rounded-lg space-x-2 transition-colors">
+                        <FlagIcon className="h-6 w-6 text-blue-400" />
+                        <span className="text-gray-600 font-semibold text-sm">Cột mốc</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
 
-              {friendsLoading ? (
-                <div className="text-center py-10 text-gray-500">Đang tải danh sách bạn bè...</div>
-              ) : friends.length === 0 ? (
-                <div className="text-center py-10 text-gray-500">Chưa có bạn bè nào để hiển thị.</div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {friends.map((friend) => (
-                    <div key={friend.id} className="flex items-center space-x-4 p-3 border rounded-xl hover:bg-gray-50 transition-colors">
-                      <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                        {friend.profilePicture ? (
-                          <img src={friend.profilePicture} alt={friend.firstName} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-blue-500 text-white text-2xl font-bold">
-                            {friend.firstName.charAt(0)}
+                {/* Post Management Header */}
+                <div className="bg-white rounded-lg shadow-sm p-4 mt-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold">Bài viết</h2>
+                    <div className="flex space-x-2">
+                      <button className="bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg flex items-center space-x-2 text-sm font-semibold">
+                        <AdjustmentsVerticalIcon className="h-5 w-5" />
+                        <span>Bộ lọc</span>
+                      </button>
+                      <button className="bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg flex items-center space-x-2 text-sm font-semibold">
+                        <Cog6ToothIcon className="h-5 w-5" />
+                        <span>Quản lý bài viết</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex border-t pt-1">
+                    <button
+                      onClick={() => setViewMode('list')}
+                      className={classNames(
+                        "flex-1 flex items-center justify-center py-2 transition-colors",
+                        viewMode === 'list' ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-600 hover:bg-gray-50"
+                      )}
+                    >
+                      <ListBulletIcon className="h-5 w-5 mr-2" />
+                      <span className="font-semibold text-sm">Chế độ xem danh sách</span>
+                    </button>
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={classNames(
+                        "flex-1 flex items-center justify-center py-2 transition-colors",
+                        viewMode === 'grid' ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-600 hover:bg-gray-50"
+                      )}
+                    >
+                      <Squares2X2Icon className="h-5 w-5 mr-2" />
+                      <span className="font-semibold text-sm">Chế độ xem lưới</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className={classNames(
+                  "space-y-4",
+                  viewMode === 'grid' ? "grid grid-cols-3 gap-1 space-y-0" : ""
+                )}>
+                  {postLoading ? (
+                    <div className={classNames(
+                      "text-center py-10 bg-white rounded-lg shadow-sm w-full",
+                      viewMode === 'grid' ? "col-span-3" : ""
+                    )}>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    </div>
+                  ) : posts.length === 0 ? (
+                    <div className={classNames(
+                      "bg-white p-10 text-center rounded-lg shadow-sm text-gray-500 font-bold border w-full",
+                      viewMode === 'grid' ? "col-span-3" : ""
+                    )}>
+                      Chưa có bài viết nào
+                    </div>
+                  ) : viewMode === 'list' ? (
+                    posts.map((post) => (
+                      <Post key={post.id} post={post} />
+                    ))
+                  ) : (
+                    posts.filter(p => p.imageUrl).map((post) => (
+                      <div key={post.id} className="aspect-square w-full relative group cursor-pointer">
+                        <img src={post.imageUrl} className="w-full h-full object-cover" alt="" />
+                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
+
+            {activeTab === 'about' && (
+              <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col md:flex-row min-h-[400px]">
+                {/* About Tabs Sidebar */}
+                <div className="w-full md:w-1/3 bg-gray-50 border-r py-2">
+                  <h2 className="px-4 py-2 text-xl font-bold mb-2">Giới thiệu</h2>
+                  {[
+                    { id: 'overview', label: 'Tổng quan' },
+                    { id: 'work', label: 'Công việc và học vấn' },
+                    { id: 'places', label: 'Nơi từng sống' },
+                    { id: 'contact', label: 'Thông tin liên hệ và cơ bản' },
+                    { id: 'family', label: 'Gia đình và các mối quan hệ' },
+                  ].map((sub) => (
+                    <button
+                      key={sub.id}
+                      onClick={() => setAboutSubTab(sub.id)}
+                      className={classNames(
+                        "w-full text-left px-4 py-2.5 text-[15px] font-semibold transition-colors",
+                        aboutSubTab === sub.id ? "bg-blue-50 text-blue-600 border-l-4 border-blue-600" : "text-gray-600 hover:bg-gray-100"
+                      )}
+                    >
+                      {sub.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* About Content Area */}
+                <div className="flex-1 p-6">
+                  {aboutSubTab === 'overview' && (
+                    <div className="space-y-6">
+                      <h3 className="text-[17px] font-bold">Tổng quan</h3>
+                      <div className="space-y-4">
+                        {user?.work && (
+                          <div className="flex items-center space-x-3 text-gray-600">
+                            <BriefcaseIcon className="h-6 w-6 text-gray-400" />
+                            <span>Làm việc tại <span className="font-bold text-gray-900">{user.work}</span></span>
+                          </div>
+                        )}
+                        {user?.education && (
+                          <div className="flex items-center space-x-3 text-gray-600">
+                            <AcademicCapIcon className="h-6 w-6 text-gray-400" />
+                            <span>Từng học tại <span className="font-bold text-gray-900">{user.education}</span></span>
+                          </div>
+                        )}
+                        {user?.location && (
+                          <div className="flex items-center space-x-3 text-gray-600">
+                            <HomeIcon className="h-6 w-6 text-gray-400" />
+                            <span>Sống tại <span className="font-bold text-gray-900">{user.location}</span></span>
+                          </div>
+                        )}
+                        <div className="flex items-center space-x-3 text-gray-600">
+                          <HeartIcon className="h-6 w-6 text-gray-400" />
+                          <span>{user?.relationshipStatus === 'single' ? 'Độc thân' : 'Trong một mối quan hệ'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {aboutSubTab === 'work' && (
+                    <div className="space-y-6">
+                      <h3 className="text-[17px] font-bold">Công việc và học vấn</h3>
+                      <div className="space-y-8">
+                        <div>
+                          <p className="text-gray-500 font-bold mb-4 uppercase text-xs tracking-wider">Công việc</p>
+                          {user?.work ? (
+                            <div className="flex items-center space-x-3">
+                              <BriefcaseIcon className="h-8 w-8 text-gray-400" />
+                              <div>
+                                <p className="font-bold">{user.work}</p>
+                                <p className="text-sm text-gray-500">Nhân viên</p>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-gray-400 italic">Chưa có thông tin công việc</p>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-gray-500 font-bold mb-4 uppercase text-xs tracking-wider">Học vấn</p>
+                          {user?.education ? (
+                            <div className="flex items-center space-x-3">
+                              <AcademicCapIcon className="h-8 w-8 text-gray-400" />
+                              <div>
+                                <p className="font-bold">{user.education}</p>
+                                <p className="text-sm text-gray-500">Sinh viên</p>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-gray-400 italic">Chưa có thông tin học vấn</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {aboutSubTab === 'places' && (
+                    <div className="space-y-6">
+                      <h3 className="text-[17px] font-bold">Nơi từng sống</h3>
+                      <div className="space-y-4">
+                        {user?.location && (
+                          <div className="flex items-center space-x-3">
+                            <HomeIcon className="h-8 w-8 text-gray-400" />
+                            <div>
+                              <p className="font-bold">{user.location}</p>
+                              <p className="text-sm text-gray-500">Tỉnh/Thành phố hiện tại</p>
+                            </div>
                           </div>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-lg text-gray-900 truncate">
-                          {friend.firstName} {friend.lastName}
-                        </h4>
-                        <p className="text-sm text-gray-500">80 bạn chung</p>
+                    </div>
+                  )}
+
+                  {aboutSubTab === 'contact' && (
+                    <div className="space-y-6">
+                      <h3 className="text-[17px] font-bold">Thông tin liên hệ và cơ bản</h3>
+                      <div className="space-y-8">
+                        <div>
+                          <p className="text-gray-500 font-bold mb-4 uppercase text-xs tracking-wider">Thông tin liên hệ</p>
+                          <div className="space-y-4">
+                            <div className="flex items-center space-x-3">
+                              <UserIcon className="h-6 w-6 text-gray-400" />
+                              <div>
+                                <p className="font-bold">{user.email}</p>
+                                <p className="text-sm text-gray-500">Email</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 font-bold mb-4 uppercase text-xs tracking-wider">Thông tin cơ bản</p>
+                          <div className="space-y-4">
+                            <div className="flex items-center space-x-3">
+                              <CakeIcon className="h-6 w-6 text-gray-400" />
+                              <div>
+                                <p className="font-bold">{user?.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Chưa cập nhật'}</p>
+                                <p className="text-sm text-gray-500">Ngày sinh</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <UserIcon className="h-6 w-6 text-gray-400" />
+                              <div>
+                                <p className="font-bold">{user?.gender === 'male' ? 'Nam' : user?.gender === 'female' ? 'Nữ' : 'Khác'}</p>
+                                <p className="text-sm text-gray-500">Giới tính</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <button className="bg-gray-200 text-gray-800 px-3 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors whitespace-nowrap">
-                        Xem hồ sơ
-                      </button>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                  )}
 
-          {activeTab === 'photos' && (
-            <div className="bg-white rounded-lg shadow-facebook p-6">
-              <h3 className="text-2xl font-bold mb-6">Ảnh</h3>
-              {posts.filter(p => p.imageUrl).length === 0 ? (
-                <div className="text-center py-10 text-gray-500">Chưa có ảnh nào.</div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {posts.filter(p => p.imageUrl).map((post) => (
-                    <div key={post.id} className="aspect-square bg-gray-100 rounded-lg overflow-hidden group relative cursor-pointer shadow-sm border">
-                      <img src={post.imageUrl} alt="User Post" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                  {aboutSubTab === 'family' && (
+                    <div className="space-y-6">
+                      <h3 className="text-[17px] font-bold">Gia đình và các mối quan hệ</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-3">
+                          <HeartIcon className="h-8 w-8 text-gray-400" />
+                          <div>
+                            <p className="font-bold">{user?.relationshipStatus ? (user.relationshipStatus === 'single' ? 'Độc thân' : user.relationshipStatus === 'in_relationship' ? 'Hẹn hò' : user.relationshipStatus === 'married' ? 'Đã kết hôn' : 'Phức tạp') : 'Độc thân'}</p>
+                            <p className="text-sm text-gray-500">Tình trạng mối quan hệ</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
 
-          {activeTab === 'videos' && (
-            <div className="bg-white rounded-lg shadow-facebook p-6">
-              <h3 className="text-2xl font-bold mb-6">Video</h3>
-              {posts.filter(p => p.videoUrl).length === 0 ? (
-                <div className="text-center py-10 text-gray-500">Chưa có video nào.</div>
-              ) : (
+            {activeTab === 'friends' && (
+              <div className="bg-white rounded-lg shadow-sm p-6 min-h-[400px]">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold">Bạn bè</h2>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Tìm kiếm bạn bè"
+                      className="bg-gray-100 rounded-full py-1.5 px-4 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    />
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {posts.filter(p => p.videoUrl).map((post) => (
-                    <div key={post.id} className="rounded-lg overflow-hidden bg-black aspect-video relative group border shadow-sm">
-                      <video src={post.videoUrl} className="w-full h-full object-contain" controls />
+                  {friends.length > 0 ? (
+                    friends.map((friend) => (
+                      <div
+                        key={friend.id}
+                        onClick={() => window.location.href = `/profile/${friend.id}`}
+                        className="flex items-center space-x-4 p-4 border rounded-xl hover:bg-gray-50 cursor-pointer transition-colors"
+                      >
+                        <img
+                          src={friend.profilePicture || `https://ui-avatars.com/api/?name=${friend.firstName}+${friend.lastName}`}
+                          className="w-20 h-20 rounded-lg object-cover"
+                          alt=""
+                        />
+                        <div className="flex-1">
+                          <p className="font-bold text-[17px] hover:underline">{friend.firstName} {friend.lastName}</p>
+                          <p className="text-sm text-gray-500">10 bạn chung</p>
+                        </div>
+                        <button className="p-2 hover:bg-gray-200 rounded-full">
+                          <EllipsisHorizontalIcon className="h-6 w-6 text-gray-600" />
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-2 text-center py-20 text-gray-500 font-bold">
+                      Chưa có bạn bè nào để hiển thị
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+
+            {activeTab === 'photos' && (
+              <div className="bg-white rounded-lg shadow-sm p-6 min-h-[400px]">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold">Ảnh</h2>
+                  <div className="flex space-x-2">
+                    <button className="text-blue-600 font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-50">Lời mời kết bạn</button>
+                    <button className="text-blue-600 font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-50">Tìm bạn bè</button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {posts.filter(p => p.imageUrl).length > 0 ? (
+                    posts.filter(p => p.imageUrl).map((post) => (
+                      <div key={post.id} className="aspect-square rounded-lg overflow-hidden border cursor-pointer hover:opacity-95 transition-opacity">
+                        <img src={post.imageUrl} className="w-full h-full object-cover" alt="" />
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-20 text-gray-500 font-bold">
+                      Chưa có ảnh nào để hiển thị
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'videos' && (
+              <div className="bg-white rounded-lg shadow-sm p-8 text-center min-h-[400px] flex flex-col items-center justify-center text-gray-500 border">
+                <div className="text-4xl mb-4">🎬</div>
+                <p className="font-bold text-xl">Tính năng đang phát triển</p>
+                <p>Mục này sẽ sớm có cập nhật dữ liệu thực tế.</p>
+                <button onClick={() => setActiveTab('posts')} className="mt-4 text-blue-600 font-bold hover:underline">Quay lại Bài viết</button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Modals */}
+      {isEditModalOpen && (
+        <EditProfileModal
+          user={user}
+          onClose={() => setIsEditModalOpen(false)}
+          onUpdate={fetchProfile}
+        />
+      )}
+
+      {cropImage && (
+        <ImageCropperModal
+          imageSrc={cropImage}
+          type={cropType}
+          onClose={() => setCropImage(null)}
+          onCropComplete={performUpload}
+        />
+      )}
+
+      {isPhotoPickerOpen && (
+        <PhotoPickerModal
+          userId={user?.id}
+          type={pickerType}
+          onClose={() => setIsPhotoPickerOpen(false)}
+          onSelect={(url) => handleSourceSelect(url, pickerType)}
+          onUploadClick={() => {
+            setIsPhotoPickerOpen(false);
+            if (pickerType === 'profile') profileInputRef.current.click();
+            else coverInputRef.current.click();
+          }}
+        />
+      )}
+
+      {isStoryModalOpen && (
+        <CreateStoryModal
+          onClose={() => setIsStoryModalOpen(false)}
+          onCreated={fetchProfile}
+        />
+      )}
     </div>
   );
 };
 
-export default Profile; 
+export default Profile;
