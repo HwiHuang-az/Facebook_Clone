@@ -5,7 +5,7 @@ const { Op } = require('sequelize');
 const getAllPosts = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { limit = 10, page = 1 } = req.query;
+    const { limit = 10, page = 1, type } = req.query;
     const offset = (page - 1) * limit;
 
     // Lấy danh sách bạn bè
@@ -25,12 +25,18 @@ const getAllPosts = async (req, res) => {
     // Thêm user hiện tại vào danh sách để xem posts của chính mình
     friendIds.push(userId);
 
-    // Lấy posts từ bạn bè và chính mình
-    const posts = await Post.findAndCountAll({
-      where: {
+    const whereClause = {
         userId: { [Op.in]: friendIds },
         isActive: true
-      },
+    };
+
+    if (type) {
+        whereClause.type = type;
+    }
+
+    // Lấy posts từ bạn bè và chính mình
+    const posts = await Post.findAndCountAll({
+      where: whereClause,
       include: [
         {
           model: User,
@@ -105,7 +111,7 @@ const getAllPosts = async (req, res) => {
 const createPost = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { content, privacy = 'friends', imageUrl, videoUrl } = req.body;
+    const { content, privacy = 'friends', imageUrl, videoUrl, type } = req.body;
 
     // Validate input
     if (!content && !imageUrl && !videoUrl) {
@@ -121,7 +127,8 @@ const createPost = async (req, res) => {
       content,
       privacy,
       imageUrl,
-      videoUrl
+      videoUrl,
+      type: type || 'normal'
     });
 
     // Lấy post vừa tạo kèm thông tin author

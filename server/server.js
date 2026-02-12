@@ -70,6 +70,9 @@ app.use('/api/stories', require('./routes/stories'));
 app.use('/api/saved-posts', require('./routes/saved-posts'));
 app.use('/api/privacy', require('./routes/privacy'));
 app.use('/api/blocked-users', require('./routes/blocked-users'));
+app.use('/api/marketplace', require('./routes/marketplace'));
+app.use('/api/groups', require('./routes/groups'));
+app.use('/api/pages', require('./routes/pages'));
 
 // Test route
 app.get('/api', (req, res) => {

@@ -6,6 +6,7 @@ import api from '../../utils/api';
 import Comment from './Comment';
 import { getPostComments, createComment } from '../../services/commentService';
 import { toast } from 'react-hot-toast';
+import VideoPlayer from '../Video/VideoPlayer';
 import {
     HandThumbUpIcon as HandThumbUpIconSolid
 } from '@heroicons/react/24/solid';
@@ -81,6 +82,12 @@ const Post = ({ post, onPostUpdate }) => {
         }
     };
 
+    const isVideo = (url) => {
+        if (!url) return false;
+        const videoExtensions = ['.mp4', '.mov', '.webm', '.ogg'];
+        return videoExtensions.some(ext => url.toLowerCase().includes(ext)) || url.includes('/video/upload/');
+    };
+
     return (
         <div className="bg-white rounded-lg shadow-facebook mb-4 transition-all duration-200">
             {/* Post Header */}
@@ -133,16 +140,27 @@ const Post = ({ post, onPostUpdate }) => {
                 </div>
             )}
 
-            {/* Post Image */}
-            {post.imageUrl && (
-                <div className={`bg-gray-50 border-y border-gray-100 py-4 flex justify-center ${post.type === 'profile_update' ? 'bg-gradient-to-b from-gray-50 to-white' : ''}`}>
-                    <img
-                        src={post.imageUrl}
-                        alt="Post content"
-                        className={`w-full h-auto max-h-[600px] object-contain mx-auto shadow-sm ${post.type === 'profile_update' ? 'rounded-full w-64 h-64 md:w-80 md:h-80 border-8 border-white shadow-xl object-cover' : ''
-                            }`}
-                        onClick={() => window.open(post.imageUrl, '_blank')}
-                    />
+            {/* Post Media (Image or Video) */}
+            {(post.imageUrl || post.videoUrl) && (
+                <div className={`bg-gray-50 border-y border-gray-100 ${post.type === 'profile_update' ? 'bg-gradient-to-b from-gray-50 to-white py-4' : ''} flex justify-center`}>
+                    {post.type === 'reel' || isVideo(post.imageUrl) || post.videoUrl ? (
+                        <VideoPlayer
+                            src={post.imageUrl || post.videoUrl}
+                            className="w-full h-auto max-h-[600px]"
+                            onViewTracked={() => {
+                                // Track video view
+                                api.post(`/posts/${post.id}/view`).catch(err => console.error('View tracking error:', err));
+                            }}
+                        />
+                    ) : (
+                        <img
+                            src={post.imageUrl}
+                            alt="Post content"
+                            className={`w-full h-auto max-h-[600px] object-contain mx-auto shadow-sm cursor-pointer ${post.type === 'profile_update' ? 'rounded-full w-64 h-64 md:w-80 md:h-80 border-8 border-white shadow-xl object-cover' : ''
+                                }`}
+                            onClick={() => window.open(post.imageUrl, '_blank')}
+                        />
+                    )}
                 </div>
             )}
 

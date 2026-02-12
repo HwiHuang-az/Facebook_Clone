@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import CreatePost from '../components/Home/CreatePost';
 import Post from '../components/Home/Post';
 import StorySection from '../components/Home/StorySection';
+import RightSidebar from '../components/Layout/RightSidebar';
 import api from '../utils/api';
 import { toast } from 'react-hot-toast';
 
@@ -29,27 +30,36 @@ const Home = () => {
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
+
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Stories & Reels Section */}
-      <StorySection />
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      {/* Main Feed Column */}
+      <div className="lg:col-span-3 space-y-4 max-w-2xl mx-auto w-full">
+        {/* Stories & Reels Section */}
+        <StorySection />
 
-      {/* Create Post */}
-      <CreatePost onPostCreated={fetchPosts} />
+        {/* Create Post */}
+        <CreatePost onPostCreated={fetchPosts} />
 
-      {/* Posts Feed */}
-      <div className="space-y-4">
-        {loading ? (
-          <div className="text-center py-4 text-gray-500">Đang tải...</div>
-        ) : posts.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 bg-white rounded-lg shadow-facebook">
-            Chưa có bài viết nào. Hãy là người đầu tiên đăng bài!
-          </div>
-        ) : (
-          posts.map((post) => (
-            <Post key={post.id} post={post} />
-          ))
-        )}
+        {/* Posts Feed */}
+        <div className="space-y-4">
+          {loading ? (
+            <div className="text-center py-4 text-gray-500">Đang tải...</div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 bg-white rounded-lg shadow-facebook">
+              Chưa có bài viết nào. Hãy là người đầu tiên đăng bài!
+            </div>
+          ) : (
+            posts.map((post) => (
+              <Post key={post.id} post={post} />
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Right Sidebar Column */}
+      <div className="hidden lg:block lg:col-span-1">
+        <RightSidebar />
       </div>
     </div>
   );

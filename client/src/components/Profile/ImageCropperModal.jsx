@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { getCroppedImg } from '../../utils/imageUtils';
+import { XMarkIcon, MinusIcon, PlusIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 
 function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
     return centerCrop(
@@ -57,7 +58,9 @@ const ImageCropperModal = ({ imageSrc, type, onClose, onCropComplete }) => {
                     <h2 className="text-xl font-bold text-gray-900">
                         Cắt ảnh {type === 'profile' ? 'đại diện' : 'bìa'}
                     </h2>
-                    <button onClick={onClose} className="text-gray-500 hover:bg-gray-100 p-2 rounded-full transition-colors">✕</button>
+                    <button onClick={onClose} className="text-gray-500 hover:bg-gray-100 p-2 rounded-full transition-colors">
+                        <XMarkIcon className="h-6 w-6" />
+                    </button>
                 </div>
 
                 <div className="p-8 bg-gray-50 flex flex-col items-center">
@@ -85,7 +88,9 @@ const ImageCropperModal = ({ imageSrc, type, onClose, onCropComplete }) => {
                     {/* Controls */}
                     <div className="mt-8 w-full max-w-sm space-y-6">
                         <div className="flex items-center space-x-4">
-                            <span className="text-gray-500">➖</span>
+                            <button className="text-gray-500 hover:text-gray-900 transition-colors">
+                                <MinusIcon className="h-5 w-5" />
+                            </button>
                             <input
                                 type="range"
                                 min="1"
@@ -93,17 +98,19 @@ const ImageCropperModal = ({ imageSrc, type, onClose, onCropComplete }) => {
                                 step="0.1"
                                 value={scale}
                                 onChange={(e) => setScale(Number(e.target.value))}
-                                className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
                             />
-                            <span className="text-gray-500">➕</span>
+                            <button className="text-gray-500 hover:text-gray-900 transition-colors">
+                                <PlusIcon className="h-5 w-5" />
+                            </button>
                         </div>
 
                         <div className="flex justify-center">
                             <button
                                 onClick={() => setRotate((r) => (r + 90) % 360)}
-                                className="text-gray-600 hover:text-blue-600 font-medium flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+                                className="text-gray-600 hover:text-gray-900 font-medium flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
                             >
-                                <span>🔄</span>
+                                <ArrowPathIcon className="h-5 w-5" />
                                 <span>Xoay ảnh</span>
                             </button>
                         </div>
@@ -113,15 +120,15 @@ const ImageCropperModal = ({ imageSrc, type, onClose, onCropComplete }) => {
                 <div className="p-4 flex justify-end space-x-3 border-t bg-gray-50">
                     <button
                         onClick={onClose}
-                        className="px-8 bg-white border border-gray-300 text-gray-700 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors"
+                        className="px-6 bg-white border border-gray-300 text-gray-700 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors"
                     >
                         Hủy
                     </button>
                     <button
                         onClick={handleDone}
-                        className="px-8 bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-blue-200 shadow-lg"
+                        className="px-6 bg-gray-900 text-white py-2 rounded-lg font-bold hover:bg-black transition-colors shadow-lg"
                     >
-                        Lưu
+                        Lưu thay đổi
                     </button>
                 </div>
             </div>

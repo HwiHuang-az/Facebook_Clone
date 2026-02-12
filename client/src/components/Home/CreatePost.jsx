@@ -8,19 +8,23 @@ import {
     XMarkIcon
 } from '@heroicons/react/24/solid';
 
-const CreatePost = ({ onPostCreated }) => {
+const CreatePost = ({ onPostCreated, initialImage = null }) => {
     const { user } = useAuth();
     const [content, setContent] = useState('');
-    const [image, setImage] = useState(null);
-    const [preview, setPreview] = useState(null);
+    const [image, setImage] = useState(initialImage);
+    const [preview, setPreview] = useState(initialImage ? URL.createObjectURL(initialImage) : null);
     const [loading, setLoading] = useState(false);
 
-    const handleImageChange = (e) => {
+    const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
             setImage(file);
             setPreview(URL.createObjectURL(file));
         }
+    };
+
+    const isVideoFile = (file) => {
+        return file && file.type.startsWith('video/');
     };
 
     const removeImage = () => {
@@ -85,11 +89,19 @@ const CreatePost = ({ onPostCreated }) => {
 
                     {preview && (
                         <div className="relative mt-2">
-                            <img
-                                src={preview}
-                                alt="Preview"
-                                className="w-full max-h-60 object-cover rounded-lg"
-                            />
+                            {isVideoFile(image) ? (
+                                <video
+                                    src={preview}
+                                    className="w-full max-h-60 object-cover rounded-lg"
+                                    controls
+                                />
+                            ) : (
+                                <img
+                                    src={preview}
+                                    alt="Preview"
+                                    className="w-full max-h-60 object-cover rounded-lg"
+                                />
+                            )}
                             <button
                                 onClick={removeImage}
                                 className="absolute top-2 right-2 bg-gray-800 bg-opacity-50 text-white rounded-full p-1 hover:bg-opacity-70 transition-colors"
@@ -108,8 +120,8 @@ const CreatePost = ({ onPostCreated }) => {
                         <span className="font-medium text-[15px]">Ảnh/Video</span>
                         <input
                             type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
+                            accept="image/*,video/*"
+                            onChange={handleFileChange}
                             className="hidden"
                         />
                     </label>

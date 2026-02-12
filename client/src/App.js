@@ -11,6 +11,10 @@ import Friends from './pages/Friends';
 import Messages from './pages/Messages';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
+import Watch from './pages/Watch';
+import Marketplace from './pages/Marketplace';
+import Groups from './pages/Groups';
+import Pages from './pages/Pages';
 
 // Components
 import Layout from './components/Layout/Layout';
@@ -103,6 +107,50 @@ function AppRoutes() {
             <ProtectedRoute>
               <Layout>
                 <Notifications />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/pages/*" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Pages />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/groups/*" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Groups />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/marketplace/*" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Marketplace />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/watch/*" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Watch />
               </Layout>
             </ProtectedRoute>
           } 

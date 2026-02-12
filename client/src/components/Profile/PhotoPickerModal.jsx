@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
+import { XMarkIcon, ArrowUpTrayIcon } from '@heroicons/react/24/solid';
 
 const PhotoPickerModal = ({ userId, type, onClose, onSelect, onUploadClick }) => {
     const [photos, setPhotos] = useState([]);
@@ -29,15 +30,17 @@ const PhotoPickerModal = ({ userId, type, onClose, onSelect, onUploadClick }) =>
                     <h2 className="text-2xl font-bold text-gray-900">
                         Chọn ảnh {type === 'profile' ? 'đại diện' : 'bìa'}
                     </h2>
-                    <button onClick={onClose} className="text-gray-500 hover:bg-gray-100 p-2 rounded-full transition-colors font-bold text-xl">✕</button>
+                    <button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 p-2 rounded-full transition-colors text-gray-900">
+                        <XMarkIcon className="h-6 w-6" />
+                    </button>
                 </div>
 
                 <div className="flex space-x-4 py-4">
                     <button
                         onClick={onUploadClick}
-                        className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold py-3 rounded-xl transition-colors flex items-center justify-center space-x-2"
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-3 rounded-xl transition-colors flex items-center justify-center space-x-2 border"
                     >
-                        <span>📤</span>
+                        <ArrowUpTrayIcon className="h-5 w-5" />
                         <span>Tải ảnh lên</span>
                     </button>
                 </div>

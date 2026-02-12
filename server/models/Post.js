@@ -56,7 +56,7 @@ const Post = sequelize.define('Post', {
     field: 'shares_count'
   },
   type: {
-    type: DataTypes.ENUM('normal', 'profile_update', 'cover_update'),
+    type: DataTypes.ENUM('normal', 'profile_update', 'cover_update', 'reel'),
     defaultValue: 'normal'
   },
   isActive: {
