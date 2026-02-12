@@ -41,7 +41,7 @@ const getAllPosts = async (req, res) => {
           model: Comment,
           as: 'comments',
           limit: 3,
-          order: [['createdAt', 'DESC']],
+          order: [['created_at', 'DESC']],
           include: [
             {
               model: User,
@@ -64,7 +64,7 @@ const getAllPosts = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['createdAt', 'DESC']]
+      order: [['created_at', 'DESC']]
     });
 
     // Thêm thông tin đã like hay chưa
@@ -176,7 +176,7 @@ const getPost = async (req, res) => {
         {
           model: Comment,
           as: 'comments',
-          order: [['createdAt', 'ASC']],
+          order: [['created_at', 'ASC']],
           include: [
             {
               model: User,
@@ -473,7 +473,7 @@ const getUserPosts = async (req, res) => {
           model: Comment,
           as: 'comments',
           limit: 3,
-          order: [['createdAt', 'DESC']],
+          order: [['created_at', 'DESC']],
           include: [
             {
               model: User,
@@ -496,7 +496,7 @@ const getUserPosts = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['createdAt', 'DESC']]
+      order: [['created_at', 'DESC']]
     });
 
     // Thêm thông tin đã like hay chưa

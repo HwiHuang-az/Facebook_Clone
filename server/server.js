@@ -51,7 +51,7 @@ db.sequelize.authenticate()
 
 // Sync database models
 if (process.env.NODE_ENV === 'development') {
-  db.sequelize.sync({ alter: true })
+  db.sequelize.sync()
     .then(() => {
       console.log('✅ Database models synchronized');
     })
@@ -66,9 +66,10 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/posts', require('./routes/posts'));
 app.use('/api/comments', require('./routes/comments'));
 app.use('/api/friendships', require('./routes/friendships'));
-// app.use('/api/saved-posts', require('./routes/saved-posts')); // ← ĐÃ COMMENT
-// app.use('/api/privacy', require('./routes/privacy')); // ← COMMENT CÁI NÀY
-// app.use('/api/blocked-users', require('./routes/blocked-users')); // ← COMMENT CÁI NÀY
+app.use('/api/stories', require('./routes/stories'));
+app.use('/api/saved-posts', require('./routes/saved-posts'));
+app.use('/api/privacy', require('./routes/privacy'));
+app.use('/api/blocked-users', require('./routes/blocked-users'));
 
 // Test route
 app.get('/api', (req, res) => {

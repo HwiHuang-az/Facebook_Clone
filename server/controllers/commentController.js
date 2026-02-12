@@ -37,7 +37,7 @@ const getPostComments = async (req, res) => {
           where: { isActive: true },
           required: false,
           limit: 3,
-          order: [['createdAt', 'ASC']],
+          order: [['created_at', 'ASC']],
           include: [
             {
               model: User,
@@ -71,7 +71,7 @@ const getPostComments = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['createdAt', 'ASC']]
+      order: [['created_at', 'ASC']]
     });
 
     // Thêm thông tin đã like hay chưa cho comments và replies
@@ -402,7 +402,7 @@ const getCommentReplies = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['createdAt', 'ASC']]
+      order: [['created_at', 'ASC']]
     });
 
     // Thêm thông tin đã like hay chưa

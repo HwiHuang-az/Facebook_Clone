@@ -18,7 +18,7 @@ router.get('/profile/:id', auth, async (req, res) => {
       attributes: [
         'id', 'firstName', 'lastName', 'email', 'profilePicture', 
         'coverPhoto', 'bio', 'dateOfBirth', 'gender', 'location',
-        'work', 'education', 'relationshipStatus', 'isVerified', 'createdAt'
+        'work', 'education', 'relationshipStatus', 'isVerified', ['created_at', 'createdAt']
       ],
       include: [
         {
@@ -48,6 +48,8 @@ router.get('/profile/:id', auth, async (req, res) => {
 
     // Kiểm tra friendship status
     let friendshipStatus = 'none';
+    let friendshipId = null;
+
     if (currentUserId !== parseInt(id)) {
       const friendship = await Friendship.findOne({
         where: {
@@ -60,15 +62,46 @@ router.get('/profile/:id', auth, async (req, res) => {
 
       if (friendship) {
         friendshipStatus = friendship.status;
+        friendshipId = friendship.id;
+        
+        if (friendship.status === 'pending') {
+          if (friendship.user1Id === currentUserId) {
+            friendshipStatus = 'sent';
+          } else {
+            friendshipStatus = 'received';
+          }
+        }
       }
     }
+
+    // Tính số lượng bạn bè
+    const friendsCount = await Friendship.count({
+      where: {
+        [Op.or]: [
+          { user1Id: id },
+          { user2Id: id }
+        ],
+        status: 'accepted'
+      }
+    });
+
+    // Tính số lượng bài viết
+    const postsCount = await Post.count({
+      where: {
+        userId: id,
+        isActive: true
+      }
+    });
 
     res.json({
       success: true,
       data: {
         user,
         friendshipStatus,
-        isOwnProfile: currentUserId === parseInt(id)
+        friendshipId,
+        isOwnProfile: currentUserId === parseInt(id),
+        friendsCount,
+        postsCount
       }
     });
 
@@ -259,5 +292,23 @@ router.get('/:id/friends', auth, async (req, res) => {
     });
   }
 });
+
+const userController = require('../controllers/userController');
+const upload = require('../middleware/upload');
+
+// @route   POST /api/users/upload-profile-picture
+// @desc    Upload profile picture
+// @access  Private
+router.post('/upload-profile-picture', auth, upload.single('image'), userController.uploadProfilePicture);
+
+// @route   POST /api/users/upload-cover-photo
+// @desc    Upload cover photo
+// @access  Private
+router.post('/upload-cover-photo', auth, upload.single('image'), userController.uploadCoverPhoto);
+
+// @route   GET /api/users/:id/photos
+// @desc    Get user's photos
+// @access  Private
+router.get('/:id/photos', auth, userController.getUserPhotos);
 
 module.exports = router; 

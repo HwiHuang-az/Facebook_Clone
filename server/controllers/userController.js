@@ -14,7 +14,7 @@ const getUserProfile = async (req, res) => {
       attributes: [
         'id', 'firstName', 'lastName', 'email', 'profilePicture', 
         'coverPhoto', 'bio', 'dateOfBirth', 'gender', 'location',
-        'work', 'education', 'relationshipStatus', 'isVerified', 'createdAt'
+        'work', 'education', 'relationshipStatus', 'isVerified', ['created_at', 'createdAt']
       ],
       include: [
         {
@@ -23,7 +23,7 @@ const getUserProfile = async (req, res) => {
           where: { isActive: true },
           required: false, 
           limit: 10,
-          order: [['createdAt', 'DESC']],
+          order: [['created_at', 'DESC']],
           include: [
             {
               model: User,
@@ -267,7 +267,7 @@ const getFriends = async (req, res) => {
       },
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['createdAt', 'DESC']]
+      order: [['created_at', 'DESC']]
     });
 
     // Lấy thông tin chi tiết của bạn bè
@@ -317,13 +317,22 @@ const uploadProfilePicture = async (req, res) => {
       });
     }
 
-    // Cập nhật đường dẫn ảnh đại diện
-    const profilePicturePath = `/uploads/profiles/${req.file.filename}`;
+    // Cập nhật đường dẫn ảnh đại diện (lấy từ Cloudinary)
+    const profilePicturePath = req.file.path;
     
     await User.update(
       { profilePicture: profilePicturePath },
       { where: { id: userId } }
     );
+
+    // Tự động đăng bài timeline
+    await Post.create({
+      userId,
+      content: 'đã cập nhật ảnh đại diện của mình.',
+      imageUrl: profilePicturePath,
+      type: 'profile_update',
+      privacy: 'public'
+    });
 
     res.json({
       success: true,
@@ -355,13 +364,22 @@ const uploadCoverPhoto = async (req, res) => {
       });
     }
 
-    // Cập nhật đường dẫn ảnh bìa
-    const coverPhotoPath = `/uploads/covers/${req.file.filename}`;
+    // Cập nhật đường dẫn ảnh bìa (lấy từ Cloudinary)
+    const coverPhotoPath = req.file.path;
     
     await User.update(
       { coverPhoto: coverPhotoPath },
       { where: { id: userId } }
     );
+
+    // Tự động đăng bài timeline
+    await Post.create({
+      userId,
+      content: 'đã cập nhật ảnh bìa của mình.',
+      imageUrl: coverPhotoPath,
+      type: 'cover_update',
+      privacy: 'public'
+    });
 
     res.json({
       success: true,
@@ -381,11 +399,45 @@ const uploadCoverPhoto = async (req, res) => {
   }
 };
 
+// Lấy tất cả ảnh của user từ các post
+const getUserPhotos = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const posts = await Post.findAll({
+      where: {
+        userId: id,
+        imageUrl: { [Op.ne]: null },
+        isActive: true
+      },
+      attributes: ['imageUrl', 'created_at'],
+      order: [['created_at', 'DESC']]
+    });
+
+    const photos = posts.map(p => ({
+      url: p.imageUrl,
+      createdAt: p.created_at
+    }));
+
+    res.json({
+      success: true,
+      data: photos
+    });
+  } catch (error) {
+    console.error('Get user photos error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi lấy ảnh'
+    });
+  }
+};
+
 module.exports = {
   getUserProfile,
   updateProfile,
   searchUsers,
   getFriends,
   uploadProfilePicture,
-  uploadCoverPhoto
-}; 
+  uploadCoverPhoto,
+  getUserPhotos
+};

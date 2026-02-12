@@ -393,4 +393,83 @@ router.get('/:postId/shares', auth, postShareController.getPostShares);
 router.get('/shares/me', auth, postShareController.getUserShares);
 router.delete('/shares/:id', auth, postShareController.deleteShare);
 
+// @route   GET /api/posts/user/:userId
+// @desc    Get posts by user ID
+// @access  Private
+router.get('/user/:userId', auth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { limit = 10, page = 1 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const posts = await Post.findAndCountAll({
+      where: {
+        userId: userId,
+        isActive: true
+      },
+      include: [
+        {
+          model: User,
+          as: 'author',
+          attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified']
+        },
+        {
+          model: Comment,
+          as: 'comments',
+          limit: 3,
+          order: [['created_at', 'DESC']],
+          include: [
+            {
+              model: User,
+              as: 'author',
+              attributes: ['id', 'firstName', 'lastName', 'profilePicture']
+            }
+          ]
+        },
+        {
+          model: Like,
+          as: 'likes',
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['id', 'firstName', 'lastName']
+            }
+          ]
+        }
+      ],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['created_at', 'DESC']]
+    });
+
+    const postsWithStatus = posts.rows.map(post => ({
+      ...post.toJSON(),
+      isLiked: post.likes.some(like => like.userId === req.user.id),
+      likesCount: post.likes.length,
+      commentsCount: post.comments.length
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        posts: postsWithStatus,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: posts.count,
+          totalPages: Math.ceil(posts.count / limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get user posts error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi lấy bài viết người dùng'
+    });
+  }
+});
+
 module.exports = router; 

@@ -92,6 +92,11 @@ const Post = ({ post, onPostUpdate }) => {
                         <h3 className="font-semibold text-gray-900 hover:underline cursor-pointer">
                             {post.author.firstName} {post.author.lastName}
                             {post.author.isVerified && <span className="text-blue-500 ml-1">✓</span>}
+                            {(post.type === 'profile_update' || post.type === 'cover_update') && (
+                                <span className="text-gray-500 font-normal ml-1">
+                                    {post.content}
+                                </span>
+                            )}
                         </h3>
                         <p className="text-xs text-gray-500">
                             {post.createdAt ? (
@@ -111,17 +116,20 @@ const Post = ({ post, onPostUpdate }) => {
             </div>
 
             {/* Post Content */}
-            <div className="px-4 pb-3">
-                <p className="text-gray-900 whitespace-pre-wrap text-sm md:text-base">{post.content}</p>
-            </div>
+            {post.type === 'normal' && post.content && (
+                <div className="px-4 pb-3">
+                    <p className="text-gray-900 whitespace-pre-wrap text-sm md:text-base">{post.content}</p>
+                </div>
+            )}
 
             {/* Post Image */}
             {post.imageUrl && (
-                <div className="bg-gray-50 border-y border-gray-100">
+                <div className={`bg-gray-50 border-y border-gray-100 py-4 flex justify-center ${post.type === 'profile_update' ? 'bg-gradient-to-b from-gray-50 to-white' : ''}`}>
                     <img
                         src={post.imageUrl}
                         alt="Post content"
-                        className="w-full h-auto max-h-[600px] object-contain mx-auto"
+                        className={`w-full h-auto max-h-[600px] object-contain mx-auto shadow-sm ${post.type === 'profile_update' ? 'rounded-full w-64 h-64 md:w-80 md:h-80 border-8 border-white shadow-xl object-cover' : ''
+                            }`}
                         onClick={() => window.open(post.imageUrl, '_blank')}
                     />
                 </div>

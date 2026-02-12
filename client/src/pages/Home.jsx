@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import CreatePost from '../components/Home/CreatePost';
 import Post from '../components/Home/Post';
+import StorySection from '../components/Home/StorySection';
 import api from '../utils/api';
 import { toast } from 'react-hot-toast';
 
@@ -30,20 +31,8 @@ const Home = () => {
   }, [fetchPosts]);
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Stories Section */}
-      <div className="bg-white rounded-lg shadow-facebook p-4 mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Stories</h2>
-        <div className="flex space-x-3 overflow-x-auto">
-          <div className="flex-shrink-0 w-20 h-32 bg-gradient-to-b from-blue-400 to-blue-600 rounded-lg flex items-end justify-center text-white text-sm font-medium cursor-pointer">
-            <span className="mb-2">Tạo Story</span>
-          </div>
-          {/* Placeholder stories */}
-          {[1, 2, 3, 4, 5].map((story) => (
-            <div key={story} className="flex-shrink-0 w-20 h-32 bg-gray-300 rounded-lg cursor-pointer">
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Stories & Reels Section */}
+      <StorySection />
 
       {/* Create Post */}
       <CreatePost onPostCreated={fetchPosts} />
