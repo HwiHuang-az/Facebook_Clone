@@ -6,19 +6,22 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(Cookies.get('token') || null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Check if user is logged in on app start
   useEffect(() => {
     const checkAuth = async () => {
-      const token = Cookies.get('token');
+      const storedToken = Cookies.get('token');
       
-      if (!token) {
+      if (!storedToken) {
+        setToken(null);
         setLoading(false);
         return;
       }
 
+      setToken(storedToken);
       try {
         const response = await api.get('/auth/me');
         setUser(response.data.data.user);
@@ -26,6 +29,7 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         console.error('Auth check failed:', error);
         Cookies.remove('token');
+        setToken(null);
       } finally {
         setLoading(false);
       }
@@ -44,6 +48,7 @@ export const AuthProvider = ({ children }) => {
       Cookies.set('token', token, { expires: 7, secure: process.env.NODE_ENV === 'production' });
       
       setUser(user);
+      setToken(token);
       setIsAuthenticated(true);
       
       return response.data;
@@ -62,6 +67,7 @@ export const AuthProvider = ({ children }) => {
       Cookies.set('token', token, { expires: 7, secure: process.env.NODE_ENV === 'production' });
       
       setUser(user);
+      setToken(token);
       setIsAuthenticated(true);
       
       return response.data;
@@ -79,6 +85,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       Cookies.remove('token');
       setUser(null);
+      setToken(null);
       setIsAuthenticated(false);
       window.location.href = '/login';
     }
@@ -110,6 +117,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    token,
     loading,
     isAuthenticated,
     login,

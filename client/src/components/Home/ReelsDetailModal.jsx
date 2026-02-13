@@ -1,14 +1,19 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, HeartIcon, ChatBubbleOvalLeftIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../utils/api';
-import { toast } from 'react-hot-toast';
+import VideoPlayer from '../Video/VideoPlayer';
+import VideoShareModal from '../Video/VideoShareModal';
+import SavePostButton from '../Post/SavePostButton';
+
 
 const ReelsDetailModal = ({ reels, initialIndex, onClose }) => {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
     const { user } = useAuth();
-    const videoRef = useRef(null);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [showComments, setShowComments] = useState(false);
+
     const currentReel = reels[currentIndex];
 
     const [isLiked, setIsLiked] = useState(currentReel?.isLiked || false);
@@ -45,12 +50,29 @@ const ReelsDetailModal = ({ reels, initialIndex, onClose }) => {
         }
     };
 
-    // Auto-play when index changes
-    useEffect(() => {
-        if (videoRef.current) {
-            videoRef.current.play().catch(e => console.log("Auto-play blocked"));
+    const handleKeyPress = (e) => {
+        if (e.key === 'ArrowRight') {
+            handleNext();
+        } else if (e.key === 'ArrowLeft') {
+            handlePrev();
+        } else if (e.key === 'Escape') {
+            onClose();
         }
-    }, [currentIndex]);
+    };
+
+    useEffect(() => {
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [currentIndex, reels.length]);
+
+    const handleVideoEnd = () => {
+        // Auto-play next reel when current one ends
+        if (currentIndex < reels.length - 1) {
+            setTimeout(() => {
+                handleNext();
+            }, 500); // Small delay before next reel
+        }
+    };
 
     if (!currentReel) return null;
 
@@ -84,17 +106,14 @@ const ReelsDetailModal = ({ reels, initialIndex, onClose }) => {
 
             {/* Video Container */}
             <div className="relative h-full w-full max-w-[450px] aspect-[9/16] flex flex-col justify-center">
-                <video
-                    ref={videoRef}
+                <VideoPlayer
                     src={currentReel.imageUrl}
-                    className="w-full h-full object-contain"
-                    loop
-                    autoPlay
-                    controlsList="nodownload"
-                    onClick={(e) => {
-                        if (videoRef.current.paused) videoRef.current.play();
-                        else videoRef.current.pause();
+                    className="w-full h-full"
+                    autoPlay={true}
+                    onViewTracked={() => {
+                        api.post(`/posts/${currentReel.id}/view`).catch(err => console.error('View tracking error:', err));
                     }}
+                    onEnded={handleVideoEnd}
                 />
 
                 {/* Info Overlay (Bottom) */}
@@ -130,19 +149,34 @@ const ReelsDetailModal = ({ reels, initialIndex, onClose }) => {
                         <span className="text-white text-xs font-bold mt-1 drop-shadow-md">{likesCount}</span>
                     </button>
 
-                    <button className="flex flex-col items-center group">
-                        <div className="p-3 bg-gray-800 bg-opacity-50 rounded-full group-hover:bg-opacity-70 transition-all shadow-xl">
+                    <button
+                        onClick={() => setShowComments(!showComments)}
+                        className="flex flex-col items-center group"
+                    >
+                        <div className={classNames(
+                            "p-3 rounded-full transition-all shadow-xl",
+                            showComments ? "bg-blue-600" : "bg-gray-800 bg-opacity-50 group-hover:bg-opacity-70"
+                        )}>
                             <ChatBubbleOvalLeftIcon className="h-6 w-6 text-white" />
                         </div>
                         <span className="text-white text-xs font-bold mt-1 drop-shadow-md">{currentReel.commentsCount || 0}</span>
                     </button>
 
-                    <button className="flex flex-col items-center group">
+                    <button
+                        onClick={() => setShowShareModal(true)}
+                        className="flex flex-col items-center group"
+                    >
                         <div className="p-3 bg-gray-800 bg-opacity-50 rounded-full group-hover:bg-opacity-70 transition-all shadow-xl">
                             <PaperAirplaneIcon className="h-6 w-6 text-white -rotate-45" />
                         </div>
                         <span className="text-white text-xs font-bold mt-1 drop-shadow-md">Share</span>
                     </button>
+
+                    <SavePostButton
+                        postId={currentReel.id}
+                        className="!bg-gray-800 !bg-opacity-50 !rounded-full !p-3 hover:!bg-opacity-70 !flex-col !space-x-0 group"
+                    />
+
 
                     <div className="w-10 h-10 rounded-lg overflow-hidden border-2 border-white shadow-lg animate-spin-slow">
                         <img
@@ -152,7 +186,31 @@ const ReelsDetailModal = ({ reels, initialIndex, onClose }) => {
                         />
                     </div>
                 </div>
+
+                {/* Comments Overlay */}
+                {showComments && (
+                    <div className="absolute right-16 bottom-20 w-80 max-h-96 bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden animate-fade-in-right">
+                        <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                            <h3 className="font-bold text-gray-900 dark:text-white">Bình luận</h3>
+                            <button onClick={() => setShowComments(false)} className="text-gray-500 hover:text-gray-700">
+                                <XMarkIcon className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
+                            {/* Simple comment list placeholder/integration would go here */}
+                            <p className="text-xs text-center text-gray-500 py-10">Bình luận cho Reels đang được tải...</p>
+                        </div>
+                    </div>
+                )}
             </div>
+
+            {/* Share Modal */}
+            {showShareModal && (
+                <VideoShareModal
+                    video={currentReel}
+                    onClose={() => setShowShareModal(false)}
+                />
+            )}
         </div>
     );
 };

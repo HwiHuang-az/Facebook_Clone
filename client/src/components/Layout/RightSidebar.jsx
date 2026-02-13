@@ -1,19 +1,45 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   MagnifyingGlassIcon,
   EllipsisHorizontalIcon,
   PlusIcon
 } from '@heroicons/react/24/solid';
+import { useFriendships } from '../../hooks/useFriendships';
+import { useSocket } from '../../hooks/useSocket';
 
 const RightSidebar = () => {
-  // Sample contacts data
-  const contacts = [
-    { id: 1, name: 'Meta AI', icon: '🔵', isMeta: true, online: true },
-    { id: 2, name: 'Nguyễn Huy Hoàng', image: 'https://ui-avatars.com/api/?name=Nguyen+Huy+Hoang&background=random', online: true, time: '36 phút' },
-    { id: 3, name: 'Ly Lê', image: 'https://ui-avatars.com/api/?name=Ly+Le&background=random', online: true, time: '6 phút' },
-    { id: 4, name: 'Trần Văn A', image: 'https://ui-avatars.com/api/?name=Tran+Van+A&background=random', online: false },
-    { id: 5, name: 'Phạm Thị B', image: 'https://ui-avatars.com/api/?name=Pham+Thi+B&background=random', online: false },
-  ];
+  const { friends, getFriends, loading } = useFriendships();
+  const { onlineUsers } = useSocket();
+
+  useEffect(() => {
+    getFriends(1, 10); // Lấy 10 người bạn đầu tiên
+  }, [getFriends]);
+
+  // Map backend friends to contacts format
+  const contacts = friends.map(f => ({
+    id: f.friend.id,
+    name: `${f.friend.firstName} ${f.friend.lastName}`,
+    image: f.friend.profilePicture || `https://ui-avatars.com/api/?name=${f.friend.firstName}+${f.friend.lastName}&background=random`,
+    online: onlineUsers.has(f.friend.id),
+  }));
+
+  if (loading && contacts.length === 0) {
+    return (
+      <aside className="hidden lg:block w-full sticky top-24 max-h-[calc(100vh-6rem)] pr-2">
+        <div className="animate-pulse space-y-4">
+          <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="flex items-center space-x-3">
+                <div className="w-9 h-9 bg-gray-200 rounded-full"></div>
+                <div className="h-4 bg-gray-200 rounded flex-1"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside className="hidden lg:block w-full sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2 custom-scrollbar">

@@ -39,7 +39,6 @@ const User = sequelize.define('User', {
   },
   profilePicture: {
     type: DataTypes.STRING(255),
-    defaultValue: 'default-avatar.png',
     field: 'profile_picture'
   },
   coverPhoto: {
@@ -72,12 +71,19 @@ const User = sequelize.define('User', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
     field: 'is_verified'
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    field: 'created_at'
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    field: 'updated_at'
   }
 }, {
+
   tableName: 'users',
   timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
   hooks: {
     beforeCreate: async (user) => {
       if (user.password) {

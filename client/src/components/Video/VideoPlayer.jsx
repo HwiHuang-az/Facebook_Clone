@@ -8,7 +8,7 @@ import {
     ArrowsPointingInIcon,
 } from '@heroicons/react/24/solid';
 
-const VideoPlayer = ({ src, className = '', autoPlay = false, onViewTracked }) => {
+const VideoPlayer = ({ src, className = '', autoPlay = false, onViewTracked, onEnded }) => {
     const videoRef = useRef(null);
     const containerRef = useRef(null);
     const progressBarRef = useRef(null);
@@ -52,12 +52,17 @@ const VideoPlayer = ({ src, className = '', autoPlay = false, onViewTracked }) =
 
         const handlePlay = () => setIsPlaying(true);
         const handlePause = () => setIsPlaying(false);
+        const handleEnded = () => {
+            setIsPlaying(false);
+            if (onEnded) onEnded();
+        };
 
         video.addEventListener('loadedmetadata', handleLoadedMetadata);
         video.addEventListener('timeupdate', handleTimeUpdate);
         video.addEventListener('progress', handleProgress);
         video.addEventListener('play', handlePlay);
         video.addEventListener('pause', handlePause);
+        video.addEventListener('ended', handleEnded);
 
         return () => {
             video.removeEventListener('loadedmetadata', handleLoadedMetadata);
@@ -65,8 +70,9 @@ const VideoPlayer = ({ src, className = '', autoPlay = false, onViewTracked }) =
             video.removeEventListener('progress', handleProgress);
             video.removeEventListener('play', handlePlay);
             video.removeEventListener('pause', handlePause);
+            video.removeEventListener('ended', handleEnded);
         };
-    }, [hasTrackedView, onViewTracked]);
+    }, [hasTrackedView, onViewTracked, onEnded]);
 
     useEffect(() => {
         if (autoPlay && videoRef.current) {

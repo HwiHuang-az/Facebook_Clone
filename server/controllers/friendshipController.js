@@ -1,5 +1,7 @@
 const { User, Friendship, Notification } = require('../models');
 const { Op } = require('sequelize');
+const { createNotification } = require('./notificationController');
+
 
 // Gửi lời mời kết bạn
 const sendFriendRequest = async (req, res) => {
@@ -70,14 +72,13 @@ const sendFriendRequest = async (req, res) => {
     });
 
     // Tạo notification cho receiver
-    await Notification.create({
+    await createNotification({
       userId: receiverId,
       fromUserId: senderId,
       type: 'friend_request',
-      title: 'Lời mời kết bạn',
-      message: 'đã gửi lời mời kết bạn',
-      isRead: false
+      message: 'đã gửi lời mời kết bạn'
     });
+
 
     res.status(201).json({
       success: true,
@@ -140,14 +141,13 @@ const acceptFriendRequest = async (req, res) => {
     });
 
     // Tạo notification cho sender
-    await Notification.create({
+    await createNotification({
       userId: friendship.user1Id,
       fromUserId: userId,
       type: 'friend_accept',
-      title: 'Chấp nhận kết bạn',
-      message: 'đã chấp nhận lời mời kết bạn',
-      isRead: false
+      message: 'đã chấp nhận lời mời kết bạn'
     });
+
 
     res.json({
       success: true,
@@ -281,7 +281,7 @@ const getFriendRequests = async (req, res) => {
           attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified']
         }
       ],
-      order: [['created_at', 'DESC']],
+      order: [['createdAt', 'DESC']],
       limit: parseInt(limit),
       offset: parseInt(offset)
     });
@@ -340,7 +340,7 @@ const getFriends = async (req, res) => {
           required: false
         }
       ],
-      order: [['accepted_at', 'DESC']],
+      order: [['acceptedAt', 'DESC']],
       limit: parseInt(limit),
       offset: parseInt(offset)
     });

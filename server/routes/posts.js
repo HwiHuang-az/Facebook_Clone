@@ -387,6 +387,39 @@ router.post('/:id/like', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/posts/:id/view
+// @desc    Track video view
+// @access  Private
+router.post('/:id/view', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const post = await Post.findByPk(id);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy bài viết'
+      });
+    }
+
+    // Increment views count
+    await post.increment('viewsCount');
+
+    res.json({
+      success: true,
+      message: 'Đã ghi nhận lượt xem'
+    });
+
+  } catch (error) {
+    console.error('Track view error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi ghi nhận lượt xem'
+    });
+  }
+});
+
 // Share routes
 router.post('/:postId/share', auth, postShareController.sharePost);
 router.get('/:postId/shares', auth, postShareController.getPostShares);

@@ -69,12 +69,18 @@ const Comment = sequelize.define('Comment', {
     type: DataTypes.INTEGER,
     defaultValue: 0,
     field: 'replies_count'
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    field: 'created_at'
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    field: 'updated_at'
   }
 }, {
   tableName: 'comments',
   timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
   indexes: [
     {
       fields: ['post_id', 'created_at']

@@ -1,4 +1,6 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import {
     CameraIcon,
     PlusIcon,
@@ -26,7 +28,14 @@ const ProfileHeader = ({
     setPickerType,
     setIsPhotoPickerOpen
 }) => {
+    const navigate = useNavigate();
+
+    const handleMessageClick = () => {
+        navigate('/messages', { state: { targetUser: user } });
+    };
+
     const renderFriendButtons = () => {
+
         if (isOwnProfile) return null;
         if (friendshipStatus === 'none') {
             return (
@@ -187,10 +196,14 @@ const ProfileHeader = ({
                             ) : (
                                 <div className="flex space-x-2">
                                     {renderFriendButtons()}
-                                    <button className="bg-gray-200 text-gray-900 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-gray-300 transition-colors">
+                                    <button
+                                        onClick={handleMessageClick}
+                                        className="bg-gray-200 text-gray-900 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-gray-300 transition-colors"
+                                    >
                                         Nhắn tin
                                     </button>
                                 </div>
+
                             )}
                         </div>
                     </div>

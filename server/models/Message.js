@@ -54,10 +54,11 @@ const Message = sequelize.define('Message', {
     field: 'is_read'
   },
   // Fields not in SQL schema
-  // messageType: {
-  //   type: DataTypes.ENUM('text', 'image', 'file', 'emoji', 'sticker'),
-  //   defaultValue: 'text'
-  // },
+  messageType: {
+    type: DataTypes.ENUM('text', 'image', 'video', 'audio', 'file', 'mixed'),
+    defaultValue: 'text',
+    field: 'message_type'
+  },
   // attachment: {
   //   type: DataTypes.STRING(500),
   //   allowNull: true
@@ -78,10 +79,13 @@ const Message = sequelize.define('Message', {
   //   type: DataTypes.STRING(100),
   //   allowNull: false
   // }
+  createdAt: {
+    type: DataTypes.DATE,
+    field: 'created_at'
+  }
 }, {
   tableName: 'messages',
   timestamps: true,
-  createdAt: 'created_at',
   updatedAt: false,
   indexes: [
     {
@@ -96,7 +100,7 @@ const Message = sequelize.define('Message', {
   ],
   validate: {
     usersNotSame() {
-      if (this.senderId === this.receiverId) {
+      if (this.senderId && this.receiverId && this.senderId === this.receiverId) {
         throw new Error('Người dùng không thể gửi tin nhắn cho chính mình');
       }
     }

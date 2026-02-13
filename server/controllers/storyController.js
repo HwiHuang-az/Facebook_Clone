@@ -65,7 +65,7 @@ const getStories = async (req, res) => {
           attributes: ['userId']
         }
       ],
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     res.json({
@@ -92,7 +92,7 @@ const getUserStories = async (req, res) => {
         userId: id,
         expiresAt: { [Op.gt]: now }
       },
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     res.json({

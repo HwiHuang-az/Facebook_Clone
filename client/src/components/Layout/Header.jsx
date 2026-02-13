@@ -1,6 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useSocket } from '../../hooks/useSocket';
+import api from '../../utils/api';
+import moment from 'moment';
+import 'moment/locale/vi';
+
+
 import {
   HomeIcon,
   UserGroupIcon,
@@ -11,9 +17,9 @@ import {
   BellIcon,
   ChatBubbleLeftRightIcon,
   Cog6ToothIcon,
-    PencilSquareIcon,
-    PhotoIcon,
-    VideoCameraIcon,
+  PencilSquareIcon,
+  PhotoIcon,
+  VideoCameraIcon,
   ChevronDownIcon,
   PlusIcon,
   QuestionMarkCircleIcon,
@@ -30,19 +36,78 @@ import {
 
 const Header = () => {
   const { user, logout } = useAuth();
+  const { onlineUsers, unreadMessages, unreadNotifications, setUnreadMessages, setUnreadNotifications } = useSocket();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
+
   const [searchQuery, setSearchQuery] = useState('');
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [showMessengerMenu, setShowMessengerMenu] = useState(false);
   const [showNotificationMenu, setShowNotificationMenu] = useState(false);
-  
+
+  const [recentConversations, setRecentConversations] = useState([]);
+  const [recentNotifications, setRecentNotifications] = useState([]);
+  const [loadingMessenger, setLoadingMessenger] = useState(false);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+
+
   const accountMenuRef = useRef(null);
   const createMenuRef = useRef(null);
   const messengerMenuRef = useRef(null);
   const notificationMenuRef = useRef(null);
+
+  // Reset counts when visiting pages
+  useEffect(() => {
+    if (location.pathname === '/messages') setUnreadMessages(0);
+    if (location.pathname === '/notifications') setUnreadNotifications(0);
+  }, [location.pathname]);
+
+  const fetchRecentConversations = async () => {
+    setLoadingMessenger(true);
+    try {
+      const res = await api.get('/messages/conversations');
+      if (res.data.success) {
+        setRecentConversations(res.data.data.slice(0, 5));
+      }
+    } catch (err) {
+      console.error('Fetch recent conversations error:', err);
+    } finally {
+      setLoadingMessenger(false);
+    }
+  };
+
+  const fetchRecentNotifications = async () => {
+    setLoadingNotifications(true);
+    try {
+      const res = await api.get('/notifications');
+      if (res.data.success) {
+        setRecentNotifications(res.data.data.slice(0, 5));
+      }
+    } catch (err) {
+      console.error('Fetch recent notifications error:', err);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  };
+
+  const toggleMessenger = () => {
+    if (!showMessengerMenu) fetchRecentConversations();
+    setShowMessengerMenu(!showMessengerMenu);
+    setShowNotificationMenu(false);
+    setShowCreateMenu(false);
+    setShowAccountMenu(false);
+  };
+
+  const toggleNotifications = () => {
+    if (!showNotificationMenu) fetchRecentNotifications();
+    setShowNotificationMenu(!showNotificationMenu);
+    setShowMessengerMenu(false);
+    setShowCreateMenu(false);
+    setShowAccountMenu(false);
+  };
+
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -64,6 +129,7 @@ const Header = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
 
   const navigationItems = [
     {
@@ -118,7 +184,7 @@ const Header = () => {
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-full mx-auto">
         <div className="flex items-center justify-between h-14 px-4">
-          
+
           {/* Left Section - Logo and Search */}
           <div className="flex items-center space-x-2 flex-1 max-w-xs">
             {/* Facebook Logo */}
@@ -127,7 +193,7 @@ const Header = () => {
                 <span className="text-white font-bold text-xl">f</span>
               </div>
             </Link>
-            
+
             {/* Search Box */}
             <form onSubmit={handleSearch} className="flex-1 max-w-60">
               <div className="relative">
@@ -152,9 +218,8 @@ const Header = () => {
                   <Link
                     key={path}
                     to={path}
-                    className={`flex items-center justify-center h-12 px-8 rounded-lg transition-colors duration-200 relative group ${
-                      isActive ? 'bg-gray-100' : 'hover:bg-gray-50'
-                    }`}
+                    className={`flex items-center justify-center h-12 px-8 rounded-lg transition-colors duration-200 relative group ${isActive ? 'bg-gray-100' : 'hover:bg-gray-50'
+                      }`}
                     title={label}
                   >
                     <Icon className={`h-6 w-6 ${isActive ? 'text-facebook-600' : 'text-gray-500 group-hover:text-gray-700'}`} />
@@ -169,7 +234,7 @@ const Header = () => {
 
           {/* Right Section - Actions */}
           <div className="flex items-center space-x-2 flex-1 justify-end max-w-xs">
-            
+
             {/* Create Menu */}
             <div className="relative" ref={createMenuRef}>
               <button
@@ -179,7 +244,7 @@ const Header = () => {
               >
                 <PlusIcon className="h-5 w-5 text-gray-700" />
               </button>
-              
+
               {showCreateMenu && (
                 <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-dropdown border border-gray-200 py-2 z-50">
                   <div className="px-4 py-2 border-b border-gray-200">
@@ -221,14 +286,20 @@ const Header = () => {
             {/* Messenger */}
             <div className="relative" ref={messengerMenuRef}>
               <button
-                onClick={() => setShowMessengerMenu(!showMessengerMenu)}
+                onClick={toggleMessenger}
                 className="flex items-center justify-center w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-full transition-colors duration-200 relative"
+
                 title="Messenger"
               >
                 <ChatBubbleLeftRightIcon className="h-5 w-5 text-gray-700" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                {unreadMessages > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {unreadMessages > 9 ? '9+' : unreadMessages}
+                  </span>
+                )}
               </button>
-              
+
+
               {showMessengerMenu && (
                 <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-dropdown border border-gray-200 z-50">
                   <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
@@ -236,21 +307,39 @@ const Header = () => {
                     <Link to="/messages" className="text-facebook-600 hover:underline text-sm">Xem tất cả</Link>
                   </div>
                   <div className="max-h-80 overflow-y-auto">
-                    {/* Sample messages */}
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="flex items-center px-4 py-3 hover:bg-gray-100 cursor-pointer">
-                        <div className="relative mr-3">
-                          <img src={`https://picsum.photos/40/40?random=${i}`} alt="" className="w-10 h-10 rounded-full" />
-                          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                    {loadingMessenger ? (
+                      <div className="p-4 text-center text-sm text-gray-500">Đang tải...</div>
+                    ) : recentConversations.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-gray-500">Không có tin nhắn nào</div>
+                    ) : (
+                      recentConversations.map((conv) => (
+                        <div
+                          key={conv.user.id}
+                          onClick={() => { navigate('/messages'); setShowMessengerMenu(false); }}
+                          className="flex items-center px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                        >
+                          <div className="relative mr-3">
+                            <img src={conv.user.profilePicture || 'https://via.placeholder.com/40'} alt="" className="w-10 h-10 rounded-full object-cover" />
+                            {onlineUsers.has(conv.user.id) && (
+                              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className={`font-medium text-gray-900 truncate ${!conv.lastMessage?.isRead && conv.lastMessage?.receiverId === user.id ? 'font-bold' : ''}`}>
+                              {conv.user.firstName} {conv.user.lastName}
+                            </div>
+                            <div className={`text-sm text-gray-500 truncate ${!conv.lastMessage?.isRead && conv.lastMessage?.receiverId === user.id ? 'font-bold text-gray-900' : ''}`}>
+                              {conv.lastMessage?.senderId === user.id ? 'Bạn: ' : ''}{conv.lastMessage?.content}
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-400 ml-2">
+                            {moment(conv.lastMessage?.createdAt).fromNow(true)}
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 truncate">Người dùng {i}</div>
-                          <div className="text-sm text-gray-500 truncate">Tin nhắn mới nhất...</div>
-                        </div>
-                        <div className="text-xs text-gray-400">2 phút</div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
+
                 </div>
               )}
             </div>
@@ -258,14 +347,20 @@ const Header = () => {
             {/* Notifications */}
             <div className="relative" ref={notificationMenuRef}>
               <button
-                onClick={() => setShowNotificationMenu(!showNotificationMenu)}
+                onClick={toggleNotifications}
                 className="flex items-center justify-center w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-full transition-colors duration-200 relative"
+
                 title="Thông báo"
               >
                 <BellIcon className="h-5 w-5 text-gray-700" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">5</span>
+                {unreadNotifications > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                  </span>
+                )}
               </button>
-              
+
+
               {showNotificationMenu && (
                 <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-dropdown border border-gray-200 z-50">
                   <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
@@ -273,20 +368,30 @@ const Header = () => {
                     <Link to="/notifications" className="text-facebook-600 hover:underline text-sm">Xem tất cả</Link>
                   </div>
                   <div className="max-h-80 overflow-y-auto">
-                    {/* Sample notifications */}
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div key={i} className="flex items-center px-4 py-3 hover:bg-gray-100 cursor-pointer">
-                        <img src={`https://picsum.photos/40/40?random=${i + 10}`} alt="" className="w-10 h-10 rounded-full mr-3" />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm text-gray-900">
-                            <span className="font-medium">Người dùng {i}</span> đã thích bài viết của bạn
+                    {loadingNotifications ? (
+                      <div className="p-4 text-center text-sm text-gray-500">Đang tải...</div>
+                    ) : recentNotifications.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-gray-500">Không có thông báo nào</div>
+                    ) : (
+                      recentNotifications.map((notif) => (
+                        <div
+                          key={notif.id}
+                          onClick={() => { navigate('/notifications'); setShowNotificationMenu(false); }}
+                          className={`flex items-center px-4 py-3 hover:bg-gray-100 cursor-pointer transition ${!notif.isRead ? 'bg-blue-50' : ''}`}
+                        >
+                          <img src={notif.fromUser?.profilePicture || 'https://via.placeholder.com/40'} alt="" className="w-10 h-10 rounded-full mr-3 object-cover" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm text-gray-900">
+                              <span className="font-medium">{notif.fromUser?.firstName} {notif.fromUser?.lastName}</span> {notif.message}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">{moment(notif.createdAt).fromNow()}</div>
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">5 phút trước</div>
+                          {!notif.isRead && <div className="w-2 h-2 bg-facebook-600 rounded-full"></div>}
                         </div>
-                        <div className="w-2 h-2 bg-facebook-600 rounded-full"></div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
+
                 </div>
               )}
             </div>
@@ -298,21 +403,21 @@ const Header = () => {
                 className="flex items-center space-x-1 hover:bg-gray-100 rounded-lg p-1 transition-colors duration-200"
                 title="Tài khoản"
               >
-                <img 
-                  src={user?.profilePicture || `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=1877f2&color=fff`} 
+                <img
+                  src={user?.profilePicture || `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=1877f2&color=fff`}
                   alt={user?.firstName}
                   className="w-8 h-8 rounded-full"
                 />
                 <ChevronDownIcon className="h-4 w-4 text-gray-600" />
               </button>
-              
+
               {showAccountMenu && (
                 <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-dropdown border border-gray-200 py-2 z-50">
                   {/* Profile Section */}
                   <div className="px-4 py-3 border-b border-gray-200">
                     <Link to={`/profile/${user?.id}`} className="flex items-center hover:bg-gray-100 rounded-lg p-2 -m-2">
-                      <img 
-                        src={user?.profilePicture || `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=1877f2&color=fff`} 
+                      <img
+                        src={user?.profilePicture || `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=1877f2&color=fff`}
                         alt={user?.firstName}
                         className="w-9 h-9 rounded-full mr-3"
                       />
@@ -322,7 +427,7 @@ const Header = () => {
                       </div>
                     </Link>
                   </div>
-                  
+
                   {/* Menu Items */}
                   <div className="py-2">
                     <Link to="/settings" className="flex items-center px-4 py-3 hover:bg-gray-100 transition-colors">
@@ -331,22 +436,22 @@ const Header = () => {
                       </div>
                       <span className="text-gray-900">Cài đặt & quyền riêng tư</span>
                     </Link>
-                    
+
                     <Link to="/help" className="flex items-center px-4 py-3 hover:bg-gray-100 transition-colors">
                       <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center mr-3">
                         <QuestionMarkCircleIcon className="h-4 w-4 text-gray-700" />
                       </div>
                       <span className="text-gray-900">Trợ giúp & hỗ trợ</span>
                     </Link>
-                    
+
                     <button className="flex items-center w-full px-4 py-3 hover:bg-gray-100 transition-colors">
                       <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center mr-3">
                         <MoonIcon className="h-4 w-4 text-gray-700" />
                       </div>
                       <span className="text-gray-900">Màn hình & trợ năng</span>
                     </button>
-                    
-                    <button 
+
+                    <button
                       onClick={handleLogout}
                       className="flex items-center w-full px-4 py-3 hover:bg-gray-100 transition-colors"
                     >

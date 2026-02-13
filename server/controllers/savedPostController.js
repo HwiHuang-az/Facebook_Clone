@@ -78,7 +78,7 @@ exports.getSavedPosts = async (req, res) => {
           ]
         }
       ],
-      order: [['created_at', 'DESC']],
+      order: [['createdAt', 'DESC']],
       limit: parseInt(limit),
       offset: parseInt(offset)
     });

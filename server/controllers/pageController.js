@@ -49,7 +49,7 @@ exports.getPages = async (req, res) => {
       where,
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     res.status(200).json({

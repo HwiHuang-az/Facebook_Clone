@@ -9,11 +9,14 @@ import {
     LockClosedIcon
 } from '@heroicons/react/24/outline';
 
+import CreateGroupModal from '../components/Groups/CreateGroupModal';
+
 const Groups = () => {
     const [publicGroups, setPublicGroups] = useState([]);
     const [myGroups, setMyGroups] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [activeTab, setActiveTab] = useState('feed'); // feed, discover, yours
 
     const fetchData = async () => {
@@ -78,7 +81,10 @@ const Groups = () => {
                         </button>
                     ))}
 
-                    <button className="w-full flex items-center justify-center space-x-2 mt-4 px-4 py-2 bg-blue-100 text-blue-600 rounded-lg font-bold hover:bg-blue-200 transition-colors">
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="w-full flex items-center justify-center space-x-2 mt-4 px-4 py-2 bg-blue-100 text-blue-600 rounded-lg font-bold hover:bg-blue-200 transition-colors"
+                    >
                         <PlusIcon className="h-5 w-5" />
                         <span>Tạo nhóm mới</span>
                     </button>
@@ -144,6 +150,16 @@ const Groups = () => {
                     </div>
                 )}
             </div>
+            {/* Create Modal */}
+            {showCreateModal && (
+                <CreateGroupModal
+                    onClose={() => setShowCreateModal(false)}
+                    onSuccess={(newGroup) => {
+                        fetchData();
+                        setActiveTab('yours');
+                    }}
+                />
+            )}
         </div>
     );
 };

@@ -18,6 +18,10 @@ import {
     PaperAirplaneIcon
 } from '@heroicons/react/24/outline';
 import classNames from 'classnames';
+import SavePostButton from '../Post/SavePostButton';
+import PostShareModal from '../Post/PostShareModal';
+
+
 
 const Post = ({ post, onPostUpdate }) => {
     const { user } = useAuth();
@@ -27,7 +31,10 @@ const Post = ({ post, onPostUpdate }) => {
     const [isLiked, setIsLiked] = useState(post.isLiked);
     const [likesCount, setLikesCount] = useState(post.likesCount);
     const [commentsCount, setCommentsCount] = useState(post.commentsCount);
+    const [sharesCount, setSharesCount] = useState(post.sharesCount || 0);
     const [loadingComments, setLoadingComments] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+
 
     const handleLike = async () => {
         try {
@@ -182,6 +189,11 @@ const Post = ({ post, onPostUpdate }) => {
                             {commentsCount} bình luận
                         </button>
                     )}
+                    {sharesCount > 0 && (
+                        <span className="hover:underline cursor-pointer">
+                            {sharesCount} lượt chia sẻ
+                        </span>
+                    )}
                 </div>
             </div>
 
@@ -212,10 +224,15 @@ const Post = ({ post, onPostUpdate }) => {
                         <ChatBubbleOvalLeftIcon className="h-5 w-5" />
                         <span>Bình luận</span>
                     </button>
-                    <button className="flex items-center space-x-2 text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-lg flex-1 justify-center transition-colors">
+                    <button
+                        onClick={() => setShowShareModal(true)}
+                        className="flex items-center space-x-2 text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-lg flex-1 justify-center transition-colors"
+                    >
                         <ArrowUturnRightIcon className="h-5 w-5" />
                         <span>Chia sẻ</span>
                     </button>
+
+                    <SavePostButton postId={post.id} className="flex-1 justify-center" />
                 </div>
             </div>
 
@@ -266,6 +283,18 @@ const Post = ({ post, onPostUpdate }) => {
                         )}
                     </div>
                 </div>
+            )}
+
+            {/* Share Modal */}
+            {showShareModal && (
+                <PostShareModal
+                    post={post}
+                    onClose={() => setShowShareModal(false)}
+                    onShareSuccess={(newShare) => {
+                        setSharesCount(prev => prev + 1);
+                        if (onPostUpdate) onPostUpdate();
+                    }}
+                />
             )}
         </div>
     );

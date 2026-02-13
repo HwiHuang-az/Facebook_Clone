@@ -40,11 +40,14 @@ const Friendship = sequelize.define('Friendship', {
     type: DataTypes.DATE,
     allowNull: true,
     field: 'accepted_at'
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    field: 'created_at'
   }
 }, {
   tableName: 'friendships',
   timestamps: true,
-  createdAt: 'created_at',
   updatedAt: false,
   indexes: [
     {
@@ -55,7 +58,7 @@ const Friendship = sequelize.define('Friendship', {
   ],
   validate: {
     usersNotSame() {
-      if (this.user1Id === this.user2Id) {
+      if (this.user1Id && this.user2Id && this.user1Id === this.user2Id) {
         throw new Error('Người dùng không thể kết bạn với chính mình');
       }
     }

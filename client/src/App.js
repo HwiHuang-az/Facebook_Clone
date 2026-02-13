@@ -1,7 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { SocketProvider } from './hooks/useSocket';
 import { Toaster } from 'react-hot-toast';
+
 
 // Pages
 import Login from './pages/Login';
@@ -15,6 +17,11 @@ import Watch from './pages/Watch';
 import Marketplace from './pages/Marketplace';
 import Groups from './pages/Groups';
 import Pages from './pages/Pages';
+import SavedPostsPage from './pages/SavedPostsPage';
+import PrivacySettingsPage from './pages/PrivacySettingsPage';
+import EventsPage from './pages/EventsPage';
+
+
 
 // Components
 import Layout from './components/Layout/Layout';
@@ -94,7 +101,7 @@ function AppRoutes() {
           path="/messages/*" 
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout fullWidth={true}>
                 <Messages />
               </Layout>
             </ProtectedRoute>
@@ -113,6 +120,17 @@ function AppRoutes() {
         />
         
         <Route 
+          path="/events/*" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <EventsPage />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
           path="/pages/*" 
           element={
             <ProtectedRoute>
@@ -122,6 +140,7 @@ function AppRoutes() {
             </ProtectedRoute>
           } 
         />
+
         
         <Route 
           path="/groups/*" 
@@ -138,7 +157,7 @@ function AppRoutes() {
           path="/marketplace/*" 
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout fullWidth={true}>
                 <Marketplace />
               </Layout>
             </ProtectedRoute>
@@ -149,8 +168,30 @@ function AppRoutes() {
           path="/watch/*" 
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout fullWidth={true}>
                 <Watch />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/settings/privacy" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <PrivacySettingsPage />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/saved" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SavedPostsPage />
               </Layout>
             </ProtectedRoute>
           } 
@@ -177,8 +218,10 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <div className="App font-segoe bg-gray-100 min-h-screen">
-        <AppRoutes />
+      <SocketProvider>
+        <div className="App font-segoe bg-gray-100 min-h-screen">
+          <AppRoutes />
+
         
         {/* Toast Notifications */}
         <Toaster
@@ -205,7 +248,9 @@ function App() {
           }}
         />
       </div>
+      </SocketProvider>
     </AuthProvider>
+
   );
 }
 

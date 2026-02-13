@@ -24,7 +24,7 @@ app.use('/api/', limiter);
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? ['https://yourfacebookclone.com'] 
-    : ['http://localhost:3000'],
+    : ['http://localhost:3000', 'http://127.0.0.1:3000'],
   credentials: true
 }));
 
@@ -73,6 +73,13 @@ app.use('/api/blocked-users', require('./routes/blocked-users'));
 app.use('/api/marketplace', require('./routes/marketplace'));
 app.use('/api/groups', require('./routes/groups'));
 app.use('/api/pages', require('./routes/pages'));
+app.use('/api/events', require('./routes/events'));
+app.use('/api/messages', require('./routes/messages'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/post-shares', require('./routes/post-shares'));
+
+
+
 
 // Test route
 app.get('/api', (req, res) => {
@@ -111,13 +118,19 @@ app.use((err, req, res, next) => {
   });
 });
 
+const http = require('http');
+const { initSocket } = require('./utils/socket');
+const server = http.createServer(app);
+initSocket(server);
+
 // Start server
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🌐 API URL: http://localhost:${PORT}/api`);
   console.log(`💾 Database: ${process.env.DB_NAME}@${process.env.DB_HOST}:${process.env.DB_PORT}`);
 });
+
 
 // Graceful shutdown
 process.on('SIGTERM', () => {

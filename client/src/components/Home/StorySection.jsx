@@ -4,6 +4,8 @@ import { useAuth } from '../../hooks/useAuth';
 import CreateStoryModal from '../Profile/CreateStoryModal';
 import CreateReelModal from '../Profile/CreateReelModal';
 import ReelsDetailModal from './ReelsDetailModal';
+import StoryDetailModal from './StoryDetailModal';
+
 
 const StorySection = () => {
     const [stories, setStories] = useState([]);
@@ -14,7 +16,9 @@ const StorySection = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isReelModalOpen, setIsReelModalOpen] = useState(false);
     const [selectedReelIndex, setSelectedReelIndex] = useState(null);
+    const [selectedUserIndex, setSelectedUserIndex] = useState(null);
     const { user } = useAuth();
+
     const [activeTab, setActiveTab] = useState('stories'); // 'stories' or 'reels'
 
     const fetchStories = async () => {
@@ -120,9 +124,10 @@ const StorySection = () => {
                                 <div key={i} className="w-28 h-48 bg-gray-200 animate-pulse rounded-xl flex-shrink-0"></div>
                             ))
                         ) : (
-                            groupedStories.map((group) => (
+                            groupedStories.map((group, index) => (
                                 <div
                                     key={group.user.id}
+                                    onClick={() => setSelectedUserIndex(index)}
                                     className="relative w-28 h-48 rounded-xl overflow-hidden cursor-pointer group shadow-sm flex-shrink-0"
                                 >
                                     <img
@@ -209,6 +214,14 @@ const StorySection = () => {
                     reels={reels}
                     initialIndex={selectedReelIndex}
                     onClose={() => setSelectedReelIndex(null)}
+                />
+            )}
+
+            {selectedUserIndex !== null && (
+                <StoryDetailModal
+                    groupedStories={groupedStories}
+                    initialGroupIndex={selectedUserIndex}
+                    onClose={() => setSelectedUserIndex(null)}
                 />
             )}
         </div>

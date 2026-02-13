@@ -108,7 +108,7 @@ exports.getBlockedUsers = async (req, res) => {
           attributes: ['id', 'firstName', 'lastName', 'profilePicture']
         }
       ],
-      order: [['created_at', 'DESC']],
+      order: [['createdAt', 'DESC']],
       limit: parseInt(limit),
       offset: parseInt(offset)
     });

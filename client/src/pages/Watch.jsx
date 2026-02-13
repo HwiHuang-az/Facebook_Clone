@@ -34,9 +34,9 @@ const Watch = () => {
     }, [fetchVideos]);
 
     return (
-        <div className="flex flex-col lg:flex-row min-h-screen bg-gray-100">
+        <div className="flex flex-col lg:flex-row h-full bg-gray-100 dark:bg-gray-900 overflow-hidden">
             {/* Sidebar */}
-            <div className="w-full lg:w-80 bg-white shadow-sm h-auto lg:h-[calc(100vh-56px)] lg:sticky lg:top-14 overflow-y-auto p-4">
+            <div className="w-full lg:w-80 bg-white dark:bg-gray-800 shadow-sm h-full overflow-y-auto p-4 border-r dark:border-gray-700">
                 <h1 className="text-2xl font-bold mb-4">Video</h1>
 
                 <div className="space-y-1">

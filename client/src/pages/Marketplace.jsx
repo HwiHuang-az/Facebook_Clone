@@ -11,11 +11,14 @@ import {
     PlusIcon
 } from '@heroicons/react/24/outline';
 
+import CreateMarketplaceItemModal from '../components/Marketplace/CreateMarketplaceItemModal';
+
 const Marketplace = () => {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [category, setCategory] = useState('');
+    const [showCreateModal, setShowCreateModal] = useState(false);
 
     const categories = [
         { id: 'vehicles', label: 'Xe cộ', icon: '🚗' },
@@ -56,12 +59,15 @@ const Marketplace = () => {
     };
 
     return (
-        <div className="flex flex-col lg:flex-row min-h-screen bg-gray-100">
+        <div className="flex flex-col lg:flex-row h-full bg-gray-100 dark:bg-gray-900 overflow-hidden">
             {/* Sidebar */}
-            <div className="w-full lg:w-80 bg-white shadow-sm h-auto lg:h-[calc(100vh-56px)] lg:sticky lg:top-14 overflow-y-auto p-4 border-r">
+            <div className="w-full lg:w-80 bg-white dark:bg-gray-800 shadow-sm h-full overflow-y-auto p-4 border-r dark:border-gray-700">
                 <div className="flex justify-between items-center mb-4">
                     <h1 className="text-2xl font-bold">Marketplace</h1>
-                    <button className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"
+                    >
                         <PlusIcon className="h-6 w-6" />
                     </button>
                 </div>
@@ -159,6 +165,15 @@ const Marketplace = () => {
                     </div>
                 )}
             </div>
+            {/* Create Modal */}
+            {showCreateModal && (
+                <CreateMarketplaceItemModal
+                    onClose={() => setShowCreateModal(false)}
+                    onSuccess={(newItem) => {
+                        fetchItems();
+                    }}
+                />
+            )}
         </div>
     );
 };

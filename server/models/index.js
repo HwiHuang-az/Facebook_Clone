@@ -4,7 +4,7 @@ const Post = require('./Post');
 const Comment = require('./Comment');
 const Like = require('./Like');
 const Friendship = require('./Friendship');
-const Message = require('./Message');
+const Message = require('./message');
 const Notification = require('./Notification');
 
 // New models
@@ -24,6 +24,7 @@ const PrivacySetting = require('./PrivacySetting');
 const UserSession = require('./UserSession');
 const FriendList = require('./FriendList');
 const FriendListMember = require('./FriendListMember');
+const MessageAttachment = require('./MessageAttachment');
 
 // Define relationships
 
@@ -74,6 +75,10 @@ Message.belongsTo(User, { foreignKey: 'senderId', as: 'sender' });
 // User - Message relationship (receiver)
 User.hasMany(Message, { foreignKey: 'receiverId', as: 'receivedMessages' });
 Message.belongsTo(User, { foreignKey: 'receiverId', as: 'receiver' });
+
+// Message - MessageAttachment relationship
+Message.hasMany(MessageAttachment, { foreignKey: 'messageId', as: 'attachments' });
+MessageAttachment.belongsTo(Message, { foreignKey: 'messageId', as: 'message' });
 
 // User - Notification relationship (user receiving notification)
 User.hasMany(Notification, { foreignKey: 'userId', as: 'notifications' });
@@ -202,5 +207,6 @@ module.exports = {
   PrivacySetting,
   UserSession,
   FriendList,
-  FriendListMember
+  FriendListMember,
+  MessageAttachment
 };

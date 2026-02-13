@@ -14,8 +14,9 @@ const getUserProfile = async (req, res) => {
       attributes: [
         'id', 'firstName', 'lastName', 'email', 'profilePicture', 
         'coverPhoto', 'bio', 'dateOfBirth', 'gender', 'location',
-        'work', 'education', 'relationshipStatus', 'isVerified', ['created_at', 'createdAt']
+        'work', 'education', 'relationshipStatus', 'isVerified', 'createdAt'
       ],
+
       include: [
         {
           model: Post,
@@ -23,7 +24,7 @@ const getUserProfile = async (req, res) => {
           where: { isActive: true },
           required: false, 
           limit: 10,
-          order: [['created_at', 'DESC']],
+          order: [['createdAt', 'DESC']],
           include: [
             {
               model: User,
@@ -45,15 +46,17 @@ const getUserProfile = async (req, res) => {
     // Kiểm tra quyền truy cập profile
     let canViewProfile = true;
     let friendshipStatus = 'none';
+    let friendship = null;
 
     if (currentUserId !== parseInt(id)) {
+
       // Kiểm tra privacy settings
       const privacySetting = await PrivacySetting.findOne({
         where: { userId: id }
       });
 
       // Kiểm tra friendship status
-      const friendship = await Friendship.findOne({
+      friendship = await Friendship.findOne({
         where: {
           [Op.or]: [
             { user1Id: currentUserId, user2Id: id },
@@ -61,6 +64,7 @@ const getUserProfile = async (req, res) => {
           ]
         }
       });
+
 
       if (friendship) {
         friendshipStatus = friendship.status;
@@ -79,14 +83,37 @@ const getUserProfile = async (req, res) => {
       });
     }
 
+    // Tính số lượng bạn bè
+    const friendsCount = await Friendship.count({
+      where: {
+        [Op.or]: [
+          { user1Id: id },
+          { user2Id: id }
+        ],
+        status: 'accepted'
+      }
+    });
+
+    // Tính số lượng bài viết
+    const postsCount = await Post.count({
+      where: {
+        userId: id,
+        isActive: true
+      }
+    });
+
     res.json({
       success: true,
       data: {
         user,
         friendshipStatus,
-        isOwnProfile: currentUserId === parseInt(id)
+        friendshipId: friendship ? friendship.id : null,
+        isOwnProfile: currentUserId === parseInt(id),
+        friendsCount,
+        postsCount
       }
     });
+
 
   } catch (error) {
     console.error('Get user profile error:', error);
@@ -267,13 +294,30 @@ const getFriends = async (req, res) => {
       },
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     // Lấy thông tin chi tiết của bạn bè
     const friendIds = friendships.rows.map(friendship => {
-      return friendship.user1Id === parseInt(id) ? friendship.user2Id : friendship.user1Id;
+      const u1Id = parseInt(friendship.user1Id);
+      const targetId = parseInt(id);
+      return u1Id === targetId ? friendship.user2Id : friendship.user1Id;
     });
+
+    if (friendIds.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          friends: [],
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: 0,
+            totalPages: 0
+          }
+        }
+      });
+    }
 
     const friends = await User.findAll({
       where: { id: { [Op.in]: friendIds } },
@@ -281,6 +325,7 @@ const getFriends = async (req, res) => {
         'id', 'firstName', 'lastName', 'profilePicture', 'isVerified'
       ]
     });
+
 
     res.json({
       success: true,
@@ -410,13 +455,13 @@ const getUserPhotos = async (req, res) => {
         imageUrl: { [Op.ne]: null },
         isActive: true
       },
-      attributes: ['imageUrl', 'created_at'],
-      order: [['created_at', 'DESC']]
+      attributes: ['imageUrl', 'createdAt'],
+      order: [['createdAt', 'DESC']]
     });
 
     const photos = posts.map(p => ({
       url: p.imageUrl,
-      createdAt: p.created_at
+      createdAt: p.createdAt
     }));
 
     res.json({

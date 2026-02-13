@@ -81,7 +81,7 @@ exports.getPostShares = async (req, res) => {
           attributes: ['id', 'firstName', 'lastName', 'profilePicture']
         }
       ],
-      order: [['created_at', 'DESC']],
+      order: [['createdAt', 'DESC']],
       limit: parseInt(limit),
       offset: parseInt(offset)
     });
@@ -129,7 +129,7 @@ exports.getUserShares = async (req, res) => {
           ]
         }
       ],
-      order: [['created_at', 'DESC']],
+      order: [['createdAt', 'DESC']],
       limit: parseInt(limit),
       offset: parseInt(offset)
     });

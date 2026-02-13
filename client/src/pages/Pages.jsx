@@ -9,11 +9,14 @@ import {
     PresentationChartLineIcon
 } from '@heroicons/react/24/outline';
 
+import CreatePageModal from '../components/Pages/CreatePageModal';
+
 const Pages = () => {
     const [pages, setPages] = useState([]);
     const [myPages, setMyPages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [activeTab, setActiveTab] = useState('discover'); // discover, yours, likes
 
     const fetchData = async () => {
@@ -78,7 +81,10 @@ const Pages = () => {
                         </button>
                     ))}
 
-                    <button className="w-full flex items-center justify-center space-x-2 mt-4 px-4 py-2 bg-blue-100 text-blue-600 rounded-lg font-bold hover:bg-blue-200 transition-colors">
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="w-full flex items-center justify-center space-x-2 mt-4 px-4 py-2 bg-blue-100 text-blue-600 rounded-lg font-bold hover:bg-blue-200 transition-colors"
+                    >
                         <PlusIcon className="h-5 w-5" />
                         <span>Tạo Trang mới</span>
                     </button>
@@ -149,6 +155,7 @@ const Pages = () => {
                                 <p className="text-xl font-bold text-gray-800">Bạn chưa quản lý Trang nào</p>
                                 <p className="text-gray-500 mt-2">Bắt đầu xây dựng cộng đồng của bạn ngay hôm nay!</p>
                                 <button
+                                    onClick={() => setShowCreateModal(true)}
                                     className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700"
                                 >
                                     Tạo Trang mới
@@ -158,6 +165,16 @@ const Pages = () => {
                     </div>
                 )}
             </div>
+            {/* Create Modal */}
+            {showCreateModal && (
+                <CreatePageModal
+                    onClose={() => setShowCreateModal(false)}
+                    onSuccess={(newPage) => {
+                        fetchData();
+                        setActiveTab('yours');
+                    }}
+                />
+            )}
         </div>
     );
 };

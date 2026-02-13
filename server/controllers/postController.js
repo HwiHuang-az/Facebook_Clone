@@ -1,5 +1,7 @@
 const { Post, User, Comment, Like, Friendship } = require('../models');
 const { Op } = require('sequelize');
+const { createNotification } = require('./notificationController');
+
 
 // Lấy tất cả posts (newsfeed)
 const getAllPosts = async (req, res) => {
@@ -26,7 +28,10 @@ const getAllPosts = async (req, res) => {
     friendIds.push(userId);
 
     const whereClause = {
-        userId: { [Op.in]: friendIds },
+        [Op.or]: [
+          { userId: { [Op.in]: friendIds } },
+          { privacy: 'public' }
+        ],
         isActive: true
     };
 
@@ -47,7 +52,7 @@ const getAllPosts = async (req, res) => {
           model: Comment,
           as: 'comments',
           limit: 3,
-          order: [['created_at', 'DESC']],
+          order: [['createdAt', 'DESC']],
           include: [
             {
               model: User,
@@ -70,7 +75,7 @@ const getAllPosts = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     // Thêm thông tin đã like hay chưa
@@ -183,7 +188,7 @@ const getPost = async (req, res) => {
         {
           model: Comment,
           as: 'comments',
-          order: [['created_at', 'ASC']],
+          order: [['createdAt', 'ASC']],
           include: [
             {
               model: User,
@@ -417,11 +422,24 @@ const toggleLikePost = async (req, res) => {
         postId: id,
         type: 'like'
       });
+
+      // Notify post author
+      if (post.userId !== userId) {
+        await createNotification({
+          userId: post.userId,
+          fromUserId: userId,
+          type: 'like',
+          postId: post.id,
+          message: 'đã thích bài viết của bạn'
+        });
+      }
+
       res.json({
         success: true,
         message: 'Thích bài viết',
         data: { isLiked: true }
       });
+
     }
 
   } catch (error) {
@@ -480,7 +498,7 @@ const getUserPosts = async (req, res) => {
           model: Comment,
           as: 'comments',
           limit: 3,
-          order: [['created_at', 'DESC']],
+          order: [['createdAt', 'DESC']],
           include: [
             {
               model: User,
@@ -503,7 +521,7 @@ const getUserPosts = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     // Thêm thông tin đã like hay chưa

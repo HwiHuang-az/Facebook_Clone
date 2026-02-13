@@ -1,5 +1,7 @@
 const { Comment, User, Post, Like } = require('../models');
 const { Op } = require('sequelize');
+const { createNotification } = require('./notificationController');
+
 
 // Lấy comments của một post
 const getPostComments = async (req, res) => {
@@ -37,7 +39,7 @@ const getPostComments = async (req, res) => {
           where: { isActive: true },
           required: false,
           limit: 3,
-          order: [['created_at', 'ASC']],
+          order: [['createdAt', 'ASC']],
           include: [
             {
               model: User,
@@ -71,7 +73,7 @@ const getPostComments = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['created_at', 'ASC']]
+      order: [['createdAt', 'ASC']]
     });
 
     // Thêm thông tin đã like hay chưa cho comments và replies
@@ -171,6 +173,18 @@ const createComment = async (req, res) => {
       ]
     });
 
+    // Notify post author
+    if (post.userId !== userId) {
+      await createNotification({
+        userId: post.userId,
+        fromUserId: userId,
+        type: 'comment',
+        postId: post.id,
+        commentId: newComment.id,
+        message: 'đã bình luận về bài viết của bạn'
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Tạo bình luận thành công',
@@ -184,6 +198,7 @@ const createComment = async (req, res) => {
         }
       }
     });
+
 
   } catch (error) {
     console.error('Create comment error:', error);
@@ -402,7 +417,7 @@ const getCommentReplies = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['created_at', 'ASC']]
+      order: [['createdAt', 'ASC']]
     });
 
     // Thêm thông tin đã like hay chưa

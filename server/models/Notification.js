@@ -77,11 +77,14 @@ const Notification = sequelize.define('Notification', {
   metadata: {
     type: DataTypes.JSON,
     allowNull: true
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    field: 'created_at'
   }
 }, {
   tableName: 'notifications',
   timestamps: true,
-  createdAt: 'created_at',
   updatedAt: false,
   indexes: [
     {
