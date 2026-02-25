@@ -40,6 +40,24 @@ const Post = sequelize.define('Post', {
   activity: {
     type: DataTypes.STRING(50)
   },
+  groupId: {
+    type: DataTypes.INTEGER,
+    field: 'group_id',
+    allowNull: true,
+    references: {
+      model: 'groups',
+      key: 'id'
+    }
+  },
+  pageId: {
+    type: DataTypes.INTEGER,
+    field: 'page_id',
+    allowNull: true,
+    references: {
+      model: 'pages',
+      key: 'id'
+    }
+  },
   likesCount: {
     type: DataTypes.INTEGER,
     defaultValue: 0,

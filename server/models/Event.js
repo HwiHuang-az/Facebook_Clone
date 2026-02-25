@@ -43,6 +43,24 @@ const Event = sequelize.define('Event', {
     allowNull: false,
     field: 'creator_id'
   },
+  groupId: {
+    type: DataTypes.INTEGER,
+    field: 'group_id',
+    allowNull: true,
+    references: {
+      model: 'groups',
+      key: 'id'
+    }
+  },
+  pageId: {
+    type: DataTypes.INTEGER,
+    field: 'page_id',
+    allowNull: true,
+    references: {
+      model: 'pages',
+      key: 'id'
+    }
+  },
   interestedCount: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
@@ -73,6 +91,12 @@ const Event = sequelize.define('Event', {
     },
     {
       fields: ['privacy']
+    },
+    {
+      fields: ['group_id']
+    },
+    {
+      fields: ['page_id']
     }
   ]
 });

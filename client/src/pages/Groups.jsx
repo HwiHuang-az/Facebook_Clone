@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
+import { Link } from 'react-router-dom';
 import {
     RectangleGroupIcon,
     MagnifyingGlassIcon,
@@ -9,7 +10,7 @@ import {
     LockClosedIcon
 } from '@heroicons/react/24/outline';
 
-import CreateGroupModal from '../components/Groups/CreateGroupModal';
+import GroupSidebar from '../components/Groups/GroupSidebar';
 
 const Groups = () => {
     const [publicGroups, setPublicGroups] = useState([]);
@@ -43,52 +44,11 @@ const Groups = () => {
     return (
         <div className="flex flex-col lg:flex-row min-h-screen bg-gray-100">
             {/* Sidebar */}
-            <div className="w-full lg:w-80 bg-white shadow-sm h-auto lg:h-[calc(100vh-56px)] lg:sticky lg:top-14 overflow-y-auto p-4 border-r">
-                <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-2xl font-bold">Nhóm</h1>
-                </div>
-
-                {/* Search */}
-                <div className="mb-6">
-                    <div className="relative">
-                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm nhóm"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-full border-0 focus:ring-0 focus:bg-white text-sm"
-                        />
-                    </div>
-                </div>
-
-                {/* Navigation */}
-                <div className="space-y-1">
-                    {[
-                        { id: 'feed', label: 'Bảng tin của bạn', icon: RectangleGroupIcon },
-                        { id: 'discover', label: 'Khám phá', icon: GlobeAsiaAustraliaIcon },
-                        { id: 'yours', label: 'Nhóm của bạn', icon: UserGroupIcon },
-                    ].map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg font-semibold transition-colors ${activeTab === tab.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
-                        >
-                            <div className={`p-2 rounded-full ${activeTab === tab.id ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
-                                <tab.icon className="h-5 w-5" />
-                            </div>
-                            <span>{tab.label}</span>
-                        </button>
-                    ))}
-
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="w-full flex items-center justify-center space-x-2 mt-4 px-4 py-2 bg-blue-100 text-blue-600 rounded-lg font-bold hover:bg-blue-200 transition-colors"
-                    >
-                        <PlusIcon className="h-5 w-5" />
-                        <span>Tạo nhóm mới</span>
-                    </button>
-                </div>
+            <div className="hidden lg:block w-80 lg:sticky lg:top-0 h-[calc(100vh-56px)]">
+                <GroupSidebar
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                />
             </div>
 
             {/* Main Content */}
@@ -98,7 +58,7 @@ const Groups = () => {
                         <h2 className="text-xl font-bold mb-6">Gợi ý cho bạn</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {publicGroups.map((group) => (
-                                <div key={group.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
+                                <Link to={`/groups/${group.id}`} key={group.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
                                     <div className="h-32 bg-gray-200">
                                         {group.coverPhoto && (
                                             <img src={group.coverPhoto} alt={group.name} className="w-full h-full object-cover" />
@@ -108,10 +68,10 @@ const Groups = () => {
                                         <h3 className="font-bold text-lg mb-1">{group.name}</h3>
                                         <p className="text-sm text-gray-500 mb-4">{group.membersCount} thành viên</p>
                                         <button className="w-full py-2 bg-gray-200 text-gray-900 rounded-lg font-bold hover:bg-gray-300 transition-colors">
-                                            Tham gia nhóm
+                                            Xem nhóm
                                         </button>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -123,7 +83,7 @@ const Groups = () => {
                         {myGroups.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {myGroups.map((group) => (
-                                    <div key={group.id} className="bg-white rounded-lg shadow-sm border overflow-hidden flex items-center p-4">
+                                    <Link to={`/groups/${group.id}`} key={group.id} className="bg-white rounded-lg shadow-sm border overflow-hidden flex items-center p-4 hover:bg-gray-50 transition-colors">
                                         <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden mr-4">
                                             {group.coverPhoto && <img src={group.coverPhoto} className="w-full h-full object-cover" />}
                                         </div>
@@ -131,7 +91,7 @@ const Groups = () => {
                                             <h3 className="font-bold text-gray-900">{group.name}</h3>
                                             <p className="text-xs text-gray-500">Lần hoạt động cuối 1 giờ trước</p>
                                         </div>
-                                    </div>
+                                    </Link>
                                 ))}
                             </div>
                         ) : (

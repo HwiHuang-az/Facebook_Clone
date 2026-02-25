@@ -12,6 +12,11 @@ router.get('/', auth, savedPostController.getSavedPosts);
 // Get collections
 router.get('/collections', auth, savedPostController.getCollections);
 
+// Create empty collection (stub/placeholder)
+router.post('/collections', auth, (req, res) => {
+  res.json({ success: true, message: 'Collection prepared' });
+});
+
 // Check if post is saved
 router.get('/check/:postId', auth, savedPostController.checkSaved);
 

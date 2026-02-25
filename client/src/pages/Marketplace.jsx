@@ -11,7 +11,7 @@ import {
     PlusIcon
 } from '@heroicons/react/24/outline';
 
-import CreateMarketplaceItemModal from '../components/Marketplace/CreateMarketplaceItemModal';
+import MarketplaceSidebar from '../components/Marketplace/MarketplaceSidebar';
 
 const Marketplace = () => {
     const [items, setItems] = useState([]);
@@ -59,64 +59,22 @@ const Marketplace = () => {
     };
 
     return (
-        <div className="flex flex-col lg:flex-row h-full bg-gray-100 dark:bg-gray-900 overflow-hidden">
+        <div className="flex h-[calc(100vh-56px)] overflow-hidden font-segoe">
             {/* Sidebar */}
-            <div className="w-full lg:w-80 bg-white dark:bg-gray-800 shadow-sm h-full overflow-y-auto p-4 border-r dark:border-gray-700">
-                <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-2xl font-bold">Marketplace</h1>
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"
-                    >
-                        <PlusIcon className="h-6 w-6" />
-                    </button>
-                </div>
-
-                {/* Search */}
-                <form onSubmit={handleSearch} className="mb-6">
-                    <div className="relative">
-                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm trên Marketplace"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-full border-0 focus:ring-0 focus:bg-white text-sm"
-                        />
-                    </div>
-                </form>
-
-                {/* Navigation */}
-                <div className="space-y-1">
-                    <button
-                        onClick={() => setCategory('')}
-                        className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg font-semibold transition-colors ${!category ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
-                    >
-                        <div className={`p-2 rounded-full ${!category ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
-                            <BuildingStorefrontIcon className="h-5 w-5" />
-                        </div>
-                        <span>Lướt xem tất cả</span>
-                    </button>
-
-                    <p className="px-3 py-4 text-gray-500 font-bold text-sm border-t mt-4 uppercase">Hạng mục</p>
-
-                    {categories.map((cat) => (
-                        <button
-                            key={cat.id}
-                            onClick={() => setCategory(cat.id)}
-                            className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg font-semibold transition-colors ${category === cat.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
-                        >
-                            <div className="w-9 h-9 flex items-center justify-center bg-gray-200 rounded-full text-xl">
-                                {cat.icon}
-                            </div>
-                            <span>{cat.label}</span>
-                        </button>
-                    ))}
-                </div>
+            <div className="hidden lg:block w-90 flex-shrink-0 border-r bg-white dark:bg-gray-800 h-full sticky top-0">
+                <MarketplaceSidebar
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    onSearch={handleSearch}
+                    category={category}
+                    setCategory={setCategory}
+                    categories={categories}
+                    onShowCreateModal={() => setShowCreateModal(true)}
+                />
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-900">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-xl font-bold">Lựa chọn hàng đầu hiện nay</h2>
                     <div className="flex items-center space-x-2 text-blue-600 cursor-pointer hover:underline font-semibold">

@@ -25,6 +25,7 @@ import {
   QuestionMarkCircleIcon,
   MoonIcon,
   ArrowRightOnRectangleIcon,
+  FlagIcon,
 } from '@heroicons/react/24/outline';
 import {
   HomeIcon as HomeIconSolid,
@@ -32,6 +33,7 @@ import {
   TvIcon as TvIconSolid,
   BuildingStorefrontIcon as BuildingStorefrontIconSolid,
   RectangleGroupIcon as RectangleGroupIconSolid,
+  FlagIcon as FlagIconSolid,
 } from '@heroicons/react/24/solid';
 
 const Header = () => {
@@ -166,6 +168,13 @@ const Header = () => {
       IconOutline: RectangleGroupIcon,
       IconSolid: RectangleGroupIconSolid,
       isActive: location.pathname.startsWith('/groups'),
+    },
+    {
+      path: '/pages',
+      label: 'Trang',
+      IconOutline: FlagIcon,
+      IconSolid: FlagIconSolid,
+      isActive: location.pathname.startsWith('/pages'),
     },
   ];
 

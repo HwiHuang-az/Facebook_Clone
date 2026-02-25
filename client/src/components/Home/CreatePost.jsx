@@ -8,7 +8,7 @@ import {
     XMarkIcon
 } from '@heroicons/react/24/solid';
 
-const CreatePost = ({ onPostCreated, initialImage = null }) => {
+const CreatePost = ({ onPostCreated, initialImage = null, groupId = null, pageId = null }) => {
     const { user } = useAuth();
     const [content, setContent] = useState('');
     const [image, setImage] = useState(initialImage);
@@ -42,6 +42,12 @@ const CreatePost = ({ onPostCreated, initialImage = null }) => {
             formData.append('content', content);
             if (image) {
                 formData.append('image', image);
+            }
+            if (groupId) {
+                formData.append('groupId', groupId);
+            }
+            if (pageId) {
+                formData.append('pageId', pageId);
             }
 
             await api.post('/posts', formData, {

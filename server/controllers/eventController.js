@@ -5,7 +5,7 @@ const { Op } = require('sequelize');
 const createEvent = async (req, res) => {
   try {
     const creatorId = req.user.id;
-    const { name, description, location, startDate, endDate, privacy } = req.body;
+    const { name, description, location, startDate, endDate, privacy, groupId, pageId } = req.body;
     let coverPhoto = null;
 
     if (req.file) {
@@ -20,7 +20,9 @@ const createEvent = async (req, res) => {
       endDate,
       privacy: privacy || 'public',
       coverPhoto,
-      creatorId
+      creatorId,
+      groupId: groupId || null,
+      pageId: pageId || null
     });
 
     res.status(201).json({
@@ -40,18 +42,27 @@ const createEvent = async (req, res) => {
 // Get all events with filters
 const getEvents = async (req, res) => {
   try {
-    const { type, page = 1, limit = 10 } = req.query;
+    const { type, page = 1, limit = 10, groupId, pageId } = req.query;
     const offset = (page - 1) * limit;
     const now = new Date();
 
     let whereClause = {};
 
-    if (type === 'upcoming') {
-      whereClause.startDate = { [Op.gte]: now };
-    } else if (type === 'past') {
-      whereClause.startDate = { [Op.lt]: now };
-    } else if (type === 'my_events') {
-      whereClause.creatorId = req.user.id;
+    if (groupId) {
+      whereClause.groupId = groupId;
+    } else if (pageId) {
+      whereClause.pageId = pageId;
+    } else {
+      if (type === 'upcoming') {
+        whereClause.startDate = { [Op.gte]: now };
+      } else if (type === 'past') {
+        whereClause.startDate = { [Op.lt]: now };
+      } else if (type === 'my_events') {
+        whereClause.creatorId = req.user.id;
+      }
+      // Only show independent events (not linked to groups/pages) by default in generic list
+      whereClause.groupId = null;
+      whereClause.pageId = null;
     }
 
     const { count, rows: events } = await Event.findAndCountAll({

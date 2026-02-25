@@ -25,7 +25,8 @@ const Messages = () => {
   const [isMediaSidebarOpen, setIsMediaSidebarOpen] = useState(false);
   const [conversationMedia, setConversationMedia] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const messagesEndRef = useRef(null);
@@ -66,10 +67,16 @@ const Messages = () => {
     }
   }, [location.state, conversations]);
 
-  // Derived conversations list including the temporary one if selected
-  const displayConversations = [...conversations];
+  // Derived conversations list including the temporary one if selected and filtering by search term
+  const displayConversations = [...conversations]
+    .filter(c =>
+      `${c.user.firstName} ${c.user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
   if (selectedChat?.isTemp && !conversations.find(c => c.user.id === selectedChat.user.id)) {
-    displayConversations.unshift(selectedChat);
+    if (`${selectedChat.user.firstName} ${selectedChat.user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())) {
+      displayConversations.unshift(selectedChat);
+    }
   }
 
   useEffect(() => {
@@ -149,10 +156,35 @@ const Messages = () => {
     e.preventDefault();
     if (!messageText.trim() && selectedFiles.length === 0) return;
 
+    const tempMsgId = Date.now();
+    const tempMsg = {
+      id: tempMsgId,
+      content: messageText,
+      senderId: user.id,
+      receiverId: selectedChat.user.id,
+      createdAt: new Date(),
+      isSending: true,
+      attachments: filePreviews.map(p => ({
+        id: Math.random(),
+        fileUrl: p.url,
+        fileType: p.type.startsWith('image/') ? 'image' : p.type.startsWith('video/') ? 'video' : p.type.startsWith('audio/') ? 'audio' : 'file',
+        fileName: p.name
+      }))
+    };
+
+    setMessages(prev => [...prev, tempMsg]);
+    setIsSending(true);
+    const textToSubmit = messageText;
+    setMessageText('');
+    setSelectedFiles([]);
+    setFilePreviews([]);
+    setShowEmojiPicker(false);
+    scrollToBottom();
+
     try {
       const formData = new FormData();
       formData.append('receiverId', selectedChat.user.id);
-      formData.append('content', messageText);
+      formData.append('content', textToSubmit);
 
       selectedFiles.forEach(file => {
         formData.append('files', file);
@@ -163,12 +195,8 @@ const Messages = () => {
       });
 
       if (res.data.success) {
-        setMessages(prev => [...prev, res.data.data]);
-        setMessageText('');
-        setSelectedFiles([]);
-        setFilePreviews([]);
-        setShowEmojiPicker(false);
-        scrollToBottom();
+        setMessages(prev => prev.map(m => m.id === tempMsgId ? res.data.data : m));
+        setIsSending(false);
         socket.emit('typing', { conversationId: selectedChat.user.id, isTyping: false });
 
         if (selectedChat.isTemp) {
@@ -183,6 +211,8 @@ const Messages = () => {
       }
     } catch (err) {
       console.error('Send message error:', err);
+      setMessages(prev => prev.filter(m => m.id !== tempMsgId));
+      setIsSending(false);
     }
   };
 
@@ -231,12 +261,11 @@ const Messages = () => {
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        setAudioBlob(blob);
-        // Automatically send or show preview? Let's show preview but here we just auto-send for simplicity or add to files
-        const file = new File([blob], "voice-message.wav", { type: 'audio/wav' });
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        // Automatically add to files
+        const file = new File([blob], `voice-${Date.now()}.webm`, { type: 'audio/webm' });
         setSelectedFiles(prev => [...prev, file]);
-        setFilePreviews(prev => [...prev, { name: "Voice Message", url: URL.createObjectURL(blob), type: 'audio/wav' }]);
+        setFilePreviews(prev => [...prev, { name: "Voice Message", url: URL.createObjectURL(blob), type: 'audio/webm' }]);
       };
 
       mediaRecorder.start();
@@ -281,6 +310,8 @@ const Messages = () => {
             <input
               type="text"
               placeholder="Tìm kiếm trên Messenger"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full p-2 pl-9 bg-gray-100 dark:bg-gray-800 rounded-full text-sm focus:outline-none dark:text-white"
             />
             <svg className="w-4 h-4 absolute left-3 top-2.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -375,6 +406,10 @@ const Messages = () => {
                                 <img src={att.fileUrl} alt="" className="w-full h-auto object-cover max-h-60" />
                               ) : att.fileType === 'video' ? (
                                 <video src={att.fileUrl} controls className="w-full h-auto max-h-60" />
+                              ) : att.fileType === 'audio' ? (
+                                <div className="p-2 bg-white dark:bg-gray-800">
+                                  <audio src={att.fileUrl} controls className="w-full h-10" />
+                                </div>
                               ) : (
                                 <div className="p-3 bg-gray-100 dark:bg-gray-800 flex items-center space-x-2">
                                   <PhotoIcon className="w-8 h-8 text-gray-400" />
@@ -391,6 +426,21 @@ const Messages = () => {
                           : 'bg-white dark:bg-gray-800 dark:text-white rounded-bl-none shadow-sm'
                           }`}>
                           {msg.content}
+                        </div>
+                      )}
+                      {msg.senderId === user.id && (
+                        <div className="flex justify-end pr-1">
+                          {msg.isSending ? (
+                            <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                          ) : msg.isRead ? (
+                            <img src={selectedChat.user.profilePicture || 'https://via.placeholder.com/40'} alt="" className="w-3 h-3 rounded-full opacity-70" />
+                          ) : (
+                            <div className="w-3 h-3 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full">
+                              <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -419,6 +469,10 @@ const Messages = () => {
                     <div key={idx} className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-blue-500">
                       {file.type.startsWith('image/') ? (
                         <img src={file.url} alt="" className="w-full h-full object-cover" />
+                      ) : file.type.startsWith('audio/') ? (
+                        <div className="w-full h-full flex items-center justify-center bg-blue-50 dark:bg-blue-900/20">
+                          <MicrophoneIcon className="w-8 h-8 text-blue-500" />
+                        </div>
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800">
                           <PhotoIcon className="w-8 h-8 text-gray-400" />

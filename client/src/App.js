@@ -20,6 +20,8 @@ import Pages from './pages/Pages';
 import SavedPostsPage from './pages/SavedPostsPage';
 import PrivacySettingsPage from './pages/PrivacySettingsPage';
 import EventsPage from './pages/EventsPage';
+import GroupDetail from './pages/GroupDetail';
+import PageDetail from './pages/PageDetail';
 
 
 
@@ -79,7 +81,7 @@ function AppRoutes() {
           path="/profile/:userId?" 
           element={
             <ProtectedRoute>
-              <Layout hideSidebar={true}>
+              <Layout fullWidth={true}>
                 <Profile />
               </Layout>
             </ProtectedRoute>
@@ -90,7 +92,7 @@ function AppRoutes() {
           path="/friends/*" 
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout fullWidth={true}>
                 <Friends />
               </Layout>
             </ProtectedRoute>
@@ -112,7 +114,7 @@ function AppRoutes() {
           path="/notifications" 
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout fullWidth={true}>
                 <Notifications />
               </Layout>
             </ProtectedRoute>
@@ -123,7 +125,7 @@ function AppRoutes() {
           path="/events/*" 
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout fullWidth={true}>
                 <EventsPage />
               </Layout>
             </ProtectedRoute>
@@ -131,11 +133,21 @@ function AppRoutes() {
         />
         
         <Route 
-          path="/pages/*" 
+          path="/pages" 
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout fullWidth={true}>
                 <Pages />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/pages/:id" 
+          element={
+            <ProtectedRoute>
+              <Layout fullWidth={true}>
+                <PageDetail />
               </Layout>
             </ProtectedRoute>
           } 
@@ -143,11 +155,21 @@ function AppRoutes() {
 
         
         <Route 
-          path="/groups/*" 
+          path="/groups" 
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout fullWidth={true}>
                 <Groups />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/groups/:id" 
+          element={
+            <ProtectedRoute>
+              <Layout fullWidth={true}>
+                <GroupDetail />
               </Layout>
             </ProtectedRoute>
           } 
@@ -179,7 +201,7 @@ function AppRoutes() {
           path="/settings/privacy" 
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout fullWidth={true}>
                 <PrivacySettingsPage />
               </Layout>
             </ProtectedRoute>
@@ -190,7 +212,7 @@ function AppRoutes() {
           path="/saved" 
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout fullWidth={true}>
                 <SavedPostsPage />
               </Layout>
             </ProtectedRoute>
@@ -201,7 +223,7 @@ function AppRoutes() {
           path="/settings/*" 
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout fullWidth={true}>
                 <Settings />
               </Layout>
             </ProtectedRoute>

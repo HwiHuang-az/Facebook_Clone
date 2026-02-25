@@ -32,12 +32,25 @@ router.get('/', auth, async (req, res) => {
     // Thêm user hiện tại vào danh sách
     friendIds.push(userId);
 
-    // Lấy posts từ bạn bè và chính mình
+    // Filter by type, groupId, or pageId
+    const whereClause = {
+      isActive: true
+    };
+
+    if (req.query.groupId) {
+      whereClause.groupId = req.query.groupId;
+    } else if (req.query.pageId) {
+      whereClause.pageId = req.query.pageId;
+    } else {
+      // Default newsfeed: posts from friends and self, and NOT in groups/pages
+      whereClause.userId = { [Op.in]: friendIds };
+      whereClause.groupId = null;
+      whereClause.pageId = null;
+    }
+
+    // Lấy posts
     const posts = await Post.findAndCountAll({
-      where: {
-        userId: { [Op.in]: friendIds },
-        isActive: true
-      },
+      where: whereClause,
       include: [
         {
           model: User,
@@ -48,7 +61,7 @@ router.get('/', auth, async (req, res) => {
           model: Comment,
           as: 'comments',
           limit: 3,
-          order: [['created_at', 'DESC']],
+          order: [['createdAt', 'DESC']],
           include: [
             {
               model: User,
@@ -71,7 +84,7 @@ router.get('/', auth, async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     // Thêm thông tin đã like hay chưa
@@ -135,7 +148,9 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
       content,
       privacy,
       imageUrl,
-      videoUrl
+      videoUrl,
+      groupId: req.body.groupId || null,
+      pageId: req.body.pageId || null
     });
 
     // Lấy post vừa tạo kèm thông tin author
@@ -191,7 +206,7 @@ router.get('/:id', auth, async (req, res) => {
         {
           model: Comment,
           as: 'comments',
-          order: [['created_at', 'ASC']],
+          order: [['createdAt', 'ASC']],
           include: [
             {
               model: User,
@@ -450,7 +465,7 @@ router.get('/user/:userId', auth, async (req, res) => {
           model: Comment,
           as: 'comments',
           limit: 3,
-          order: [['created_at', 'DESC']],
+          order: [['createdAt', 'DESC']],
           include: [
             {
               model: User,
@@ -473,7 +488,7 @@ router.get('/user/:userId', auth, async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     const postsWithStatus = posts.rows.map(post => ({

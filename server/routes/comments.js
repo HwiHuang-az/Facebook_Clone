@@ -42,7 +42,7 @@ router.get('/post/:postId', auth, async (req, res) => {
           where: { isActive: true },
           required: false,
           limit: 3,
-          order: [['created_at', 'ASC']],
+          order: [['createdAt', 'ASC']],
           include: [
             {
               model: User,
@@ -65,7 +65,7 @@ router.get('/post/:postId', auth, async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['created_at', 'ASC']]
+      order: [['createdAt', 'ASC']]
     });
 
     // Thêm thông tin đã like hay chưa

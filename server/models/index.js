@@ -118,9 +118,16 @@ GroupMember.belongsTo(Group, { foreignKey: 'groupId', as: 'group' });
 User.hasMany(GroupMember, { foreignKey: 'userId', as: 'groupMemberships' });
 GroupMember.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
-// User - Page relationship
+// Group - Post relationship
+Group.hasMany(Post, { foreignKey: 'groupId', as: 'posts' });
+Post.belongsTo(Group, { foreignKey: 'groupId', as: 'group' });
+
 User.hasMany(Page, { foreignKey: 'ownerId', as: 'pages' });
 Page.belongsTo(User, { foreignKey: 'ownerId', as: 'owner' });
+
+// Page - Post relationship
+Page.hasMany(Post, { foreignKey: 'pageId', as: 'posts' });
+Post.belongsTo(Page, { foreignKey: 'pageId', as: 'page' });
 
 // User - Event relationship
 User.hasMany(Event, { foreignKey: 'creatorId', as: 'events' });
@@ -132,6 +139,12 @@ EventResponse.belongsTo(Event, { foreignKey: 'eventId', as: 'event' });
 User.hasMany(EventResponse, { foreignKey: 'userId', as: 'eventResponses' });
 EventResponse.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
+// Group/Page - Event associations
+Group.hasMany(Event, { foreignKey: 'groupId', as: 'events' });
+Event.belongsTo(Group, { foreignKey: 'groupId', as: 'group' });
+Page.hasMany(Event, { foreignKey: 'pageId', as: 'events' });
+Event.belongsTo(Page, { foreignKey: 'pageId', as: 'page' });
+
 // User - MarketplaceItem relationship
 User.hasMany(MarketplaceItem, { foreignKey: 'sellerId', as: 'marketplaceItems' });
 MarketplaceItem.belongsTo(User, { foreignKey: 'sellerId', as: 'seller' });
@@ -141,6 +154,10 @@ User.hasMany(SavedPost, { foreignKey: 'userId', as: 'savedPosts' });
 SavedPost.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 Post.hasMany(SavedPost, { foreignKey: 'postId', as: 'savedBy' });
 SavedPost.belongsTo(Post, { foreignKey: 'postId', as: 'post' });
+
+// Page - Like relationship
+Page.hasMany(Like, { foreignKey: 'pageId', as: 'likes' });
+Like.belongsTo(Page, { foreignKey: 'pageId', as: 'page' });
 
 // User - PostShare relationship
 User.hasMany(PostShare, { foreignKey: 'userId', as: 'sharedPosts' });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { useAuth } from '../../hooks/useAuth';
@@ -8,20 +8,23 @@ import { getPostComments, createComment } from '../../services/commentService';
 import { toast } from 'react-hot-toast';
 import VideoPlayer from '../Video/VideoPlayer';
 import {
-    HandThumbUpIcon as HandThumbUpIconSolid
+    HandThumbUpIcon as HandThumbUpIconSolid,
+    FlagIcon
 } from '@heroicons/react/24/solid';
 import {
     HandThumbUpIcon,
     ChatBubbleOvalLeftIcon,
     ArrowUturnRightIcon,
     EllipsisHorizontalIcon,
-    PaperAirplaneIcon
+    PaperAirplaneIcon,
+    BookmarkIcon,
+    TrashIcon,
+    ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import classNames from 'classnames';
 import SavePostButton from '../Post/SavePostButton';
 import PostShareModal from '../Post/PostShareModal';
-
-
+import ReportModal from '../Shared/ReportModal';
 
 const Post = ({ post, onPostUpdate }) => {
     const { user } = useAuth();
@@ -34,7 +37,19 @@ const Post = ({ post, onPostUpdate }) => {
     const [sharesCount, setSharesCount] = useState(post.sharesCount || 0);
     const [loadingComments, setLoadingComments] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
+    const [showMenu, setShowMenu] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const menuRef = useRef(null);
 
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setShowMenu(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const handleLike = async () => {
         try {
@@ -95,10 +110,12 @@ const Post = ({ post, onPostUpdate }) => {
         return videoExtensions.some(ext => url.toLowerCase().includes(ext)) || url.includes('/video/upload/');
     };
 
+    const isOwner = user?.id === post.author.id;
+
     return (
         <div className="bg-white rounded-lg shadow-facebook mb-4 transition-all duration-200">
             {/* Post Header */}
-            <div className="p-4 flex items-center justify-between">
+            <div className="p-4 flex items-center justify-between relative">
                 <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden flex-shrink-0">
                         {post.author.profilePicture ? (
@@ -135,9 +152,44 @@ const Post = ({ post, onPostUpdate }) => {
                         </p>
                     </div>
                 </div>
-                <button className="text-gray-400 hover:bg-gray-100 p-2 rounded-full transition-colors">
-                    <EllipsisHorizontalIcon className="h-5 w-5" />
-                </button>
+
+                <div className="relative" ref={menuRef}>
+                    <button
+                        onClick={() => setShowMenu(!showMenu)}
+                        className="text-gray-400 hover:bg-gray-100 p-2 rounded-full transition-colors"
+                    >
+                        <EllipsisHorizontalIcon className="h-5 w-5" />
+                    </button>
+
+                    {showMenu && (
+                        <div className="absolute right-0 top-10 w-60 bg-white dark:bg-gray-800 rounded-lg shadow-xl border dark:border-gray-700 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <button className="w-full flex items-center space-x-3 px-4 py-2 text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors">
+                                <BookmarkIcon className="h-5 w-5" />
+                                <span>Lưu bài viết</span>
+                            </button>
+
+                            {!isOwner && (
+                                <button
+                                    onClick={() => {
+                                        setShowMenu(false);
+                                        setShowReportModal(true);
+                                    }}
+                                    className="w-full flex items-center space-x-3 px-4 py-2 text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors"
+                                >
+                                    <ExclamationTriangleIcon className="h-5 w-5" />
+                                    <span>Báo cáo bài viết</span>
+                                </button>
+                            )}
+
+                            {isOwner && (
+                                <button className="w-full flex items-center space-x-3 px-4 py-2 text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-900/10 text-red-600 transition-colors">
+                                    <TrashIcon className="h-5 w-5" />
+                                    <span>Xóa bài viết</span>
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Post Content */}
@@ -294,6 +346,17 @@ const Post = ({ post, onPostUpdate }) => {
                         setSharesCount(prev => prev + 1);
                         if (onPostUpdate) onPostUpdate();
                     }}
+                />
+            )}
+
+            {/* Report Modal */}
+            {showReportModal && (
+                <ReportModal
+                    isOpen={showReportModal}
+                    onClose={() => setShowReportModal(false)}
+                    targetType="post"
+                    targetId={post.id}
+                    targetName={`${post.author.firstName} ${post.author.lastName}`}
                 />
             )}
         </div>

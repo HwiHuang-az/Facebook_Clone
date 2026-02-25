@@ -15,6 +15,7 @@ import {
   BuildingLibraryIcon,
   HeartIcon,
   StarIcon,
+  FlagIcon,
 } from '@heroicons/react/24/outline';
 
 const Sidebar = () => {
@@ -28,6 +29,7 @@ const Sidebar = () => {
     { IconOutline: ClockIcon, label: 'Kỷ niệm', path: '/memories' },
     { IconOutline: BookmarkIcon, label: 'Đã lưu', path: '/saved' },
     { IconOutline: RectangleGroupIcon, label: 'Nhóm', path: '/groups' },
+    { IconOutline: FlagIcon, label: 'Trang', path: '/pages' },
     { IconOutline: TvIcon, label: 'Video', path: '/watch' },
     { IconOutline: BuildingStorefrontIcon, label: 'Marketplace', path: '/marketplace' },
   ];
@@ -63,9 +65,8 @@ const Sidebar = () => {
           <Link
             key={index}
             to={item.path}
-            className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-              isActive ? 'bg-gray-100 text-facebook-600' : 'text-gray-700 hover:bg-gray-100'
-            }`}
+            className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${isActive ? 'bg-gray-100 text-facebook-600' : 'text-gray-700 hover:bg-gray-100'
+              }`}
           >
             <item.IconOutline className={`h-6 w-6 flex-shrink-0 ${isActive ? 'text-facebook-600' : 'text-gray-600'}`} />
             <span className={`font-medium ${isActive ? 'text-facebook-600' : 'text-gray-700'}`}>{item.label}</span>
@@ -80,9 +81,8 @@ const Sidebar = () => {
           <Link
             key={`secondary-${index}`}
             to={item.path}
-            className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-              isActive ? 'bg-gray-100 text-facebook-600' : 'text-gray-700 hover:bg-gray-100'
-            }`}
+            className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${isActive ? 'bg-gray-100 text-facebook-600' : 'text-gray-700 hover:bg-gray-100'
+              }`}
           >
             <item.IconOutline className={`h-6 w-6 flex-shrink-0 ${isActive ? 'text-facebook-600' : 'text-gray-600'}`} />
             <span className={`font-medium ${isActive ? 'text-facebook-600' : 'text-gray-700'}`}>{item.label}</span>
@@ -111,12 +111,12 @@ const Sidebar = () => {
             </div>
             <span className="text-sm font-medium group-hover:text-facebook-600">Nhóm yêu thích</span>
           </div>
-          <div className="flex items-center space-x-3 p-2 rounded-lg text-gray-700 hover:bg-gray-100 cursor-pointer group">
+          <Link to="/pages" className="flex items-center space-x-3 p-2 rounded-lg text-gray-700 hover:bg-gray-100 cursor-pointer group">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-lg flex-shrink-0 flex items-center justify-center">
               <StarIcon className="h-4 w-4 text-white" />
             </div>
             <span className="text-sm font-medium group-hover:text-facebook-600">Trang đã thích</span>
-          </div>
+          </Link>
         </div>
       </div>
     </nav>

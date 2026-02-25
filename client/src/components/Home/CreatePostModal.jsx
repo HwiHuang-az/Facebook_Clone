@@ -2,7 +2,7 @@ import React from 'react';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 import CreatePost from './CreatePost';
 
-const CreatePostModal = ({ isOpen, onClose, initialImage, onPostCreated }) => {
+const CreatePostModal = ({ isOpen, onClose, initialImage, onPostCreated, groupId = null, pageId = null }) => {
     if (!isOpen) return null;
 
     return (
@@ -25,6 +25,8 @@ const CreatePostModal = ({ isOpen, onClose, initialImage, onPostCreated }) => {
                             onClose();
                         }}
                         initialImage={initialImage}
+                        groupId={groupId}
+                        pageId={pageId}
                     />
                 </div>
             </div>

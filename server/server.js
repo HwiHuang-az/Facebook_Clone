@@ -9,24 +9,28 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security middleware
-app.use(helmet());
-app.use(compression());
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100 // limit each IP to 100 requests per windowMs
-});
-app.use('/api/', limiter);
-
-// CORS configuration
+// CORS configuration - Must be before security and other middlewares
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? ['https://yourfacebookclone.com'] 
     : ['http://localhost:3000', 'http://127.0.0.1:3000'],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
+
+// Security middleware
+app.use(helmet({
+  crossOriginResourcePolicy: false, // Allow cross-origin images/resources
+}));
+app.use(compression());
+
+// Rate limiting - Applied after CORS to ensure preflights aren't blocked incorrectly
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000 // Increased for development
+});
+app.use('/api/', limiter);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -77,6 +81,7 @@ app.use('/api/events', require('./routes/events'));
 app.use('/api/messages', require('./routes/messages'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/post-shares', require('./routes/post-shares'));
+app.use('/api/reports', require('./routes/reports'));
 
 
 
