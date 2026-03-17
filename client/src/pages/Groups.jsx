@@ -14,6 +14,7 @@ import GroupSidebar from '../components/Groups/GroupSidebar';
 
 const Groups = () => {
     const [publicGroups, setPublicGroups] = useState([]);
+    const [suggestions, setSuggestions] = useState([]);
     const [myGroups, setMyGroups] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -23,13 +24,15 @@ const Groups = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [publicRes, myRes] = await Promise.all([
+            const [publicRes, myRes, suggestRes] = await Promise.all([
                 api.get('/groups', { params: { query: searchQuery } }),
-                api.get('/groups/my')
+                api.get('/groups/my'),
+                api.get('/groups/suggestions')
             ]);
-
+            
             if (publicRes.data.success) setPublicGroups(publicRes.data.data);
             if (myRes.data.success) setMyGroups(myRes.data.data);
+            if (suggestRes.data.success) setSuggestions(suggestRes.data.data);
         } catch (error) {
             console.error('Fetch groups error:', error);
         } finally {
@@ -48,31 +51,63 @@ const Groups = () => {
                 <GroupSidebar
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
+                    onOpenCreateModal={() => setShowCreateModal(true)}
                 />
             </div>
 
             {/* Main Content */}
             <div className="flex-1 p-6">
                 {activeTab === 'discover' && (
-                    <div>
-                        <h2 className="text-xl font-bold mb-6">Gợi ý cho bạn</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {publicGroups.map((group) => (
-                                <Link to={`/groups/${group.id}`} key={group.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
-                                    <div className="h-32 bg-gray-200">
-                                        {group.coverPhoto && (
-                                            <img src={group.coverPhoto} alt={group.name} className="w-full h-full object-cover" />
-                                        )}
-                                    </div>
-                                    <div className="p-4 flex flex-col items-center">
-                                        <h3 className="font-bold text-lg mb-1">{group.name}</h3>
-                                        <p className="text-sm text-gray-500 mb-4">{group.membersCount} thành viên</p>
-                                        <button className="w-full py-2 bg-gray-200 text-gray-900 rounded-lg font-bold hover:bg-gray-300 transition-colors">
-                                            Xem nhóm
-                                        </button>
-                                    </div>
-                                </Link>
-                            ))}
+                    <div className="space-y-8">
+                        {suggestions.length > 0 && (
+                            <div>
+                                <h2 className="text-xl font-bold mb-4">Gợi ý nhóm cho bạn</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {suggestions.map((group) => (
+                                        <div key={group.id} className="bg-white rounded-lg shadow-sm border overflow-hidden flex flex-col p-4">
+                                            <div className="flex items-center space-x-3 mb-3">
+                                                <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden shrink-0">
+                                                    {group.coverPhoto && <img src={group.coverPhoto} className="w-full h-full object-cover" />}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="font-bold text-gray-900 truncate">{group.name}</h3>
+                                                    <p className="text-xs text-blue-600 font-medium">
+                                                        {group.friends[0].name}{group.friends.length > 1 ? ` và ${group.friends.length - 1} bạn khác` : ''} đã tham gia
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <Link 
+                                                to={`/groups/${group.id}`}
+                                                className="w-full py-2 bg-blue-100 text-blue-600 rounded-lg font-bold hover:bg-blue-200 transition text-center text-sm"
+                                            >
+                                                Tham gia nhóm
+                                            </Link>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div>
+                            <h2 className="text-xl font-bold mb-6">Nhóm phổ biến</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {publicGroups.map((group) => (
+                                    <Link to={`/groups/${group.id}`} key={group.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
+                                        <div className="h-32 bg-gray-200">
+                                            {group.coverPhoto && (
+                                                <img src={group.coverPhoto} alt={group.name} className="w-full h-full object-cover" />
+                                            )}
+                                        </div>
+                                        <div className="p-4 flex flex-col items-center">
+                                            <h3 className="font-bold text-lg mb-1">{group.name}</h3>
+                                            <p className="text-sm text-gray-500 mb-4">{group.membersCount} thành viên</p>
+                                            <button className="w-full py-2 bg-gray-200 text-gray-900 rounded-lg font-bold hover:bg-gray-300 transition-colors">
+                                                Xem nhóm
+                                            </button>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 )}

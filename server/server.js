@@ -82,6 +82,8 @@ app.use('/api/messages', require('./routes/messages'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/post-shares', require('./routes/post-shares'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/search', require('./routes/search'));
+app.use('/api/ads', require('./routes/ads'));
 
 
 
@@ -117,9 +119,30 @@ app.use('/api/*', (req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('❌ Global error:', err);
+
+  // Handle Sequelize validation errors
+  if (err.name === 'SequelizeValidationError' || err.name === 'SequelizeUniqueConstraintError') {
+    return res.status(400).json({
+      success: false,
+      error: 'Validation error',
+      message: err.errors ? err.errors.map(e => e.message).join(', ') : err.message
+    });
+  }
+
+  // Handle other known error types
+  if (err.status) {
+    return res.status(err.status).json({
+      success: false,
+      error: err.name || 'Error',
+      message: err.message
+    });
+  }
+
+  // Default internal server error
   res.status(500).json({
+    success: false,
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Dịch vụ gặp sự cố tạm thời, vui lòng thử lại sau.'
   });
 });
 

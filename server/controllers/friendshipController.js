@@ -1,4 +1,4 @@
-const { User, Friendship, Notification } = require('../models');
+const { User, Friendship, Notification, PrivacySetting } = require('../models');
 const { Op } = require('sequelize');
 const { createNotification } = require('./notificationController');
 
@@ -32,6 +32,47 @@ const sendFriendRequest = async (req, res) => {
         success: false,
         message: 'Không tìm thấy người dùng'
       });
+    }
+
+    // Check receiver's privacy settings
+    const privacy = await PrivacySetting.findOne({ where: { userId: receiverId } });
+    if (privacy) {
+      if (privacy.whoCanSendFriendRequests === 'nobody') {
+        return res.status(403).json({
+          success: false,
+          message: 'Người dùng này không nhận lời mời kết bạn mới'
+        });
+      }
+      
+      if (privacy.whoCanSendFriendRequests === 'friends_of_friends') {
+        const senderFriends = await Friendship.findAll({
+          where: {
+            [Op.or]: [
+              { user1Id: senderId, status: 'accepted' },
+              { user2Id: senderId, status: 'accepted' }
+            ]
+          }
+        });
+        
+        const senderFriendIds = senderFriends.map(f => f.user1Id === senderId ? f.user2Id : f.user1Id);
+        
+        const mutualFriend = await Friendship.findOne({
+          where: {
+            status: 'accepted',
+            [Op.or]: [
+              { user1Id: receiverId, user2Id: { [Op.in]: senderFriendIds } },
+              { user2Id: receiverId, user1Id: { [Op.in]: senderFriendIds } }
+            ]
+          }
+        });
+        
+        if (!mutualFriend) {
+          return res.status(403).json({
+            success: false,
+            message: 'Chỉ bạn của bạn bè mới có thể gửi lời mời kết bạn cho người dùng này'
+          });
+        }
+      }
     }
 
     // Kiểm tra đã có friendship chưa

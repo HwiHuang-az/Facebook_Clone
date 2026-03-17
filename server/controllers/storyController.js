@@ -130,9 +130,57 @@ const viewStory = async (req, res) => {
   }
 };
 
+// Lấy danh sách người đã xem tin
+const getStoryViewers = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const story = await Story.findByPk(id);
+    if (!story) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy tin'
+      });
+    }
+
+    // Chỉ chủ sở hữu tin mới xem được danh sách người đã xem
+    if (story.userId !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền xem danh sách người xem của tin này'
+      });
+    }
+
+    const viewers = await StoryView.findAll({
+      where: { storyId: id },
+      include: [
+        {
+          model: User,
+          as: 'viewer',
+          attributes: ['id', 'firstName', 'lastName', 'profilePicture']
+        }
+      ],
+      order: [['viewedAt', 'DESC']]
+    });
+
+    res.json({
+      success: true,
+      data: viewers
+    });
+  } catch (error) {
+    console.error('Get story viewers error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi lấy danh sách người xem'
+    });
+  }
+};
+
 module.exports = {
   createStory,
   getStories,
   getUserStories,
-  viewStory
+  viewStory,
+  getStoryViewers
 };

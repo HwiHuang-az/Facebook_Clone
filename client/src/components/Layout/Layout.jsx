@@ -7,7 +7,7 @@ const Layout = ({ children, hideSidebar, fullWidth }) => {
     <div className={`min-h-screen bg-gray-100 dark:bg-gray-900 ${fullWidth ? 'h-screen overflow-hidden flex flex-col' : ''}`}>
       <Header />
       {fullWidth ? (
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 overflow-y-auto">
           {children}
         </main>
       ) : (

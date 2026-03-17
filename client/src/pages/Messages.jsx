@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import { PaperAirplaneIcon, FaceSmileIcon, PhotoIcon, MicrophoneIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { PaperAirplaneIcon, FaceSmileIcon, PhotoIcon, MicrophoneIcon, XMarkIcon, ArrowUturnRightIcon } from '@heroicons/react/24/solid';
 import api from '../utils/api';
 import { useAuth } from '../hooks/useAuth';
 import { useSocket } from '../hooks/useSocket';
@@ -27,6 +27,9 @@ const Messages = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [forwardModalOpen, setForwardModalOpen] = useState(false);
+  const [forwardTarget, setForwardTarget] = useState(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const messagesEndRef = useRef(null);
@@ -51,6 +54,9 @@ const Messages = () => {
   // Handle targetUser from Profile
   useEffect(() => {
     const targetUser = location.state?.targetUser;
+    const pathParts = location.pathname.split('/');
+    const pathId = pathParts[2] && !isNaN(Number(pathParts[2])) ? pathParts[2] : null;
+
     if (targetUser) {
       const existingConv = conversations.find(c => c.user.id === targetUser.id);
       if (existingConv) {
@@ -64,6 +70,28 @@ const Messages = () => {
         };
         setSelectedChat(tempConv);
       }
+      return;
+    }
+
+    // If no state provided, try to parse /messages/:id from pathname
+    if (pathId) {
+      const fetchTarget = async () => {
+        try {
+          const res = await api.get(`/users/profile/${pathId}`);
+          if (res.data.success && res.data.data && res.data.data.user) {
+            const userObj = res.data.data.user;
+            const existingConv = conversations.find(c => c.user.id === userObj.id);
+            if (existingConv) {
+              setSelectedChat(existingConv);
+            } else {
+              setSelectedChat({ user: userObj });
+            }
+          }
+        } catch (err) {
+          console.error('Fetch target user error:', err);
+        }
+      };
+      fetchTarget();
     }
   }, [location.state, conversations]);
 
@@ -175,6 +203,10 @@ const Messages = () => {
     setMessages(prev => [...prev, tempMsg]);
     setIsSending(true);
     const textToSubmit = messageText;
+
+    // Capture files locally before clearing UI state to avoid race
+    const filesToSend = [...selectedFiles];
+
     setMessageText('');
     setSelectedFiles([]);
     setFilePreviews([]);
@@ -185,10 +217,17 @@ const Messages = () => {
       const formData = new FormData();
       formData.append('receiverId', selectedChat.user.id);
       formData.append('content', textToSubmit);
+      if (replyingTo && replyingTo.id) {
+        formData.append('replyToId', replyingTo.id);
+      }
 
-      selectedFiles.forEach(file => {
+      console.log('Sending files:', filesToSend.map(f => f.name));
+      filesToSend.forEach(file => {
         formData.append('files', file);
       });
+
+      // reset replying state after sending
+      setReplyingTo(null);
 
       const res = await api.post('/messages', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -213,6 +252,39 @@ const Messages = () => {
       console.error('Send message error:', err);
       setMessages(prev => prev.filter(m => m.id !== tempMsgId));
       setIsSending(false);
+    }
+  };
+
+  const handleReply = (msg) => {
+    setReplyingTo(msg);
+    // focus input
+    const input = document.querySelector('input[placeholder="Soạn tin nhắn..."]');
+    if (input) input.focus();
+  };
+
+  const openForwardModal = (msg) => {
+    setForwardTarget(msg);
+    setForwardModalOpen(true);
+  };
+
+  const handleForwardTo = async (conv) => {
+    if (!forwardTarget) return;
+    try {
+      const res = await api.post('/messages', {
+        receiverId: conv.user.id,
+        content: forwardTarget.content ? `Fwd: ${forwardTarget.content}` : 'Forwarded message',
+        forwardedFromId: forwardTarget.id
+      });
+      if (res.data.success) {
+        setForwardModalOpen(false);
+        setForwardTarget(null);
+        // If forwarding to current chat, append
+        if (conv.user.id === selectedChat.user.id) {
+          setMessages(prev => [...prev, res.data.data]);
+        }
+      }
+    } catch (err) {
+      console.error('Forward error:', err);
     }
   };
 
@@ -398,28 +470,42 @@ const Messages = () => {
                       <img src={selectedChat.user.profilePicture || 'https://via.placeholder.com/40'} alt="" className="w-8 h-8 rounded-full mr-2 self-end" />
                     )}
                     <div className={`max-w-[70%] space-y-2`}>
-                      {msg.attachments && msg.attachments.length > 0 && (
-                        <div className={`grid gap-1 ${msg.attachments.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                          {msg.attachments.map(att => (
-                            <div key={att.id} className="relative rounded-lg overflow-hidden border dark:border-gray-700">
-                              {att.fileType === 'image' ? (
-                                <img src={att.fileUrl} alt="" className="w-full h-auto object-cover max-h-60" />
-                              ) : att.fileType === 'video' ? (
-                                <video src={att.fileUrl} controls className="w-full h-auto max-h-60" />
-                              ) : att.fileType === 'audio' ? (
-                                <div className="p-2 bg-white dark:bg-gray-800">
-                                  <audio src={att.fileUrl} controls className="w-full h-10" />
-                                </div>
-                              ) : (
-                                <div className="p-3 bg-gray-100 dark:bg-gray-800 flex items-center space-x-2">
-                                  <PhotoIcon className="w-8 h-8 text-gray-400" />
-                                  <span className="text-xs truncate">{att.fileName}</span>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      {msg.attachments && msg.attachments.length > 0 && (() => {
+                        const count = msg.attachments.length;
+                        const wrapperClass = count === 1 ? 'grid-cols-1' : count === 2 ? 'grid-cols-2' : count === 3 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-3';
+                        return (
+                          <div className={`grid gap-1 ${wrapperClass}`}>
+                            {msg.attachments.map((att, idx) => (
+                              <div
+                                key={att.id || idx}
+                                className={`relative rounded-lg overflow-hidden border dark:border-gray-700 ${count === 3 && idx === 0 ? 'row-span-2' : ''}`}
+                              >
+                                {att.fileType === 'image' ? (
+                                  <img src={att.fileUrl} alt="" className="w-full h-full object-cover" />
+                                ) : att.fileType === 'video' ? (
+                                  <video src={att.fileUrl} controls className="w-full h-full object-cover" />
+                                ) : att.fileType === 'audio' ? (
+                                  <div className="p-2 bg-white dark:bg-gray-800">
+                                    <audio src={att.fileUrl} controls className="w-full h-10" />
+                                  </div>
+                                ) : (
+                                  <div className="p-3 bg-gray-100 dark:bg-gray-800 flex items-center space-x-2">
+                                    <PhotoIcon className="w-8 h-8 text-gray-400" />
+                                    <span className="text-xs truncate">{att.fileName}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                        {/* Quoted reply rendering */}
+                        {msg.replyTo && (
+                          <div className="mt-1 p-2 bg-gray-100 dark:bg-gray-800 rounded-md text-xs text-gray-700 dark:text-gray-200">
+                            <div className="font-semibold text-xs text-gray-600 dark:text-gray-300">Trả lời</div>
+                            <div className="truncate">{msg.replyTo.content || (msg.replyTo.attachments && msg.replyTo.attachments[0]?.fileName) || '...'}</div>
+                          </div>
+                        )}
                       {msg.content && (
                         <div className={`p-3 rounded-2xl text-sm ${msg.senderId === user.id
                           ? 'bg-blue-600 text-white rounded-br-none'
@@ -443,6 +529,11 @@ const Messages = () => {
                           )}
                         </div>
                       )}
+                      {/* Reply / Forward actions */}
+                      <div className="flex items-center space-x-2 mt-1">
+                        <button onClick={() => handleReply(msg)} className="text-xs text-gray-500 hover:text-gray-700">Trả lời</button>
+                        <button onClick={() => openForwardModal(msg)} className="text-xs text-gray-500 hover:text-gray-700">Chuyển tiếp</button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -486,6 +577,20 @@ const Messages = () => {
                       </button>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* Reply preview */}
+              {replyingTo && (
+                <div className="p-3 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700 flex items-start justify-between">
+                  <div className="flex items-start space-x-3">
+                    <img src={replyingTo.sender?.profilePicture || 'https://via.placeholder.com/40'} alt="" className="w-8 h-8 rounded" />
+                    <div className="text-sm">
+                      <div className="font-semibold text-xs">{replyingTo.sender ? `${replyingTo.sender.firstName} ${replyingTo.sender.lastName}` : 'Bạn'}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-300 truncate max-w-xs">{replyingTo.content || (replyingTo.attachments && replyingTo.attachments[0]?.fileName) || '...'}</div>
+                    </div>
+                  </div>
+                  <button onClick={() => setReplyingTo(null)} className="text-gray-500 hover:text-gray-700">Hủy</button>
                 </div>
               )}
 
@@ -586,6 +691,32 @@ const Messages = () => {
               ) : (
                 <p className="text-sm text-gray-400 text-center py-4 italic">Chưa có file nào được chia sẻ</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Forward Modal */}
+      {forwardModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white dark:bg-gray-900 w-full max-w-md p-4 rounded-lg">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-bold">Chuyển tiếp đến</h3>
+              <button onClick={() => setForwardModalOpen(false)} className="text-gray-500">Đóng</button>
+            </div>
+            <div className="max-h-80 overflow-y-auto">
+              {displayConversations.map(conv => (
+                <div key={conv.user.id} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <img src={conv.user.profilePicture || 'https://via.placeholder.com/40'} alt="" className="w-10 h-10 rounded-full" />
+                    <div>
+                      <div className="font-medium">{conv.user.firstName} {conv.user.lastName}</div>
+                      <div className="text-xs text-gray-500 truncate">{conv.lastMessage?.content || ''}</div>
+                    </div>
+                  </div>
+                  <button onClick={() => handleForwardTo(conv)} className="text-blue-600">Gửi</button>
+                </div>
+              ))}
             </div>
           </div>
         </div>

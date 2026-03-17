@@ -1,4 +1,4 @@
-const { Message, User, MessageAttachment, sequelize } = require('../models');
+const { Message, User, MessageAttachment, sequelize, PrivacySetting, Friendship } = require('../models');
 const { Op } = require('sequelize');
 const { sendToUser } = require('../utils/socket');
 
@@ -82,6 +82,21 @@ const getMessages = async (req, res) => {
         {
           model: MessageAttachment,
           as: 'attachments'
+        },
+        // Include replied/forwarded message if any
+        {
+          model: Message,
+          as: 'replyTo',
+          include: [
+            { model: MessageAttachment, as: 'attachments' }
+          ]
+        },
+        {
+          model: Message,
+          as: 'forwardedFrom',
+          include: [
+            { model: MessageAttachment, as: 'attachments' }
+          ]
         }
       ]
     });
@@ -102,9 +117,40 @@ const getMessages = async (req, res) => {
 // Send message
 const sendMessage = async (req, res) => {
   try {
-    const { receiverId, content, messageType = 'text', tempId } = req.body;
+    const { receiverId, content, messageType = 'text', tempId, replyToId, forwardedFromId } = req.body;
     const senderId = req.user.id;
     const files = req.files || [];
+
+    // Check receiver's privacy settings
+    if (senderId !== parseInt(receiverId)) {
+      const privacy = await PrivacySetting.findOne({ where: { userId: receiverId } });
+      if (privacy) {
+        if (privacy.whoCanMessageMe === 'nobody') {
+          return res.status(403).json({
+            success: false,
+            message: 'Người dùng này không nhận tin nhắn từ người lạ'
+          });
+        }
+        
+        if (privacy.whoCanMessageMe === 'friends') {
+          const friendship = await Friendship.findOne({
+            where: {
+              [Op.or]: [
+                { user1Id: senderId, user2Id: receiverId, status: 'accepted' },
+                { user1Id: receiverId, user2Id: senderId, status: 'accepted' }
+              ]
+            }
+          });
+          
+          if (!friendship) {
+            return res.status(403).json({
+              success: false,
+              message: 'Bạn phải là bạn bè mới có thể gửi tin nhắn cho người dùng này'
+            });
+          }
+        }
+      }
+    }
 
     // Create the message
     const message = await Message.create({
@@ -112,7 +158,9 @@ const sendMessage = async (req, res) => {
       receiverId,
       content: content || '',
       messageType: files.length > 0 ? (messageType === 'text' ? 'mixed' : messageType) : messageType,
-      isRead: false
+      isRead: false,
+      replyToId: replyToId || null,
+      forwardedFromId: forwardedFromId || null
     });
 
     // Handle attachments if any
@@ -142,6 +190,16 @@ const sendMessage = async (req, res) => {
         {
           model: MessageAttachment,
           as: 'attachments'
+        },
+        {
+          model: Message,
+          as: 'replyTo',
+          include: [{ model: MessageAttachment, as: 'attachments' }]
+        },
+        {
+          model: Message,
+          as: 'forwardedFrom',
+          include: [{ model: MessageAttachment, as: 'attachments' }]
         }
       ]
     });

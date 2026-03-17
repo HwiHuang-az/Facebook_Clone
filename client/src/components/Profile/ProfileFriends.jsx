@@ -8,7 +8,12 @@ const ProfileFriends = ({ friends, friendsCount, setActiveTab }) => {
                     <h2 className="text-xl font-bold">Bạn bè</h2>
                     <span className="text-gray-500 text-[15px]">{friendsCount || 0} người bạn</span>
                 </div>
-                <button className="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded font-semibold text-[15px]">Xem tất cả bạn bè</button>
+                <button 
+                    onClick={() => setActiveTab('friends')}
+                    className="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded font-semibold text-[15px]"
+                >
+                    Xem tất cả bạn bè
+                </button>
             </div>
             <div className="grid grid-cols-3 gap-x-2 gap-y-4">
                 {friends.slice(0, 9).map((friend) => (

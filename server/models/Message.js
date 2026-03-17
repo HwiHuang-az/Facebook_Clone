@@ -48,6 +48,24 @@ const Message = sequelize.define('Message', {
     field: 'video_url',
     allowNull: true
   },
+  replyToId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    field: 'reply_to',
+    references: {
+      model: 'messages',
+      key: 'id'
+    }
+  },
+  forwardedFromId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    field: 'forwarded_from',
+    references: {
+      model: 'messages',
+      key: 'id'
+    }
+  },
   isRead: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,

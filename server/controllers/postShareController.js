@@ -1,4 +1,4 @@
-const { PostShare, Post, User } = require('../models');
+const { PostShare, Post, User, PrivacySetting } = require('../models');
 const { Op } = require('sequelize');
 
 // Share a post
@@ -6,7 +6,7 @@ exports.sharePost = async (req, res) => {
   try {
     const userId = req.user.id;
     const { postId } = req.params;
-    const { sharedContent } = req.body;
+    const { sharedContent, privacy } = req.body;
 
     // Check if post exists
     const post = await Post.findByPk(postId);
@@ -17,11 +17,33 @@ exports.sharePost = async (req, res) => {
       });
     }
 
-    // Create share
+    // Create share record
     const share = await PostShare.create({
       userId,
       postId,
       sharedContent: sharedContent || ''
+    });
+
+    // Get user's default privacy if not provided
+    let finalPrivacy = privacy || 'public';
+    if (!privacy) {
+      try {
+        const settings = await PrivacySetting.findOne({ where: { userId } });
+        if (settings) {
+          finalPrivacy = settings.postDefaultPrivacy;
+        }
+      } catch (err) {
+        console.error('Error fetching privacy settings for share:', err);
+      }
+    }
+
+    // Also create a new Post of type 'share' for the newsfeed
+    const postEntry = await Post.create({
+      userId,
+      content: sharedContent || '',
+      type: 'share',
+      sharedPostId: postId,
+      privacy: finalPrivacy
     });
 
     // Increment shares count on original post

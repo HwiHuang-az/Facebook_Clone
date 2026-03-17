@@ -186,8 +186,9 @@ const PageDetail = () => {
     };
 
     const handleMessage = () => {
-        if (page && page.ownerId) {
-            navigate(`/messages/${page.ownerId}`);
+        if (page && page.owner) {
+            // Pass the owner object as targetUser in state so Messages page pre-selects the chat
+            navigate(`/messages/${page.owner.id}`, { state: { targetUser: page.owner } });
         }
     };
 

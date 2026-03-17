@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -7,9 +7,13 @@ import {
     PencilIcon,
     EllipsisHorizontalIcon,
     ChevronDownIcon,
-    MapPinIcon
+    MapPinIcon,
+    FlagIcon
 } from '@heroicons/react/24/solid';
 import classNames from 'classnames';
+import { toast } from 'react-hot-toast';
+import api from '../../utils/api';
+import ReportModal from '../Shared/ReportModal';
 
 
 
@@ -26,12 +30,63 @@ const ProfileHeader = ({
     setIsEditModalOpen,
     setIsStoryModalOpen,
     setPickerType,
-    setIsPhotoPickerOpen
+    setIsPhotoPickerOpen,
+    onProfileUpdate
 }) => {
     const navigate = useNavigate();
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [isBlocked, setIsBlocked] = useState(false);
+    const [loadingBlock, setLoadingBlock] = useState(false);
+
+    useEffect(() => {
+        const checkBlockStatus = async () => {
+            if (!user?.id || isOwnProfile) return;
+            try {
+                const res = await api.get(`/blocked-users/check/${user.id}`);
+                if (res.data.success) {
+                    setIsBlocked(res.data.isBlocked);
+                }
+            } catch (error) {
+                console.error('Check block status error:', error);
+            }
+        };
+        checkBlockStatus();
+    }, [user?.id, isOwnProfile]);
 
     const handleMessageClick = () => {
         navigate('/messages', { state: { targetUser: user } });
+    };
+
+    const handleBlockToggle = async () => {
+        if (!user?.id) return;
+        const confirmMsg = isBlocked 
+            ? `Bạn có chắc chắn muốn bỏ chặn ${user.firstName}?` 
+            : `Bạn có chắc chắn muốn chặn ${user.firstName}? Người này sẽ không thể xem profile hoặc nhắn tin cho bạn.`;
+        
+        if (!window.confirm(confirmMsg)) return;
+
+        try {
+            setLoadingBlock(true);
+            if (isBlocked) {
+                const res = await api.get(`/blocked-users`); 
+                const block = res.data.data.find(b => b.blockedId === user.id);
+                if (block) {
+                    await api.delete(`/blocked-users/${block.id}`);
+                    setIsBlocked(false);
+                    toast.success('Đã bỏ chặn');
+                }
+            } else {
+                await api.post(`/blocked-users`, { userId: user.id });
+                setIsBlocked(true);
+                toast.success('Đã chặn người dùng');
+                navigate('/');
+            }
+        } catch (error) {
+            console.error('Block toggle error:', error);
+            toast.error('Có lỗi xảy ra');
+        } finally {
+            setLoadingBlock(false);
+        }
     };
 
     const renderFriendButtons = () => {
@@ -202,11 +257,33 @@ const ProfileHeader = ({
                                     >
                                         Nhắn tin
                                     </button>
+                                    <button
+                                        onClick={handleBlockToggle}
+                                        disabled={loadingBlock}
+                                        className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-colors ${isBlocked ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'}`}
+                                    >
+                                        {isBlocked ? 'Bỏ chặn' : 'Chặn'}
+                                    </button>
+                                    <button
+                                        onClick={() => setIsReportModalOpen(true)}
+                                        className="bg-gray-200 text-gray-900 p-1.5 rounded-lg hover:bg-gray-300 transition-colors"
+                                        title="Báo cáo người dùng"
+                                    >
+                                        <FlagIcon className="h-5 w-5" />
+                                    </button>
                                 </div>
 
                             )}
                         </div>
                     </div>
+
+                    <ReportModal 
+                        isOpen={isReportModalOpen}
+                        onClose={() => setIsReportModalOpen(false)}
+                        targetType="user"
+                        targetId={user?.id}
+                        targetName={`${user?.firstName} ${user?.lastName}`}
+                    />
 
                     <div className="border-t mt-4"></div>
 

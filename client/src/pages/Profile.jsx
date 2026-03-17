@@ -267,7 +267,7 @@ const Profile = () => {
                 isOwnProfile={isOwnProfile}
                 setIsEditModalOpen={setIsEditModalOpen}
               />
-              <ProfilePhotos posts={posts} />
+              <ProfilePhotos posts={posts} setActiveTab={setActiveTab} />
               <ProfileFriends
                 friends={friends}
                 friendsCount={friendsCount}
@@ -286,6 +286,8 @@ const Profile = () => {
                 postLoading={postLoading}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
+                onPostUpdate={fetchUserPosts}
+                setIsCreatePostModalOpen={setIsCreatePostModalOpen}
               />
             )}
 
@@ -294,6 +296,7 @@ const Profile = () => {
                 user={user}
                 aboutSubTab={aboutSubTab}
                 setAboutSubTab={setAboutSubTab}
+                isOwnProfile={isOwnProfile}
               />
             )}
 
@@ -400,9 +403,14 @@ const Profile = () => {
           onClose={() => setIsPhotoPickerOpen(false)}
           onSelect={(url) => handleSourceSelect(url, pickerType)}
           onUploadClick={() => {
+            const currentType = pickerType;
             setIsPhotoPickerOpen(false);
-            if (pickerType === 'profile') profileInputRef.current.click();
-            else coverInputRef.current.click();
+            // Use setTimeout to ensure the modal is closed before the file dialog opens, 
+            // avoiding potential focus/z-index issues.
+            setTimeout(() => {
+              if (currentType === 'profile') profileInputRef.current?.click();
+              else coverInputRef.current?.click();
+            }, 100);
           }}
         />
       )}
@@ -419,14 +427,9 @@ const Profile = () => {
         onClose={() => setIsCreatePostModalOpen(false)}
         initialImage={initialPostImage}
         onPostCreated={() => {
-          // Refresh posts? 
-          // Currently posts are fetched on mount/update. 
-          // Ideally we should refetch posts here.
-          // But simple close is fine for now as user might not expect instant update on photos tab immediately without refresh or maybe we can append?
-          // Since CreatePost calls onPostCreated, we can trigger a refetch if we had a function.
-          // For now just close.
           setIsCreatePostModalOpen(false);
-          window.location.reload(); // Simple reload to show new photo
+          fetchUserPosts();
+          fetchProfile();
         }}
       />
     </div>

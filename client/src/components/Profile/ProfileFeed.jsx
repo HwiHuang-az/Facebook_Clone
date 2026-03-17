@@ -11,7 +11,7 @@ import {
 } from '@heroicons/react/24/solid';
 import classNames from 'classnames';
 
-const ProfileFeed = ({ user, isOwnProfile, posts, postLoading, viewMode, setViewMode }) => {
+const ProfileFeed = ({ user, isOwnProfile, posts, postLoading, viewMode, setViewMode, onPostUpdate, setIsCreatePostModalOpen }) => {
     return (
         <>
             {isOwnProfile && (
@@ -22,16 +22,25 @@ const ProfileFeed = ({ user, isOwnProfile, posts, postLoading, viewMode, setView
                             className="w-10 h-10 rounded-full"
                             alt=""
                         />
-                        <button className="flex-1 bg-gray-100 hover:bg-gray-200 rounded-full py-2 px-4 text-left text-gray-500">
-                            Bạn đang nghĩ gì?
+                        <button 
+                            onClick={() => setIsCreatePostModalOpen(true)}
+                            className="flex-1 bg-gray-100 hover:bg-gray-200 rounded-full py-2 px-4 text-left text-gray-500 transition-colors"
+                        >
+                            {user?.firstName} ơi, bạn đang nghĩ gì thế?
                         </button>
                     </div>
                     <div className="flex border-t pt-2">
-                        <button className="flex-1 flex items-center justify-center py-2 hover:bg-gray-100 rounded-lg space-x-2 transition-colors">
+                        <button 
+                            onClick={() => setIsCreatePostModalOpen(true)}
+                            className="flex-1 flex items-center justify-center py-2 hover:bg-gray-100 rounded-lg space-x-2 transition-colors"
+                        >
                             <VideoCameraIcon className="h-6 w-6 text-red-500" />
                             <span className="text-gray-600 font-semibold text-sm">Video trực tiếp</span>
                         </button>
-                        <button className="flex-1 flex items-center justify-center py-2 hover:bg-gray-100 rounded-lg space-x-2 transition-colors">
+                        <button 
+                            onClick={() => setIsCreatePostModalOpen(true)}
+                            className="flex-1 flex items-center justify-center py-2 hover:bg-gray-100 rounded-lg space-x-2 transition-colors"
+                        >
                             <PhotoIcon className="h-6 w-6 text-green-500" />
                             <span className="text-gray-600 font-semibold text-sm">Ảnh/video</span>
                         </button>
@@ -102,7 +111,7 @@ const ProfileFeed = ({ user, isOwnProfile, posts, postLoading, viewMode, setView
                     </div>
                 ) : viewMode === 'list' ? (
                     posts.map((post) => (
-                        <Post key={post.id} post={post} />
+                        <Post key={post.id} post={post} onPostUpdate={onPostUpdate} />
                     ))
                 ) : (
                     posts.filter(p => p.imageUrl).map((post) => (

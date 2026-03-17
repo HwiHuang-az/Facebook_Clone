@@ -6,14 +6,28 @@ import {
 } from '@heroicons/react/24/solid';
 import { useFriendships } from '../../hooks/useFriendships';
 import { useSocket } from '../../hooks/useSocket';
+import api from '../../utils/api';
 
 const RightSidebar = () => {
   const { friends, getFriends, loading } = useFriendships();
   const { onlineUsers } = useSocket();
+  const [ads, setAds] = React.useState([]);
 
   useEffect(() => {
     getFriends(1, 10); // Lấy 10 người bạn đầu tiên
+    fetchAds();
   }, [getFriends]);
+
+  const fetchAds = async () => {
+    try {
+      const { data } = await api.get('/ads');
+      if (data.success) {
+        setAds(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching ads:', error);
+    }
+  };
 
   // Map backend friends to contacts format
   const contacts = friends.map(f => ({
@@ -43,6 +57,38 @@ const RightSidebar = () => {
 
   return (
     <aside className="hidden lg:block w-full sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2 custom-scrollbar">
+      {/* Sponsored Section */}
+      {ads.length > 0 && (
+        <div className="mb-4">
+          <h3 className="font-semibold text-[17px] text-gray-500 mb-2 px-2">Được tài trợ</h3>
+          <ul className="space-y-2">
+            {ads.map((ad) => (
+              <li key={ad.id}>
+                <a
+                  href={ad.targetUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-3 p-2 hover:bg-gray-200 rounded-lg cursor-pointer transition-colors group"
+                >
+                  <img
+                    src={ad.imageUrl}
+                    alt={ad.sponsorName}
+                    className="w-[110px] h-[110px] rounded-lg object-cover flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-medium text-gray-900 group-hover:underline line-clamp-2">
+                      {ad.title}
+                    </p>
+                    <p className="text-[13px] text-gray-500 truncate">{ad.sponsorName}</p>
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <div className="border-t border-gray-300 my-3"></div>
+        </div>
+      )}
+
       {/* Contacts Section */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2 text-gray-500">

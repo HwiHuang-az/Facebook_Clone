@@ -80,6 +80,17 @@ router.get('/', auth, async (req, res) => {
               attributes: ['id', 'firstName', 'lastName']
             }
           ]
+        },
+        {
+          model: Post,
+          as: 'sharedPost',
+          include: [
+            {
+              model: User,
+              as: 'author',
+              attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified']
+            }
+          ]
         }
       ],
       limit: parseInt(limit),
@@ -223,6 +234,17 @@ router.get('/:id', auth, async (req, res) => {
               model: User,
               as: 'user',
               attributes: ['id', 'firstName', 'lastName']
+            }
+          ]
+        },
+        {
+          model: Post,
+          as: 'sharedPost',
+          include: [
+            {
+              model: User,
+              as: 'author',
+              attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified']
             }
           ]
         }
@@ -482,6 +504,17 @@ router.get('/user/:userId', auth, async (req, res) => {
               model: User,
               as: 'user',
               attributes: ['id', 'firstName', 'lastName']
+            }
+          ]
+        },
+        {
+          model: Post,
+          as: 'sharedPost',
+          include: [
+            {
+              model: User,
+              as: 'author',
+              attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified']
             }
           ]
         }

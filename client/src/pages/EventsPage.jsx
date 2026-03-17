@@ -9,6 +9,7 @@ import {
     StarIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid, CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
+import { Link } from 'react-router-dom';
 import api from '../utils/api';
 import { toast } from 'react-hot-toast';
 import CreateEventModal from '../components/Events/CreateEventModal';
@@ -92,7 +93,7 @@ const EventsPage = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {events.map(event => (
                                 <div key={event.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden flex flex-col group border dark:border-gray-700 transition-all hover:shadow-md">
-                                    <div className="aspect-video relative overflow-hidden bg-gray-200">
+                                    <Link to={`/events/${event.id}`} className="aspect-video relative overflow-hidden bg-gray-200">
                                         <img
                                             src={event.coverPhoto || 'https://via.placeholder.com/800x450?text=Event'}
                                             className="w-full h-full object-cover transition-transform group-hover:scale-105"
@@ -106,13 +107,15 @@ const EventsPage = () => {
                                                 {new Date(event.startDate).getDate()}
                                             </span>
                                         </div>
-                                    </div>
+                                    </Link>
 
                                     <div className="p-4 flex-1 flex flex-col">
                                         <div className="flex-1">
-                                            <h3 className="text-lg font-bold dark:text-white line-clamp-1 group-hover:text-blue-600 transition-colors">
-                                                {event.name}
-                                            </h3>
+                                            <Link to={`/events/${event.id}`}>
+                                                <h3 className="text-lg font-bold dark:text-white line-clamp-1 group-hover:text-blue-600 transition-colors">
+                                                    {event.name}
+                                                </h3>
+                                            </Link>
                                             <div className="mt-2 space-y-2">
                                                 <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                                                     <CalendarIcon className="h-4 w-4 mr-2" />

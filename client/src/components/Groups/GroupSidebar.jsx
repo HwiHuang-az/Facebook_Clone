@@ -10,7 +10,7 @@ import {
     Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 
-const GroupSidebar = ({ activeTab, onTabChange }) => {
+const GroupSidebar = ({ activeTab, onTabChange, onOpenCreateModal }) => {
     const [myGroups, setMyGroups] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const location = useLocation();
@@ -90,6 +90,7 @@ const GroupSidebar = ({ activeTab, onTabChange }) => {
                 </Link>
 
                 <button
+                    onClick={onOpenCreateModal}
                     className="w-full flex items-center justify-center space-x-2 mt-4 px-4 py-2 bg-blue-100 text-blue-600 rounded-lg font-bold hover:bg-blue-200 transition-colors"
                 >
                     <PlusIcon className="h-5 w-5" />

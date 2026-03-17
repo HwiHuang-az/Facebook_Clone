@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, EyeIcon } from '@heroicons/react/24/outline';
 import api from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -7,6 +7,9 @@ const StoryDetailModal = ({ groupedStories, initialGroupIndex, onClose }) => {
     const [currentGroupIndex, setCurrentGroupIndex] = useState(initialGroupIndex);
     const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
     const [progress, setProgress] = useState(0);
+    const [viewers, setViewers] = useState([]);
+    const [loadingViewers, setLoadingViewers] = useState(false);
+    const [showViewersList, setShowViewersList] = useState(false);
     const { user } = useAuth();
 
     const currentGroup = groupedStories[currentGroupIndex];
@@ -42,6 +45,10 @@ const StoryDetailModal = ({ groupedStories, initialGroupIndex, onClose }) => {
         // Mark story as viewed
         api.post(`/stories/${currentStory.id}/view`).catch(err => console.error('View story error:', err));
 
+        // Reset viewers when story changes
+        setViewers([]);
+        setShowViewersList(false);
+
         const duration = 5000; // 5 seconds per story
         const interval = 50;
         const step = (interval / duration) * 100;
@@ -59,6 +66,29 @@ const StoryDetailModal = ({ groupedStories, initialGroupIndex, onClose }) => {
 
         return () => clearInterval(timer);
     }, [currentStory, handleNext]);
+
+    const fetchViewers = async () => {
+        if (!currentStory || currentGroup.user.id !== user.id) return;
+        
+        try {
+            setLoadingViewers(true);
+            const res = await api.get(`/stories/${currentStory.id}/viewers`);
+            if (res.data.success) {
+                setViewers(res.data.data);
+            }
+        } catch (error) {
+            console.error('Fetch story viewers error:', error);
+        } finally {
+            setLoadingViewers(false);
+        }
+    };
+
+    const toggleViewersList = () => {
+        if (!showViewersList) {
+            fetchViewers();
+        }
+        setShowViewersList(!showViewersList);
+    };
 
     if (!currentGroup || !currentStory) return null;
 
@@ -164,13 +194,63 @@ const StoryDetailModal = ({ groupedStories, initialGroupIndex, onClose }) => {
                     </div>
                 )}
 
-                {/* Footer Input Placeholder */}
+                {/* Footer / Input Placeholder or Viewers */}
                 <div className="p-4 bg-gradient-to-t from-black/60 to-transparent pt-10">
-                    <input
-                        type="text"
-                        placeholder="Trả lời..."
-                        className="w-full bg-transparent border border-white/50 rounded-full px-4 py-2 text-white text-sm focus:outline-none focus:border-white transition-all placeholder-white/70"
-                    />
+                    {currentGroup.user.id === user.id ? (
+                        <div className="relative">
+                            <button
+                                onClick={toggleViewersList}
+                                className="flex items-center space-x-2 text-white text-sm font-bold bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-all"
+                            >
+                                <EyeIcon className="h-5 w-5" />
+                                <span>{viewers.length || currentStory.viewsCount || 0} Người xem</span>
+                            </button>
+
+                            {showViewersList && (
+                                <div className="absolute bottom-full left-0 right-0 mb-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4 max-h-[300px] overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-300">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h4 className="font-bold dark:text-white">Người xem</h4>
+                                        <button onClick={() => setShowViewersList(false)}>
+                                            <XMarkIcon className="h-5 w-5 text-gray-400" />
+                                        </button>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto space-y-3 no-scrollbar">
+                                        {loadingViewers ? (
+                                            <div className="flex justify-center py-4">
+                                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                                            </div>
+                                        ) : viewers.length === 0 ? (
+                                            <p className="text-center text-sm text-gray-500 py-4 italic font-segoe">Chưa có người xem nào</p>
+                                        ) : (
+                                            viewers.map((viewer) => (
+                                                <div key={viewer.id} className="flex items-center space-x-3">
+                                                    <img 
+                                                        src={viewer.viewer?.profilePicture || `https://ui-avatars.com/api/?name=${viewer.viewer?.firstName}+${viewer.viewer?.lastName}`} 
+                                                        className="w-10 h-10 rounded-full object-cover" 
+                                                        alt="" 
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-bold dark:text-white truncate">
+                                                            {viewer.viewer?.firstName} {viewer.viewer?.lastName}
+                                                        </p>
+                                                        <p className="text-[10px] text-gray-500">
+                                                            {new Date(viewer.viewedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <input
+                            type="text"
+                            placeholder="Trả lời..."
+                            className="w-full bg-transparent border border-white/50 rounded-full px-4 py-2 text-white text-sm focus:outline-none focus:border-white transition-all placeholder-white/70"
+                        />
+                    )}
                 </div>
             </div>
         </div>

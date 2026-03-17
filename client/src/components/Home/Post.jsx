@@ -19,14 +19,15 @@ import {
     PaperAirplaneIcon,
     BookmarkIcon,
     TrashIcon,
-    ExclamationTriangleIcon
+    ExclamationTriangleIcon,
+    PencilSquareIcon
 } from '@heroicons/react/24/outline';
 import classNames from 'classnames';
 import SavePostButton from '../Post/SavePostButton';
 import PostShareModal from '../Post/PostShareModal';
 import ReportModal from '../Shared/ReportModal';
 
-const Post = ({ post, onPostUpdate }) => {
+const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
     const { user } = useAuth();
     const [showComments, setShowComments] = useState(false);
     const [comments, setComments] = useState([]);
@@ -37,9 +38,80 @@ const Post = ({ post, onPostUpdate }) => {
     const [sharesCount, setSharesCount] = useState(post.sharesCount || 0);
     const [loadingComments, setLoadingComments] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
+    const [showReactions, setShowReactions] = useState(false);
+    const [hoverTimeout, setHoverTimeout] = useState(null);
+    const [userReaction, setUserReaction] = useState(post.userReaction);
+    const [reactionStats, setReactionStats] = useState(post.reactionStats || { like: 0, love: 0, haha: 0, wow: 0, sad: 0, angry: 0 });
     const [showMenu, setShowMenu] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editContent, setEditContent] = useState(post.content || '');
+    const [saving, setSaving] = useState(false);
+    const [displayContent, setDisplayContent] = useState(post.content);
     const menuRef = useRef(null);
+
+    const reactionConfig = {
+        like: { label: 'Thích', icon: '👍', color: 'text-blue-600' },
+        love: { label: 'Yêu thích', icon: '❤️', color: 'text-red-500' },
+        haha: { label: 'Haha', icon: '😆', color: 'text-yellow-500' },
+        wow: { label: 'Wow', icon: '😮', color: 'text-yellow-500' },
+        sad: { label: 'Buồn', icon: '😢', color: 'text-yellow-500' },
+        angry: { label: 'Phẫn nộ', icon: '😡', color: 'text-orange-600' }
+    };
+
+    const handleReactionSelect = async (type) => {
+        const previousReaction = userReaction;
+        const isSame = previousReaction === type;
+        
+        // Optimistic update
+        setUserReaction(isSame ? null : type);
+        setIsLiked(!isSame);
+        
+        setReactionStats(prev => {
+            const next = { ...prev };
+            if (previousReaction) next[previousReaction]--;
+            if (!isSame) next[type]++;
+            return next;
+        });
+        
+        setLikesCount(prev => {
+            if (isSame) return prev - 1;
+            if (!previousReaction) return prev + 1;
+            return prev;
+        });
+
+        setShowReactions(false);
+
+        try {
+            const res = await api.post(`/posts/${post.id}/like`, { type });
+            if (!res.data.success) {
+                throw new Error();
+            }
+        } catch (error) {
+            // Revert on error
+            setUserReaction(previousReaction);
+            setIsLiked(!!previousReaction);
+            setReactionStats(post.reactionStats);
+            setLikesCount(post.likesCount);
+            toast.error('Có lỗi xảy ra khi thực hiện phản ứng');
+        }
+    };
+
+    const handleMouseEnter = () => {
+        const timeout = setTimeout(() => setShowReactions(true), 600);
+        setHoverTimeout(timeout);
+    };
+
+    const handleMouseLeave = () => {
+        if (hoverTimeout) clearTimeout(hoverTimeout);
+        // Delay hiding slightly to allow moving mouse to the picker
+        setTimeout(() => {
+            if (!document.querySelector('.reaction-picker:hover')) {
+                setShowReactions(false);
+            }
+        }, 300);
+    };
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -112,6 +184,45 @@ const Post = ({ post, onPostUpdate }) => {
 
     const isOwner = user?.id === post.author.id;
 
+    const handleDeletePost = async () => {
+        if (!window.confirm('Bạn có chắc chắn muốn xóa bài viết này?')) return;
+        setDeleting(true);
+        try {
+            const res = await api.delete(`/posts/${post.id}`);
+            if (res.data.success) {
+                toast.success('Đã xóa bài viết');
+                if (onPostDeleted) onPostDeleted(post.id);
+            }
+        } catch (error) {
+            console.error('Delete post error:', error);
+            toast.error('Không thể xóa bài viết');
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const handleEditPost = async () => {
+        if (!editContent.trim()) {
+            toast.error('Nội dung không được để trống');
+            return;
+        }
+        setSaving(true);
+        try {
+            const res = await api.put(`/posts/${post.id}`, { content: editContent });
+            if (res.data.success) {
+                setDisplayContent(editContent);
+                setIsEditing(false);
+                toast.success('Đã cập nhật bài viết');
+                if (onPostUpdate) onPostUpdate();
+            }
+        } catch (error) {
+            console.error('Edit post error:', error);
+            toast.error('Không thể cập nhật bài viết');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     return (
         <div className="bg-white rounded-lg shadow-facebook mb-4 transition-all duration-200">
             {/* Post Header */}
@@ -168,6 +279,20 @@ const Post = ({ post, onPostUpdate }) => {
                                 <span>Lưu bài viết</span>
                             </button>
 
+                            {isOwner && (
+                                <button
+                                    onClick={() => {
+                                        setShowMenu(false);
+                                        setIsEditing(true);
+                                        setEditContent(displayContent || '');
+                                    }}
+                                    className="w-full flex items-center space-x-3 px-4 py-2 text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors"
+                                >
+                                    <PencilSquareIcon className="h-5 w-5" />
+                                    <span>Chỉnh sửa bài viết</span>
+                                </button>
+                            )}
+
                             {!isOwner && (
                                 <button
                                     onClick={() => {
@@ -181,10 +306,17 @@ const Post = ({ post, onPostUpdate }) => {
                                 </button>
                             )}
 
-                            {isOwner && (
-                                <button className="w-full flex items-center space-x-3 px-4 py-2 text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-900/10 text-red-600 transition-colors">
+                            {(isOwner || isAdmin) && (
+                                <button
+                                    onClick={() => {
+                                        setShowMenu(false);
+                                        handleDeletePost();
+                                    }}
+                                    disabled={deleting}
+                                    className="w-full flex items-center space-x-3 px-4 py-2 text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-900/10 text-red-600 transition-colors disabled:opacity-50"
+                                >
                                     <TrashIcon className="h-5 w-5" />
-                                    <span>Xóa bài viết</span>
+                                    <span>{deleting ? 'Đang xóa...' : 'Xóa bài viết'}</span>
                                 </button>
                             )}
                         </div>
@@ -193,9 +325,73 @@ const Post = ({ post, onPostUpdate }) => {
             </div>
 
             {/* Post Content */}
-            {post.type === 'normal' && post.content && (
+            {isEditing ? (
                 <div className="px-4 pb-3">
-                    <p className="text-gray-900 whitespace-pre-wrap text-sm md:text-base">{post.content}</p>
+                    <textarea
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-900 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[80px]"
+                        rows={3}
+                        autoFocus
+                    />
+                    <div className="flex items-center space-x-2 mt-2">
+                        <button
+                            onClick={handleEditPost}
+                            disabled={saving}
+                            className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                        >
+                            {saving ? 'Đang lưu...' : 'Lưu'}
+                        </button>
+                        <button
+                            onClick={() => { setIsEditing(false); setEditContent(displayContent || ''); }}
+                            className="px-4 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-300 transition-colors"
+                        >
+                            Hủy
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                (post.type === 'normal' || post.type === 'share') && displayContent && (
+                    <div className="px-4 pb-3">
+                        <p className="text-gray-900 whitespace-pre-wrap text-sm md:text-base">{displayContent}</p>
+                    </div>
+                )
+            )}
+
+            {/* Shared Post Preview */}
+            {post.type === 'share' && post.sharedPost && (
+                <div className="mx-4 mb-4 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => window.location.href = `/posts/${post.sharedPost.id}`}>
+                    <div className="p-3 flex items-center space-x-2 border-b border-gray-100 dark:border-gray-800">
+                        <img 
+                            src={post.sharedPost.author?.profilePicture || `https://ui-avatars.com/api/?name=${post.sharedPost.author?.firstName}+${post.sharedPost.author?.lastName}`} 
+                            className="w-8 h-8 rounded-full"
+                            alt="" 
+                        />
+                        <div>
+                            <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                {post.sharedPost.author?.firstName} {post.sharedPost.author?.lastName}
+                            </p>
+                            <p className="text-[10px] text-gray-500">
+                                {post.sharedPost.createdAt ? formatDistanceToNow(new Date(post.sharedPost.createdAt), { addSuffix: true, locale: vi }) : 'Vừa xong'}
+                            </p>
+                        </div>
+                    </div>
+                    {post.sharedPost.content && (
+                        <p className="p-3 text-sm text-gray-700 dark:text-gray-300 line-clamp-3">
+                            {post.sharedPost.content}
+                        </p>
+                    )}
+                    {(post.sharedPost.imageUrl || post.sharedPost.videoUrl) && (
+                        <div className="bg-gray-50 flex justify-center border-t border-gray-100 dark:border-gray-800">
+                            {(isVideo(post.sharedPost.imageUrl) || post.sharedPost.videoUrl) ? (
+                                <div className="p-4 bg-black/10 w-full flex items-center justify-center aspect-video">
+                                    <span className="text-4xl">▶️</span>
+                                </div>
+                            ) : (
+                                <img src={post.sharedPost.imageUrl} className="w-full max-h-96 object-contain" alt="" />
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -227,12 +423,19 @@ const Post = ({ post, onPostUpdate }) => {
             <div className="px-4 py-2 flex items-center justify-between text-gray-500 text-sm">
                 <div className="flex items-center space-x-1">
                     {likesCount > 0 && (
-                        <>
-                            <div className="flex items-center justify-center w-5 h-5 bg-blue-500 rounded-full">
-                                <HandThumbUpIconSolid className="h-3 w-3 text-white" />
-                            </div>
-                            <span>{likesCount}</span>
-                        </>
+                        <div className="flex items-center -space-x-1 mr-2">
+                             {Object.entries(reactionStats)
+                                .filter(([_, count]) => count > 0)
+                                .sort((a, b) => b[1] - a[1])
+                                .slice(0, 3)
+                                .map(([type]) => (
+                                    <span key={type} className="text-sm bg-white rounded-full p-0.5 border dark:border-gray-700">
+                                        {reactionConfig[type]?.icon}
+                                    </span>
+                                ))
+                             }
+                             <span className="ml-2 pl-1 font-bold">{likesCount}</span>
+                        </div>
                     )}
                 </div>
                 <div className="flex items-center space-x-3">
@@ -252,20 +455,43 @@ const Post = ({ post, onPostUpdate }) => {
             {/* Action Buttons */}
             <div className="px-4 border-t border-gray-100 mx-1">
                 <div className="flex justify-between py-1">
-                    <button
-                        onClick={handleLike}
-                        className={classNames(
-                            "flex items-center space-x-2 px-3 py-2 rounded-lg flex-1 justify-center transition-colors",
-                            isLiked ? "text-blue-600 font-semibold" : "text-gray-600 hover:bg-gray-100"
-                        )}
+                    <div 
+                        className="relative flex-1"
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
                     >
-                        {isLiked ? (
-                            <HandThumbUpIconSolid className="h-5 w-5" />
-                        ) : (
-                            <HandThumbUpIcon className="h-5 w-5" />
+                        {showReactions && (
+                            <div className="reaction-picker absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 rounded-full shadow-xl border dark:border-gray-700 p-1 flex items-center space-x-1 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                {Object.entries(reactionConfig).map(([type, config]) => (
+                                    <button
+                                        key={type}
+                                        onClick={() => handleReactionSelect(type)}
+                                        className="hover:scale-125 transition-transform duration-200 p-2 relative group"
+                                        title={config.label}
+                                    >
+                                        <span className="text-2xl">{config.icon}</span>
+                                        <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-bold pointer-events-none">
+                                            {config.label}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
                         )}
-                        <span>Thích</span>
-                    </button>
+                        <button
+                            onClick={() => handleReactionSelect(userReaction || 'like')}
+                            className={classNames(
+                                "flex items-center space-x-2 px-3 py-2 rounded-lg w-full justify-center transition-colors",
+                                isLiked ? (reactionConfig[userReaction]?.color || "text-blue-600 font-semibold") : "text-gray-600 hover:bg-gray-100"
+                            )}
+                        >
+                            {isLiked && userReaction ? (
+                                <span className="text-xl">{reactionConfig[userReaction].icon}</span>
+                            ) : (
+                                <HandThumbUpIcon className="h-5 w-5" />
+                            )}
+                            <span>{isLiked && userReaction ? reactionConfig[userReaction].label : 'Thích'}</span>
+                        </button>
+                    </div>
                     <button
                         onClick={toggleComments}
                         className={classNames(

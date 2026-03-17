@@ -70,9 +70,28 @@ const getUserProfile = async (req, res) => {
         friendshipStatus = friendship.status;
       }
 
-      // Kiểm tra quyền xem profile
-      if (privacySetting && privacySetting.profileVisibility === 'friends_only') {
-        canViewProfile = friendshipStatus === 'accepted';
+      // Kiểm tra quyền xem profile và các thông tin khác
+      if (privacySetting) {
+        // Profile visibility
+        if (privacySetting.profileVisibility === 'friends') {
+          canViewProfile = friendshipStatus === 'accepted';
+        } else if (privacySetting.profileVisibility === 'only_me') {
+          canViewProfile = false;
+        } else if (privacySetting.profileVisibility === 'friends_of_friends') {
+          canViewProfile = friendshipStatus === 'accepted';
+        }
+
+        // Contact info visibility (Email)
+        let canViewContactInfo = true;
+        if (privacySetting.contactInfoVisibility === 'friends') {
+          canViewContactInfo = friendshipStatus === 'accepted';
+        } else if (privacySetting.contactInfoVisibility === 'only_me') {
+          canViewContactInfo = false;
+        }
+
+        if (!canViewContactInfo && user.email) {
+          user.setDataValue('email', 'Nội dung đã được ẩn');
+        }
       }
     }
 
@@ -84,6 +103,7 @@ const getUserProfile = async (req, res) => {
     }
 
     // Tính số lượng bạn bè
+    // Thường thì số lượng bạn bè là công khai, nhưng có thể ẩn danh sách
     const friendsCount = await Friendship.count({
       where: {
         [Op.or]: [
@@ -140,31 +160,27 @@ const updateProfile = async (req, res) => {
       dateOfBirth
     } = req.body;
 
-    // Validate input
-    if (!firstName || !lastName) {
+    // Cập nhật thông tin user
+    const updateData = {};
+    if (firstName) updateData.firstName = firstName;
+    if (lastName) updateData.lastName = lastName;
+    if (bio !== undefined) updateData.bio = bio;
+    if (location !== undefined) updateData.location = location;
+    if (work !== undefined) updateData.work = work;
+    if (education !== undefined) updateData.education = education;
+    if (relationshipStatus !== undefined) updateData.relationshipStatus = relationshipStatus;
+    if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth;
+
+    if (Object.keys(updateData).length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Họ và tên không được để trống'
+        message: 'Không có thông tin nào để cập nhật'
       });
     }
 
-    // Cập nhật thông tin user
-    const updatedUser = await User.update(
-      {
-        firstName,
-        lastName,
-        bio,
-        location,
-        work,
-        education,
-        relationshipStatus,
-        dateOfBirth
-      },
-      {
-        where: { id: userId },
-        returning: true
-      }
-    );
+    await User.update(updateData, {
+      where: { id: userId }
+    });
 
     // Lấy thông tin user sau khi update
     const user = await User.findByPk(userId, {
@@ -215,21 +231,46 @@ const searchUsers = async (req, res) => {
             [Op.or]: [
               { firstName: { [Op.like]: `%${q}%` } },
               { lastName: { [Op.like]: `%${q}%` } },
+              // We'll filter email matches later based on individual privacy settings
+              // Or just exclude email from search if we want to be safe
               { email: { [Op.like]: `%${q}%` } }
             ]
           }
         ]
       },
-      attributes: [
-        'id', 'firstName', 'lastName', 'profilePicture', 'isVerified'
+      include: [
+        {
+          model: PrivacySetting,
+          as: 'privacySettings',
+          attributes: ['searchByEmail', 'searchByPhone']
+        }
       ],
-      limit: parseInt(limit),
+      attributes: [
+        'id', 'firstName', 'lastName', 'profilePicture', 'isVerified', 'email'
+      ],
+      limit: parseInt(limit) * 2, // Get more to account for filtering
       offset: parseInt(offset),
       order: [['firstName', 'ASC']]
     });
 
+    // Filter based on privacy
+    let filteredUsers = users.rows.filter(user => {
+      const isEmailMatch = user.email && user.email.toLowerCase().includes(q.toLowerCase());
+      const isNameMatch = 
+        (user.firstName && user.firstName.toLowerCase().includes(q.toLowerCase())) ||
+        (user.lastName && user.lastName.toLowerCase().includes(q.toLowerCase()));
+      
+      if (isNameMatch) return true;
+      if (isEmailMatch && user.privacySettings && user.privacySettings.searchByEmail !== false) return true;
+      
+      return false;
+    });
+
+    // Limit and slice
+    filteredUsers = filteredUsers.slice(0, parseInt(limit));
+
     // Lấy friendship status cho mỗi user
-    const userIds = users.rows.map(user => user.id);
+    const userIds = filteredUsers.map(user => user.id);
     const friendships = await Friendship.findAll({
       where: {
         [Op.or]: [
@@ -240,7 +281,7 @@ const searchUsers = async (req, res) => {
     });
 
     // Map friendship status
-    const usersWithFriendship = users.rows.map(user => {
+    const usersWithFriendship = filteredUsers.map(user => {
       const friendship = friendships.find(f => 
         (f.user1Id === currentUserId && f.user2Id === user.id) ||
         (f.user1Id === user.id && f.user2Id === currentUserId)
@@ -283,6 +324,33 @@ const getFriends = async (req, res) => {
     const currentUserId = req.user.id;
 
     const offset = (page - 1) * limit;
+
+    // Kiểm tra quyền xem danh sách bạn bè
+    const privacy = await PrivacySetting.findOne({ where: { userId: id } });
+    let canViewFriends = true;
+    
+    if (parseInt(id) !== currentUserId && privacy) {
+      if (privacy.friendListVisibility === 'only_me') {
+        canViewFriends = false;
+      } else if (privacy.friendListVisibility === 'friends') {
+        const friendship = await Friendship.findOne({
+          where: {
+            [Op.or]: [
+              { user1Id: currentUserId, user2Id: id, status: 'accepted' },
+              { user1Id: id, user2Id: currentUserId, status: 'accepted' }
+            ]
+          }
+        });
+        canViewFriends = !!friendship;
+      }
+    }
+
+    if (!canViewFriends) {
+      return res.status(403).json({
+        success: false,
+        message: 'Danh sách bạn bè của người dùng này đang ở chế độ riêng tư'
+      });
+    }
 
     // Lấy danh sách friendship với status = 'accepted'
     const friendships = await Friendship.findAndCountAll({

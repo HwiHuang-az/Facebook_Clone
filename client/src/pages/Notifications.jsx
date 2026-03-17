@@ -11,6 +11,7 @@ import {
   CheckIcon,
   EllipsisHorizontalIcon
 } from '@heroicons/react/24/solid';
+import { BellIcon as BellIconOutline } from '@heroicons/react/24/outline';
 import NotificationSidebar from '../components/Notifications/NotificationSidebar';
 import { toast } from 'react-hot-toast';
 
@@ -126,7 +127,7 @@ const Notifications = () => {
                 </div>
               ) : filteredNotifications.length === 0 ? (
                 <div className="p-20 text-center text-gray-500 dark:text-gray-400">
-                  <BellIcon className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                  <BellIconOutline className="h-16 w-16 mx-auto mb-4 opacity-20" />
                   <p className="text-lg font-semibold">Bạn chưa có thông báo nào.</p>
                 </div>
               ) : (
@@ -171,12 +172,5 @@ const Notifications = () => {
     </div>
   );
 };
-
-// Simple icon for placeholder
-const BellIcon = ({ className }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-  </svg>
-);
 
 export default Notifications;

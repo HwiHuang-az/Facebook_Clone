@@ -14,7 +14,7 @@ const SavedPost = sequelize.define('SavedPost', {
   },
   postId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
     field: 'post_id'
   },
   collectionName: {

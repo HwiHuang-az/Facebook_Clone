@@ -13,12 +13,21 @@ import { toast } from 'react-hot-toast';
 
 const PrivacySettingsPage = () => {
     const [settings, setSettings] = useState({
-        postVisibility: 'public',
-        friendRequestPrivacy: 'everyone',
-        friendListVisibility: 'everyone',
-        profileVisibility: 'public',
-        showEmail: false,
-        showPhone: false
+        profileVisibility: 'friends',
+        contactInfoVisibility: 'friends',
+        friendListVisibility: 'friends',
+        postDefaultPrivacy: 'friends',
+        storyPrivacy: 'friends',
+        whoCanSendFriendRequests: 'everyone',
+        whoCanMessageMe: 'friends',
+        whoCanTagMe: 'friends',
+        whoCanPostOnTimeline: 'friends',
+        whoCanSeePostsOnTimeline: 'friends',
+        searchByEmail: true,
+        searchByPhone: true,
+        searchEnginesIndexing: false,
+        activityStatusVisible: true,
+        readReceiptsEnabled: true
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -32,8 +41,7 @@ const PrivacySettingsPage = () => {
             setLoading(true);
             const res = await api.get('/privacy');
             if (res.data.success) {
-                // Merge default with API results to ensure all keys exist
-                setSettings(prev => ({ ...prev, ...res.data.data }));
+                setSettings(res.data.data);
             }
         } catch (error) {
             console.error('Error fetching privacy settings:', error);
@@ -44,19 +52,21 @@ const PrivacySettingsPage = () => {
     };
 
     const handleUpdateSetting = async (key, value) => {
-        const newSettings = { ...settings, [key]: value };
+        // Handle boolean values from selects if needed, though they are usually strings or bools
+        const processedValue = value === 'true' ? true : value === 'false' ? false : value;
+        
+        const newSettings = { ...settings, [key]: processedValue };
         setSettings(newSettings);
 
         try {
             setSaving(true);
-            const res = await api.put('/privacy', newSettings);
+            const res = await api.put('/privacy', { [key]: processedValue });
             if (res.data.success) {
                 toast.success('Đã cập nhật cài đặt');
             }
         } catch (error) {
             console.error('Error updating privacy settings:', error);
             toast.error('Cập nhật thất bại');
-            // Revert on error
             fetchSettings();
         } finally {
             setSaving(false);
@@ -95,12 +105,12 @@ const PrivacySettingsPage = () => {
                 </div>
                 <div className="flex flex-col items-end">
                     <select
-                        value={current}
+                        value={String(current)}
                         onChange={(e) => onSelect(e.target.value)}
                         className="bg-gray-100 dark:bg-gray-700 border-none rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 py-2 px-3 min-w-[140px]"
                     >
                         {options.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            <option key={opt.value} value={String(opt.value)}>{opt.label}</option>
                         ))}
                     </select>
                 </div>
@@ -110,15 +120,27 @@ const PrivacySettingsPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pt-32 flex flex-col items-center">
+            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pt-32 flex flex-col items-center border-t dark:border-gray-800">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
                 <p className="text-gray-500">Đang tải cài đặt...</p>
             </div>
         );
     }
 
+    const visibilityOptions = [
+        { label: 'Công khai', value: 'public' },
+        { label: 'Bạn bè', value: 'friends' },
+        { label: 'Bạn của bạn bè', value: 'friends_of_friends' },
+        { label: 'Chỉ mình tôi', value: 'only_me' }
+    ];
+
+    const booleanOptions = [
+        { label: 'Bật', value: true },
+        { label: 'Tắt', value: false }
+    ];
+
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pt-20 pb-12">
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pt-20 pb-12 border-t dark:border-gray-800">
             <div className="max-w-3xl mx-auto px-4">
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center space-x-4">
@@ -127,7 +149,7 @@ const PrivacySettingsPage = () => {
                         </div>
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Cài đặt Quyền riêng tư</h1>
-                            <p className="text-gray-500 dark:text-gray-400 mt-1">Kiểm soát ai có thể xem và tương tác với bài viết của bạn</p>
+                            <p className="text-gray-500 dark:text-gray-400 mt-1">Kiểm soát ai có thể xem và tương tác với thông tin của bạn</p>
                         </div>
                     </div>
                     <button
@@ -141,57 +163,151 @@ const PrivacySettingsPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                    <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 px-1 uppercase tracking-wider text-[11px]">Hoạt động của bạn</h2>
+                    <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 px-1 uppercase tracking-wider text-[11px]">Hoạt động & Bài viết</h2>
                     <SettingRow
                         icon={GlobeAmericasIcon}
-                        title="Ai có thể xem bài viết của bạn?"
-                        description="Điều này áp dụng cho các bài viết trong tương lai của bạn."
-                        current={settings.postVisibility}
-                        options={[
-                            { label: 'Công khai', value: 'public' },
-                            { label: 'Bạn bè', value: 'friends' },
-                            { label: 'Chỉ mình tôi', value: 'private' }
-                        ]}
-                        onSelect={(val) => handleUpdateSetting('postVisibility', val)}
-                    />
-
-                    <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 px-1 mt-8 uppercase tracking-wider text-[11px]">Cách mọi người tìm thấy bạn</h2>
-                    <SettingRow
-                        icon={UsersIcon}
-                        title="Ai có thể gửi kết bạn?"
-                        description="Hạn chế những người có thể gửi lời mời kết bạn cho bạn."
-                        current={settings.friendRequestPrivacy}
-                        options={[
-                            { label: 'Mọi người', value: 'everyone' },
-                            { label: 'Bạn của bạn bè', value: 'friends_of_friends' }
-                        ]}
-                        onSelect={(val) => handleUpdateSetting('friendRequestPrivacy', val)}
+                        title="Ai có thể xem bài viết tương lai của bạn?"
+                        description="Mặc định cho các bài viết mới bạn tạo."
+                        current={settings.postDefaultPrivacy}
+                        options={visibilityOptions}
+                        onSelect={(val) => handleUpdateSetting('postDefaultPrivacy', val)}
                     />
 
                     <SettingRow
                         icon={ListBulletIcon}
-                        title="Ai có thể xem danh sách bạn bè?"
-                        description="Kiểm soát khả năng hiển thị danh sách bạn bè trên trang cá nhân."
-                        current={settings.friendListVisibility}
+                        title="Ai có thể xem tin (stories) của bạn?"
+                        description="Kiểm soát khả năng hiển thị của các tin bạn chia sẻ."
+                        current={settings.storyPrivacy}
+                        options={[
+                            { label: 'Công khai', value: 'public' },
+                            { label: 'Bạn bè', value: 'friends' },
+                            { label: 'Bạn thân', value: 'close_friends' }
+                        ]}
+                        onSelect={(val) => handleUpdateSetting('storyPrivacy', val)}
+                    />
+
+                    <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 px-1 mt-8 uppercase tracking-wider text-[11px]">Dòng thời gian & Gắn thẻ</h2>
+                    <SettingRow
+                        icon={ListBulletIcon}
+                        title="Ai có thể đăng lên dòng thời gian của bạn?"
+                        description="Kiểm soát những người có thể đăng bài trực tiếp lên trang cá nhân của bạn."
+                        current={settings.whoCanPostOnTimeline}
                         options={[
                             { label: 'Mọi người', value: 'everyone' },
                             { label: 'Bạn bè', value: 'friends' },
-                            { label: 'Chỉ mình tôi', value: 'private' }
+                            { label: 'Chỉ mình tôi', value: 'only_me' }
                         ]}
+                        onSelect={(val) => handleUpdateSetting('whoCanPostOnTimeline', val)}
+                    />
+
+                    <SettingRow
+                        icon={GlobeAmericasIcon}
+                        title="Ai có thể xem nội dung trên dòng thời gian?"
+                        description="Ai có thể xem các bài viết mà người khác đăng lên dòng thời gian của bạn."
+                        current={settings.whoCanSeePostsOnTimeline}
+                        options={visibilityOptions}
+                        onSelect={(val) => handleUpdateSetting('whoCanSeePostsOnTimeline', val)}
+                    />
+
+                    <SettingRow
+                        icon={ShieldCheckIcon}
+                        title="Ai có thể gắn thẻ bạn?"
+                        description="Kiểm soát những người có thể nhắc đến hoặc gắn thẻ bạn trong bài viết."
+                        current={settings.whoCanTagMe}
+                        options={[
+                            { label: 'Mọi người', value: 'everyone' },
+                            { label: 'Bạn bè', value: 'friends' },
+                            { label: 'Không ai cả', value: 'nobody' }
+                        ]}
+                        onSelect={(val) => handleUpdateSetting('whoCanTagMe', val)}
+                    />
+
+                    <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 px-1 mt-8 uppercase tracking-wider text-[11px]">Cách mọi người tìm thấy và liên hệ</h2>
+                    <SettingRow
+                        icon={UsersIcon}
+                        title="Ai có thể gửi lời mời kết bạn?"
+                        description="Mọi người hoặc chỉ bạn của bạn bè."
+                        current={settings.whoCanSendFriendRequests}
+                        options={[
+                            { label: 'Mọi người', value: 'everyone' },
+                            { label: 'Bạn của bạn bè', value: 'friends_of_friends' }
+                        ]}
+                        onSelect={(val) => handleUpdateSetting('whoCanSendFriendRequests', val)}
+                    />
+
+                    <SettingRow
+                        icon={ListBulletIcon}
+                        title="Ai có thể xem danh sách bạn bè của bạn?"
+                        description="Kiểm soát sự riêng tư của danh sách bạn bè."
+                        current={settings.friendListVisibility}
+                        options={visibilityOptions.filter(o => o.value !== 'friends_of_friends')}
                         onSelect={(val) => handleUpdateSetting('friendListVisibility', val)}
                     />
 
                     <SettingRow
                         icon={LockClosedIcon}
-                        title="Khả năng hiển thị trang cá nhân"
-                        description="Đặt mức độ riêng tư tổng thể cho trang cá nhân của bạn."
-                        current={settings.profileVisibility}
+                        title="Ai có thể nhắn tin cho bạn?"
+                        description="Kiểm soát những người có thể bắt đầu cuộc trò chuyện."
+                        current={settings.whoCanMessageMe}
                         options={[
-                            { label: 'Công khai', value: 'public' },
+                            { label: 'Mọi người', value: 'everyone' },
                             { label: 'Bạn bè', value: 'friends' },
-                            { label: 'Chỉ mình tôi', value: 'private' }
+                            { label: 'Không ai cả', value: 'nobody' }
                         ]}
+                        onSelect={(val) => handleUpdateSetting('whoCanMessageMe', val)}
+                    />
+
+                    <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 px-1 mt-8 uppercase tracking-wider text-[11px]">Trang cá nhân & Thông tin liên hệ</h2>
+                    <SettingRow
+                        icon={ShieldCheckIcon}
+                        title="Khả năng hiển thị trang cá nhân"
+                        description="Ai có thể xem thông tin chung trên trang cá nhân."
+                        current={settings.profileVisibility}
+                        options={visibilityOptions}
                         onSelect={(val) => handleUpdateSetting('profileVisibility', val)}
+                    />
+
+                    <SettingRow
+                        icon={ShieldCheckIcon}
+                        title="Ai có thể xem thông tin liên hệ?"
+                        description="Kiểm soát quyền xem Email và Số điện thoại trên trang cá nhân."
+                        current={settings.contactInfoVisibility}
+                        options={visibilityOptions.filter(o => o.value !== 'friends_of_friends')}
+                        onSelect={(val) => handleUpdateSetting('contactInfoVisibility', val)}
+                    />
+
+                    <SettingRow
+                        icon={ShieldCheckIcon}
+                        title="Tìm kiếm bằng Email/Số điện thoại"
+                        description="Cho phép mọi người tìm thấy bạn qua thông tin liên hệ."
+                        current={settings.searchByEmail}
+                        options={booleanOptions}
+                        onSelect={(val) => {
+                            // Cập nhật cả searchByEmail và searchByPhone để đồng bộ
+                            handleUpdateSetting('searchByEmail', val);
+                            handleUpdateSetting('searchByPhone', val);
+                        }}
+                    />
+
+                    <SettingRow
+                        icon={ShieldCheckIcon}
+                        title="Cho phép công cụ tìm kiếm bên ngoài"
+                        description="Liên kết trang cá nhân của bạn với Google, Bing, v.v."
+                        current={settings.searchEnginesIndexing}
+                        options={booleanOptions}
+                        onSelect={(val) => handleUpdateSetting('searchEnginesIndexing', val)}
+                    />
+
+                    <SettingRow
+                        icon={ShieldCheckIcon}
+                        title="Trạng thái hoạt động & Đã xem"
+                        description="Cho phép người khác thấy khi bạn đang online hoặc đã xem tin nhắn."
+                        current={settings.activityStatusVisible}
+                        options={booleanOptions}
+                        onSelect={(val) => {
+                            handleUpdateSetting('activityStatusVisible', val);
+                            handleUpdateSetting('readReceiptsEnabled', val);
+                        }}
                     />
                 </div>
 

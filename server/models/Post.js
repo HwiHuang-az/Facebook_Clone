@@ -58,6 +58,15 @@ const Post = sequelize.define('Post', {
       key: 'id'
     }
   },
+  sharedPostId: {
+    type: DataTypes.INTEGER,
+    field: 'shared_post_id',
+    allowNull: true,
+    references: {
+      model: 'posts',
+      key: 'id'
+    }
+  },
   likesCount: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
@@ -74,7 +83,7 @@ const Post = sequelize.define('Post', {
     field: 'shares_count'
   },
   type: {
-    type: DataTypes.ENUM('normal', 'profile_update', 'cover_update', 'reel'),
+    type: DataTypes.ENUM('normal', 'profile_update', 'cover_update', 'reel', 'share'),
     defaultValue: 'normal'
   },
   duration: {
@@ -108,7 +117,27 @@ const Post = sequelize.define('Post', {
   }
 }, {
   tableName: 'posts',
-  timestamps: true
+  timestamps: true,
+  indexes: [
+    {
+      fields: ['userId']
+    },
+    {
+      fields: ['groupId']
+    },
+    {
+      fields: ['pageId']
+    },
+    {
+      fields: ['sharedPostId']
+    },
+    {
+      fields: ['type']
+    },
+    {
+      fields: ['createdAt']
+    }
+  ]
 });
 
 // Instance methods

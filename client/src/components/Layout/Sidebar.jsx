@@ -26,7 +26,6 @@ const Sidebar = () => {
   const primaryMenuItems = [
     { IconOutline: UserIcon, label: user?.firstName || 'Trang cá nhân', path: '/profile' },
     { IconOutline: UserGroupIcon, label: 'Bạn bè', path: '/friends' },
-    { IconOutline: ClockIcon, label: 'Kỷ niệm', path: '/memories' },
     { IconOutline: BookmarkIcon, label: 'Đã lưu', path: '/saved' },
     { IconOutline: RectangleGroupIcon, label: 'Nhóm', path: '/groups' },
     { IconOutline: FlagIcon, label: 'Trang', path: '/pages' },
@@ -35,10 +34,8 @@ const Sidebar = () => {
   ];
 
   const secondaryMenuItems = [
-    { IconOutline: RssIcon, label: 'Bảng feed', path: '/feed' },
+    { IconOutline: RssIcon, label: 'Bảng feed', path: '/' },
     { IconOutline: CalendarIcon, label: 'Sự kiện', path: '/events' },
-    { IconOutline: BuildingLibraryIcon, label: 'Trung tâm quản lý', path: '/management' },
-    { IconOutline: HeartIcon, label: 'Góp ý từ bạn bè', path: '/fundraisers' },
   ];
 
   const visibleSecondary = showMore ? secondaryMenuItems : secondaryMenuItems.slice(0, 0);

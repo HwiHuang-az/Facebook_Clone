@@ -10,6 +10,7 @@ router.get('/unread', auth, messageController.getUnreadCounts);
 router.get('/:partnerId', auth, messageController.getMessages);
 router.get('/media/:partnerId', auth, messageController.getConversationMedia);
 
-router.post('/', auth, upload.array('files', 10), messageController.sendMessage);
+// Allow up to 20 files per message
+router.post('/', auth, upload.array('files', 20), messageController.sendMessage);
 
 module.exports = router;

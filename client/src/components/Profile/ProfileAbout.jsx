@@ -8,8 +8,113 @@ import {
     CakeIcon
 } from '@heroicons/react/24/solid';
 import classNames from 'classnames';
+import { PencilIcon, PlusIcon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
+import api from '../../utils/api';
+import { toast } from 'react-hot-toast';
+import { useAuth } from '../../hooks/useAuth';
+import { useState } from 'react';
 
-const ProfileAbout = ({ user, aboutSubTab, setAboutSubTab }) => {
+const ProfileAbout = ({ user: initialUser, aboutSubTab, setAboutSubTab, isOwnProfile }) => {
+    const [user, setUser] = useState(initialUser);
+    const [editingField, setEditingField] = useState(null); // 'work', 'education', 'location', 'relationshipStatus'
+    const [tempValue, setTempValue] = useState('');
+    const [saving, setSaving] = useState(false);
+
+    const handleEdit = (field, value) => {
+        setEditingField(field);
+        setTempValue(value || '');
+    };
+
+    const handleCancel = () => {
+        setEditingField(null);
+        setTempValue('');
+    };
+
+    const handleSave = async (field) => {
+        setSaving(true);
+        try {
+            const res = await api.put('/users/profile', {
+                [field]: tempValue,
+                // Gửi kèm firstName, lastName vì backend hiện tại có thể yêu cầu (đã check lại logic partial update)
+                firstName: user.firstName,
+                lastName: user.lastName
+            });
+
+            if (res.data.success) {
+                setUser(res.data.data.user);
+                setEditingField(null);
+                toast.success('Đã cập nhật thông tin');
+            }
+        } catch (error) {
+            console.error('Update profile error:', error);
+            toast.error('Không thể cập nhật thông tin');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const EditButton = ({ field, value }) => isOwnProfile && !editingField && (
+        <button
+            onClick={() => handleEdit(field, value)}
+            className="text-facebook-600 hover:bg-gray-100 p-2 rounded-full transition-colors"
+        >
+            <PencilIcon className="h-5 w-5" />
+        </button>
+    );
+
+    const AddLink = ({ field, label }) => isOwnProfile && !editingField && (
+        <button
+            onClick={() => handleEdit(field, '')}
+            className="flex items-center space-x-2 text-facebook-600 hover:underline font-semibold"
+        >
+            <PlusIcon className="h-5 w-5" />
+            <span>Thêm {label}</span>
+        </button>
+    );
+
+    const EditForm = ({ field, label }) => (
+        <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <p className="font-bold text-sm text-gray-700">{label}</p>
+            {field === 'relationshipStatus' ? (
+                <select
+                    value={tempValue}
+                    onChange={(e) => setTempValue(e.target.value)}
+                    className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    autoFocus
+                >
+                    <option value="single">Độc thân</option>
+                    <option value="in_relationship">Đang hẹn hò</option>
+                    <option value="married">Đã kết hôn</option>
+                    <option value="complicated">Mối quan hệ phức tạp</option>
+                </select>
+            ) : (
+                <input
+                    type="text"
+                    value={tempValue}
+                    onChange={(e) => setTempValue(e.target.value)}
+                    className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder={`Nhập ${label.toLowerCase()}...`}
+                    autoFocus
+                />
+            )}
+            <div className="flex items-center space-x-2 justify-end">
+                <button
+                    onClick={handleCancel}
+                    className="px-4 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-300 transition-colors"
+                    disabled={saving}
+                >
+                    Hủy
+                </button>
+                <button
+                    onClick={() => handleSave(field)}
+                    className="px-4 py-1.5 bg-facebook-600 text-white rounded-lg text-sm font-bold hover:bg-facebook-700 transition-colors disabled:opacity-50"
+                    disabled={saving}
+                >
+                    {saving ? 'Đang lưu...' : 'Lưu'}
+                </button>
+            </div>
+        </div>
+    );
     return (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col md:flex-row min-h-[400px]">
             {/* About Tabs Sidebar */}
@@ -73,30 +178,40 @@ const ProfileAbout = ({ user, aboutSubTab, setAboutSubTab }) => {
                         <div className="space-y-8">
                             <div>
                                 <p className="text-gray-500 font-bold mb-4 uppercase text-xs tracking-wider">Công việc</p>
-                                {user?.work ? (
-                                    <div className="flex items-center space-x-3">
-                                        <BriefcaseIcon className="h-8 w-8 text-gray-400" />
-                                        <div>
-                                            <p className="font-bold">{user.work}</p>
-                                            <p className="text-sm text-gray-500">Nhân viên</p>
+                                {editingField === 'work' ? (
+                                    <EditForm field="work" label="Nơi làm việc" />
+                                ) : user?.work ? (
+                                    <div className="flex items-center justify-between group">
+                                        <div className="flex items-center space-x-3">
+                                            <BriefcaseIcon className="h-8 w-8 text-gray-400" />
+                                            <div>
+                                                <p className="font-bold">{user.work}</p>
+                                                <p className="text-sm text-gray-500">Nhân viên</p>
+                                            </div>
                                         </div>
+                                        <EditButton field="work" value={user.work} />
                                     </div>
                                 ) : (
-                                    <p className="text-gray-400 italic">Chưa có thông tin công việc</p>
+                                    <AddLink field="work" label="nơi làm việc" />
                                 )}
                             </div>
                             <div>
                                 <p className="text-gray-500 font-bold mb-4 uppercase text-xs tracking-wider">Học vấn</p>
-                                {user?.education ? (
-                                    <div className="flex items-center space-x-3">
-                                        <AcademicCapIcon className="h-8 w-8 text-gray-400" />
-                                        <div>
-                                            <p className="font-bold">{user.education}</p>
-                                            <p className="text-sm text-gray-500">Sinh viên</p>
+                                {editingField === 'education' ? (
+                                    <EditForm field="education" label="Trường học" />
+                                ) : user?.education ? (
+                                    <div className="flex items-center justify-between group">
+                                        <div className="flex items-center space-x-3">
+                                            <AcademicCapIcon className="h-8 w-8 text-gray-400" />
+                                            <div>
+                                                <p className="font-bold">{user.education}</p>
+                                                <p className="text-sm text-gray-500">Sinh viên</p>
+                                            </div>
                                         </div>
+                                        <EditButton field="education" value={user.education} />
                                     </div>
                                 ) : (
-                                    <p className="text-gray-400 italic">Chưa có thông tin học vấn</p>
+                                    <AddLink field="education" label="trường học" />
                                 )}
                             </div>
                         </div>
@@ -107,14 +222,21 @@ const ProfileAbout = ({ user, aboutSubTab, setAboutSubTab }) => {
                     <div className="space-y-6">
                         <h3 className="text-[17px] font-bold">Nơi từng sống</h3>
                         <div className="space-y-4">
-                            {user?.location && (
-                                <div className="flex items-center space-x-3">
-                                    <HomeIcon className="h-8 w-8 text-gray-400" />
-                                    <div>
-                                        <p className="font-bold">{user.location}</p>
-                                        <p className="text-sm text-gray-500">Tỉnh/Thành phố hiện tại</p>
+                            {editingField === 'location' ? (
+                                <EditForm field="location" label="Tỉnh/Thành phố hiện tại" />
+                            ) : user?.location ? (
+                                <div className="flex items-center justify-between group">
+                                    <div className="flex items-center space-x-3">
+                                        <HomeIcon className="h-8 w-8 text-gray-400" />
+                                        <div>
+                                            <p className="font-bold">{user.location}</p>
+                                            <p className="text-sm text-gray-500">Tỉnh/Thành phố hiện tại</p>
+                                        </div>
                                     </div>
+                                    <EditButton field="location" value={user.location} />
                                 </div>
+                            ) : (
+                                <AddLink field="location" label="tỉnh/thành phố hiện tại" />
                             )}
                         </div>
                     </div>
@@ -163,13 +285,25 @@ const ProfileAbout = ({ user, aboutSubTab, setAboutSubTab }) => {
                     <div className="space-y-6">
                         <h3 className="text-[17px] font-bold">Gia đình và các mối quan hệ</h3>
                         <div className="space-y-4">
-                            <div className="flex items-center space-x-3">
-                                <HeartIcon className="h-8 w-8 text-gray-400" />
-                                <div>
-                                    <p className="font-bold">{user?.relationshipStatus ? (user.relationshipStatus === 'single' ? 'Độc thân' : user.relationshipStatus === 'in_relationship' ? 'Hẹn hò' : user.relationshipStatus === 'married' ? 'Đã kết hôn' : 'Phức tạp') : 'Độc thân'}</p>
-                                    <p className="text-sm text-gray-500">Tình trạng mối quan hệ</p>
+                            {editingField === 'relationshipStatus' ? (
+                                <EditForm field="relationshipStatus" label="Tình trạng mối quan hệ" />
+                            ) : (
+                                <div className="flex items-center justify-between group">
+                                    <div className="flex items-center space-x-3">
+                                        <HeartIcon className="h-8 w-8 text-gray-400" />
+                                        <div>
+                                            <p className="font-bold">
+                                                {user?.relationshipStatus === 'single' ? 'Độc thân' : 
+                                                 user?.relationshipStatus === 'in_relationship' ? 'Đang hẹn hò' : 
+                                                 user?.relationshipStatus === 'married' ? 'Đã kết hôn' : 
+                                                 user?.relationshipStatus === 'complicated' ? 'Mối quan hệ phức tạp' : 'Độc thân'}
+                                            </p>
+                                            <p className="text-sm text-gray-500">Tình trạng mối quan hệ</p>
+                                        </div>
+                                    </div>
+                                    <EditButton field="relationshipStatus" value={user?.relationshipStatus || 'single'} />
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 )}

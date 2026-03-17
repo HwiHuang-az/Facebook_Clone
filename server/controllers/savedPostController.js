@@ -112,7 +112,7 @@ exports.getCollections = async (req, res) => {
       where: { userId },
       attributes: [
         'collectionName',
-        [SavedPost.sequelize.fn('COUNT', SavedPost.sequelize.col('id')), 'count']
+        [SavedPost.sequelize.fn('COUNT', SavedPost.sequelize.col('post_id')), 'count']
       ],
       group: ['collectionName'],
       raw: true
@@ -128,6 +128,53 @@ exports.getCollections = async (req, res) => {
       success: false, 
       message: 'Failed to get collections',
       error: error.message 
+    });
+  }
+};
+
+// Create a new collection
+exports.createCollection = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { name } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Collection name is required'
+      });
+    }
+
+    // Check if collection already exists
+    const existing = await SavedPost.findOne({
+      where: { userId, collectionName: name.trim() }
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: 'Collection already exists'
+      });
+    }
+
+    // Create a placeholder entry to register the collection name
+    await SavedPost.create({
+      userId,
+      postId: null,
+      collectionName: name.trim()
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Collection created successfully',
+      data: { collectionName: name.trim(), count: 0 }
+    });
+  } catch (error) {
+    console.error('Create collection error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create collection',
+      error: error.message
     });
   }
 };

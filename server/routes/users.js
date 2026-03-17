@@ -9,6 +9,7 @@ const { Op } = require('sequelize');
 // @desc    Get user profile
 // @access  Private
 const userController = require('../controllers/userController');
+const sessionController = require('../controllers/sessionController');
 const upload = require('../middleware/upload');
 
 // @route   GET /api/users/profile/:id
@@ -46,4 +47,9 @@ router.post('/upload-cover-photo', auth, upload.single('image'), userController.
 // @access  Private
 router.get('/:id/photos', auth, userController.getUserPhotos);
 
-module.exports = router; 
+// Session management
+router.get('/settings/sessions', auth, sessionController.getSessions);
+router.delete('/settings/sessions/:id', auth, sessionController.revokeSession);
+router.post('/settings/sessions/revoke-others', auth, sessionController.revokeAllOtherSessions);
+
+module.exports = router;

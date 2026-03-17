@@ -12,6 +12,8 @@ import {
 } from '@heroicons/react/24/outline';
 
 import MarketplaceSidebar from '../components/Marketplace/MarketplaceSidebar';
+import CreateMarketplaceItemModal from '../components/Marketplace/CreateMarketplaceItemModal';
+import MarketplaceItemDetailModal from '../components/Marketplace/MarketplaceItemDetailModal';
 
 const Marketplace = () => {
     const [items, setItems] = useState([]);
@@ -19,6 +21,7 @@ const Marketplace = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [category, setCategory] = useState('');
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
 
     const categories = [
         { id: 'vehicles', label: 'Xe cộ', icon: '🚗' },
@@ -74,7 +77,7 @@ const Marketplace = () => {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-900">
+            <div className="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-900 p-6">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-xl font-bold">Lựa chọn hàng đầu hiện nay</h2>
                     <div className="flex items-center space-x-2 text-blue-600 cursor-pointer hover:underline font-semibold">
@@ -99,7 +102,11 @@ const Marketplace = () => {
                 ) : items.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                         {items.map((item) => (
-                            <div key={item.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow cursor-pointer group">
+                            <div 
+                                key={item.id} 
+                                onClick={() => setSelectedItem(item)}
+                                className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
+                            >
                                 <div className="aspect-square overflow-hidden bg-gray-100">
                                     {item.images && item.images.length > 0 ? (
                                         <img src={item.images[0]} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -130,6 +137,14 @@ const Marketplace = () => {
                     onSuccess={(newItem) => {
                         fetchItems();
                     }}
+                />
+            )}
+
+            {/* Detail Modal */}
+            {selectedItem && (
+                <MarketplaceItemDetailModal 
+                    item={selectedItem}
+                    onClose={() => setSelectedItem(null)}
                 />
             )}
         </div>

@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const { User, UserSession } = require('../models');
 const { Op } = require('sequelize');
 
 // Tạo JWT token
@@ -106,6 +106,24 @@ const login = async (req, res) => {
 
     // Tạo token
     const token = generateToken(user.id);
+
+    // Record session
+    try {
+      await UserSession.create({
+        userId: user.id,
+        sessionToken: token,
+        deviceInfo: {
+          userAgent: req.headers['user-agent'],
+          platform: req.headers['sec-ch-ua-platform'] || 'Unknown'
+        },
+        ipAddress: req.ip || req.connection.remoteAddress,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        isActive: true
+      });
+    } catch (sessionError) {
+      console.error('Failed to record session:', sessionError);
+      // Non-blocking
+    }
 
     res.json({
       success: true,

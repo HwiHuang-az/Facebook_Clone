@@ -21,6 +21,10 @@ const GroupMember = sequelize.define('GroupMember', {
     type: DataTypes.ENUM('admin', 'moderator', 'expert', 'member'),
     defaultValue: 'member'
   },
+  status: {
+    type: DataTypes.ENUM('pending', 'active'),
+    defaultValue: 'active'
+  },
   joinedAt: {
     type: DataTypes.DATE,
     field: 'joined_at'

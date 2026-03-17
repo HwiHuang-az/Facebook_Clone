@@ -26,6 +26,8 @@ import {
   MoonIcon,
   ArrowRightOnRectangleIcon,
   FlagIcon,
+  ClockIcon,
+  XMarkIcon as XMarkIconOutline
 } from '@heroicons/react/24/outline';
 import {
   HomeIcon as HomeIconSolid,
@@ -53,12 +55,16 @@ const Header = () => {
   const [recentNotifications, setRecentNotifications] = useState([]);
   const [loadingMessenger, setLoadingMessenger] = useState(false);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [loadingSearch, setLoadingSearch] = useState(false);
 
 
   const accountMenuRef = useRef(null);
   const createMenuRef = useRef(null);
   const messengerMenuRef = useRef(null);
   const notificationMenuRef = useRef(null);
+  const searchBarRef = useRef(null);
 
   // Reset counts when visiting pages
   useEffect(() => {
@@ -89,8 +95,32 @@ const Header = () => {
       }
     } catch (err) {
       console.error('Fetch recent notifications error:', err);
+    }
+  };
+
+  const fetchRecentSearches = async () => {
+    setLoadingSearch(true);
+    try {
+      const res = await api.get('/search/recent');
+      if (res.data.success) {
+        setRecentSearches(res.data.data);
+      }
+    } catch (err) {
+      console.error('Fetch recent searches error:', err);
     } finally {
-      setLoadingNotifications(false);
+      setLoadingSearch(false);
+    }
+  };
+
+  const deleteRecentSearch = async (id, e) => {
+    e.stopPropagation();
+    try {
+      const res = await api.delete(`/search/recent/${id}`);
+      if (res.data.success) {
+        setRecentSearches(prev => prev.filter(s => s.id !== id));
+      }
+    } catch (err) {
+      console.error('Delete search error:', err);
     }
   };
 
@@ -125,6 +155,9 @@ const Header = () => {
       }
       if (notificationMenuRef.current && !notificationMenuRef.current.contains(event.target)) {
         setShowNotificationMenu(false);
+      }
+      if (searchBarRef.current && !searchBarRef.current.contains(event.target)) {
+        setShowSearchDropdown(false);
       }
     };
 
@@ -204,18 +237,66 @@ const Header = () => {
             </Link>
 
             {/* Search Box */}
-            <form onSubmit={handleSearch} className="flex-1 max-w-60">
-              <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm trên Facebook"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-full border-0 focus:outline-none focus:ring-0 focus:bg-white focus:shadow-md transition-all duration-200 text-sm"
-                />
-              </div>
-            </form>
+            <div className="flex-1 max-w-60 relative" ref={searchBarRef}>
+              <form onSubmit={handleSearch}>
+                <div className="relative">
+                  <MagnifyingGlassIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 transition-colors ${showSearchDropdown ? 'text-facebook-600' : 'text-gray-500'}`} />
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm trên Facebook"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => {
+                      setShowSearchDropdown(true);
+                      fetchRecentSearches();
+                    }}
+                    className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-full border-0 focus:outline-none focus:ring-0 focus:bg-white focus:shadow-md transition-all duration-200 text-sm"
+                  />
+                </div>
+              </form>
+
+              {/* Search Dropdown */}
+              {showSearchDropdown && (
+                <div className="absolute top-0 -left-2 -right-2 bg-white rounded-b-lg shadow-dropdown border border-gray-200 pt-14 z-40 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="px-4 py-2 flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-900 text-sm">Tìm kiếm gần đây</h3>
+                    <Link to="/search" className="text-facebook-600 hover:bg-gray-100 px-2 py-1 rounded text-xs transition-colors">Chỉnh sửa</Link>
+                  </div>
+                  <div className="py-2 max-h-96 overflow-y-auto">
+                    {loadingSearch ? (
+                      <div className="px-4 py-3 text-center text-gray-500 text-xs italic font-segoe">Đang tải...</div>
+                    ) : recentSearches.length === 0 ? (
+                      <div className="px-4 py-3 text-center text-gray-500 text-xs italic font-segoe">Không có tìm kiếm nào gần đây</div>
+                    ) : (
+                      recentSearches.map((search) => (
+                        <div
+                          key={search.id}
+                          className="flex items-center justify-between px-2 mx-2 py-2 hover:bg-gray-100 rounded-lg cursor-pointer group transition-colors"
+                          onClick={() => {
+                            setSearchQuery(search.query);
+                            navigate(`/search?q=${encodeURIComponent(search.query)}`);
+                            setShowSearchDropdown(false);
+                          }}
+                        >
+                          <div className="flex items-center space-x-3 flex-1 min-w-0">
+                            <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <ClockIcon className="h-5 w-5 text-gray-500" />
+                            </div>
+                            <span className="text-sm text-gray-700 truncate">{search.query}</span>
+                          </div>
+                          <button
+                            onClick={(e) => deleteRecentSearch(search.id, e)}
+                            className="p-1.5 hover:bg-gray-200 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <XMarkIconOutline className="h-4 w-4 text-gray-500" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Center Section - Navigation */}

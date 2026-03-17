@@ -6,6 +6,8 @@ import Post from '../components/Home/Post';
 import CreatePost from '../components/Home/CreatePost';
 import CreateEventModal from '../components/Events/CreateEventModal';
 import GroupSidebar from '../components/Groups/GroupSidebar';
+import CreateGroupModal from '../components/Groups/CreateGroupModal';
+import MemberRequestsModal from '../components/Groups/MemberRequestsModal';
 import { toast } from 'react-hot-toast';
 import {
     UserGroupIcon,
@@ -15,7 +17,8 @@ import {
     MagnifyingGlassIcon,
     CameraIcon,
     UserPlusIcon,
-    Cog6ToothIcon
+    Cog6ToothIcon,
+    CheckCircleIcon
 } from '@heroicons/react/24/outline';
 
 const GroupDetail = () => {
@@ -26,8 +29,10 @@ const GroupDetail = () => {
     const [loading, setLoading] = useState(true);
     const [postLoading, setPostLoading] = useState(true);
     const [isMember, setIsMember] = useState(false);
+    const [isPending, setIsPending] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [activeTab, setActiveTab] = useState('discussion'); // discussion, about, members, events, files
+    const [showRequests, setShowRequests] = useState(false);
     const [members, setMembers] = useState([]);
     const [loadingMembers, setLoadingMembers] = useState(false);
     const [events, setEvents] = useState([]);
@@ -35,7 +40,7 @@ const GroupDetail = () => {
     const [media, setMedia] = useState([]);
     const [loadingMedia, setLoadingMedia] = useState(false);
     const [showCreateEvent, setShowCreateEvent] = useState(false);
-    const [memberSearch, setMemberSearch] = useState('');
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const coverInputRef = React.useRef(null);
 
     const fetchGroupDetail = useCallback(async () => {
@@ -45,6 +50,7 @@ const GroupDetail = () => {
             if (res.data.success) {
                 setGroup(res.data.data);
                 setIsMember(res.data.data.isMember);
+                setIsPending(res.data.data.isPending);
                 setIsAdmin(res.data.data.adminId === currentUser?.id);
             }
         } catch (error) {
@@ -181,7 +187,10 @@ const GroupDetail = () => {
         <div className="flex h-[calc(100vh-56px)] overflow-hidden">
             {/* Left Sidebar */}
             <div className="hidden lg:block w-90 flex-shrink-0 border-r bg-white h-full sticky top-0">
-                <GroupSidebar activeTab="yours" />
+                <GroupSidebar 
+                    activeTab="yours" 
+                    onOpenCreateModal={() => setShowCreateModal(true)}
+                />
             </div>
 
             {/* Main Content Area */}
@@ -233,21 +242,36 @@ const GroupDetail = () => {
                                     </div>
                                 </div>
                                 <div className="flex space-x-2">
-                                    {!isMember ? (
+                                    {!isMember && !isPending && (
                                         <button
                                             onClick={handleJoinGroup}
                                             className="bg-blue-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-blue-700 transition"
                                         >
                                             Tham gia nhóm
                                         </button>
-                                    ) : (
+                                    )}
+                                    {isPending && (
+                                        <button className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-bold">
+                                            Yêu cầu đã gửi
+                                        </button>
+                                    )}
+                                    {isMember && (
                                         <button className="bg-gray-200 text-gray-900 px-4 py-2 rounded-lg font-bold hover:bg-gray-300 flex items-center space-x-2">
                                             <UserGroupIcon className="w-5 h-5" />
                                             <span>Đã tham gia</span>
                                         </button>
                                     )}
+                                    {isAdmin && (
+                                        <button
+                                            onClick={() => setShowRequests(true)}
+                                            className="bg-blue-100 text-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-blue-200 flex items-center space-x-2 shadow-sm"
+                                        >
+                                            <CheckCircleIcon className="w-5 h-5" />
+                                            <span className="hidden md:inline">Duyệt thành viên</span>
+                                        </button>
+                                    )}
                                     <button className="bg-gray-200 p-2 rounded-lg hover:bg-gray-300">
-                                        <EllipsisHorizontalIcon className="w-6 h-6" />
+                                        <EllipsisHorizontalIcon className="h-6 w-6" />
                                     </button>
                                 </div>
                             </div>
@@ -291,7 +315,7 @@ const GroupDetail = () => {
                                         </div>
                                     ) : (
                                         posts.map(post => (
-                                            <Post key={post.id} post={post} onPostUpdate={fetchGroupPosts} />
+                                            <Post key={post.id} post={post} onPostUpdate={fetchGroupPosts} isAdmin={isAdmin} />
                                         ))
                                     )}
                                 </div>
@@ -473,6 +497,27 @@ const GroupDetail = () => {
                                                 <div className="flex space-x-2">
                                                     {member.userId !== currentUser?.id && (
                                                         <div className="flex items-center space-x-2">
+                                                            {isAdmin && member.role !== 'admin' && (
+                                                                <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                                                                    <select 
+                                                                        value={member.role}
+                                                                        onChange={async (e) => {
+                                                                            try {
+                                                                                const res = await api.post(`/groups/${id}/change-role/${member.userId}`, { role: e.target.value });
+                                                                                if (res.data.success) {
+                                                                                    toast.success('Đã cập nhật vai trò');
+                                                                                    fetchGroupMembers();
+                                                                                }
+                                                                            } catch (err) { toast.error('Lỗi cập nhật'); }
+                                                                        }}
+                                                                        className="bg-transparent border-none text-xs font-bold focus:ring-0 cursor-pointer"
+                                                                    >
+                                                                        <option value="member">Thành viên</option>
+                                                                        <option value="moderator">Người kiểm duyệt</option>
+                                                                        <option value="expert">Chuyên gia</option>
+                                                                    </select>
+                                                                </div>
+                                                            )}
                                                             {showAddFriend && !member.isFriend && (
                                                                 <button
                                                                     onClick={() => handleAddFriend(member.userId)}
@@ -674,6 +719,24 @@ const GroupDetail = () => {
                     )}
                 </div>
             </div>
+            {showCreateModal && (
+                <CreateGroupModal
+                    onClose={() => setShowCreateModal(false)}
+                    onSuccess={() => {
+                        window.location.reload(); // Simple refresh for now
+                    }}
+                />
+            )}
+            {showRequests && (
+                <MemberRequestsModal 
+                    groupId={id} 
+                    onClose={() => setShowRequests(false)}
+                    onUpdate={() => {
+                        fetchGroupDetail();
+                        fetchGroupMembers();
+                    }}
+                />
+            )}
         </div>
     );
 };

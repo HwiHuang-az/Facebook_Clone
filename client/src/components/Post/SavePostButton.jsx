@@ -3,10 +3,12 @@ import { BookmarkIcon } from '@heroicons/react/24/outline';
 import { BookmarkIcon as BookmarkIconSolid } from '@heroicons/react/24/solid';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import SaveToCollectionModal from './SaveToCollectionModal';
 
 const SavePostButton = ({ postId, className = "" }) => {
     const [isSaved, setIsSaved] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [showCollectionModal, setShowCollectionModal] = useState(false);
 
     useEffect(() => {
         const checkSavedStatus = async () => {
@@ -46,11 +48,7 @@ const SavePostButton = ({ postId, className = "" }) => {
                     }
                 }
             } else {
-                const res = await api.post('/saved-posts', { postId });
-                if (res.data.success) {
-                    setIsSaved(true);
-                    toast.success('Đã lưu bài viết');
-                }
+                setShowCollectionModal(true);
             }
         } catch (error) {
             console.error('Error toggling save:', error);
@@ -75,6 +73,14 @@ const SavePostButton = ({ postId, className = "" }) => {
             <span className={`text-sm font-medium ${isSaved ? 'text-blue-600' : 'text-gray-600 dark:text-gray-400'}`}>
                 {isSaved ? 'Đã lưu' : 'Lưu'}
             </span>
+
+            {showCollectionModal && (
+                <SaveToCollectionModal 
+                    postId={postId}
+                    onClose={() => setShowCollectionModal(false)}
+                    onSave={() => setIsSaved(true)}
+                />
+            )}
         </button>
     );
 };

@@ -14,7 +14,8 @@ const PostShareModal = ({ post, onClose, onShareSuccess }) => {
         setIsSharing(true);
         try {
             const res = await api.post(`/post-shares/${post.id}/share`, {
-                sharedContent
+                sharedContent,
+                privacy
             });
             if (res.data.success) {
                 toast.success('Đã chia sẻ lên bảng tin của bạn');
@@ -55,10 +56,15 @@ const PostShareModal = ({ post, onClose, onShareSuccess }) => {
                         </div>
                         <div>
                             <p className="font-semibold text-gray-900 dark:text-white">{user?.firstName} {user?.lastName}</p>
-                            <div className="flex items-center space-x-1 mt-0.5 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-md w-fit cursor-pointer">
-                                <GlobeAmericasIcon className="h-3 w-3 text-gray-600 dark:text-gray-400" />
-                                <span className="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-tighter">Công khai</span>
-                            </div>
+                            <select
+                                value={privacy}
+                                onChange={(e) => setPrivacy(e.target.value)}
+                                className="mt-0.5 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-md w-fit cursor-pointer text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-tighter border-none outline-none focus:ring-0 appearance-none text-center"
+                            >
+                                <option value="public">🌍 Công khai</option>
+                                <option value="friends">👥 Bạn bè</option>
+                                <option value="only_me">🔒 Chỉ mình tôi</option>
+                            </select>
                         </div>
                     </div>
 

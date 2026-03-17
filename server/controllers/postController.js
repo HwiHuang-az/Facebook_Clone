@@ -1,7 +1,42 @@
-const { Post, User, Comment, Like, Friendship } = require('../models');
+const { Post, User, Comment, Like, Friendship, BlockedUser, PrivacySetting } = require('../models');
 const { Op } = require('sequelize');
 const { createNotification } = require('./notificationController');
 
+// Helper to format post with detailed reaction stats
+const formatPostWithStats = (post, currentUserId) => {
+  const jsonPost = post.toJSON();
+  const reactions = post.likes || [];
+  
+  // Calculate counts for each type
+  const reactionStats = {
+    like: 0,
+    love: 0,
+    haha: 0,
+    wow: 0,
+    sad: 0,
+    angry: 0
+  };
+  
+  let userReaction = null;
+  
+  reactions.forEach(like => {
+    if (reactionStats[like.type] !== undefined) {
+      reactionStats[like.type]++;
+    }
+    if (like.userId === currentUserId) {
+      userReaction = like.type;
+    }
+  });
+
+  return {
+    ...jsonPost,
+    isLiked: !!userReaction,
+    userReaction,
+    reactionStats,
+    likesCount: reactions.length,
+    commentsCount: post.comments?.length || 0
+  };
+};
 
 // Lấy tất cả posts (newsfeed)
 const getAllPosts = async (req, res) => {
@@ -24,13 +59,33 @@ const getAllPosts = async (req, res) => {
       return friendship.user1Id === userId ? friendship.user2Id : friendship.user1Id;
     });
 
+    // Get blocked user IDs (both ways)
+    const blocks = await BlockedUser.findAll({
+      where: {
+        [Op.or]: [
+          { blockerId: userId },
+          { blockedId: userId }
+        ]
+      }
+    });
+
+    const blockedUserIds = blocks.map(b =>
+      b.blockerId === userId ? b.blockedId : b.blockerId
+    );
+
+    // Filter friendIds to remove blocked users
+    const filteredFriendIds = friendIds.filter(id => !blockedUserIds.includes(id));
+
     // Thêm user hiện tại vào danh sách để xem posts của chính mình
-    friendIds.push(userId);
+    filteredFriendIds.push(userId);
 
     const whereClause = {
         [Op.or]: [
-          { userId: { [Op.in]: friendIds } },
-          { privacy: 'public' }
+          { userId: { [Op.in]: filteredFriendIds } },
+          {
+            privacy: 'public',
+            userId: { [Op.notIn]: blockedUserIds }
+          }
         ],
         isActive: true
     };
@@ -71,6 +126,17 @@ const getAllPosts = async (req, res) => {
               attributes: ['id', 'firstName', 'lastName']
             }
           ]
+        },
+        {
+          model: Post,
+          as: 'sharedPost',
+          include: [
+            {
+              model: User,
+              as: 'author',
+              attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified']
+            }
+          ]
         }
       ],
       limit: parseInt(limit),
@@ -78,21 +144,15 @@ const getAllPosts = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    // Thêm thông tin đã like hay chưa
-    const postsWithLikeStatus = posts.rows.map(post => {
-      const userLike = post.likes.find(like => like.userId === userId);
-      return {
-        ...post.toJSON(),
-        isLiked: !!userLike,
-        likesCount: post.likes.length,
-        commentsCount: post.comments.length
-      };
-    });
+    // Đính kèm sharedPost vào result nếu cần (đã include trong query trên)
+
+    // Thêm thông tin đã like hay chưa và stats
+    const postsWithStats = posts.rows.map(post => formatPostWithStats(post, userId));
 
     res.json({
       success: true,
       data: {
-        posts: postsWithLikeStatus,
+        posts: postsWithStats,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
@@ -116,7 +176,7 @@ const getAllPosts = async (req, res) => {
 const createPost = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { content, privacy = 'friends', imageUrl, videoUrl, type } = req.body;
+    const { content, privacy, imageUrl, videoUrl, type } = req.body;
 
     // Validate input
     if (!content && !imageUrl && !videoUrl) {
@@ -126,11 +186,22 @@ const createPost = async (req, res) => {
       });
     }
 
+    // Get user's default privacy if not provided
+    let finalPrivacy = privacy;
+    if (!privacy) {
+      const settings = await PrivacySetting.findOne({ where: { userId } });
+      if (settings) {
+        finalPrivacy = settings.postDefaultPrivacy;
+      } else {
+        finalPrivacy = 'friends'; // Fallback
+      }
+    }
+
     // Tạo post mới
     const newPost = await Post.create({
       userId,
       content,
-      privacy,
+      privacy: finalPrivacy,
       imageUrl,
       videoUrl,
       type: type || 'normal'
@@ -154,6 +225,8 @@ const createPost = async (req, res) => {
         post: {
           ...post.toJSON(),
           isLiked: false,
+          userReaction: null,
+          reactionStats: { like: 0, love: 0, haha: 0, wow: 0, sad: 0, angry: 0 },
           likesCount: 0,
           commentsCount: 0,
           likes: [],
@@ -218,6 +291,17 @@ const getPost = async (req, res) => {
               attributes: ['id', 'firstName', 'lastName']
             }
           ]
+        },
+        {
+          model: Post,
+          as: 'sharedPost',
+          include: [
+            {
+              model: User,
+              as: 'author',
+              attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified']
+            }
+          ]
         }
       ]
     });
@@ -256,18 +340,12 @@ const getPost = async (req, res) => {
       }
     }
 
-    // Thêm thông tin đã like hay chưa
-    const userLike = post.likes.find(like => like.userId === userId);
-    const postWithLikeStatus = {
-      ...post.toJSON(),
-      isLiked: !!userLike,
-      likesCount: post.likes.length,
-      commentsCount: post.comments.length
-    };
+    // Thêm thông tin stats
+    const postWithStats = formatPostWithStats(post, userId);
 
     res.json({
       success: true,
-      data: { post: postWithLikeStatus }
+      data: { post: postWithStats }
     });
 
   } catch (error) {
@@ -392,6 +470,7 @@ const toggleLikePost = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
+    const { type = 'like' } = req.body;
 
     // Kiểm tra post có tồn tại không
     const post = await Post.findByPk(id);
@@ -402,25 +481,35 @@ const toggleLikePost = async (req, res) => {
       });
     }
 
-    // Kiểm tra đã like chưa
+    // Kiểm tra đã phản ứng chưa
     const existingLike = await Like.findOne({
       where: { userId, postId: id }
     });
 
     if (existingLike) {
-      // Unlike
-      await existingLike.destroy();
-      res.json({
-        success: true,
-        message: 'Bỏ thích bài viết',
-        data: { isLiked: false }
-      });
+      if (existingLike.type === type) {
+        // Nếu cùng loại thì bỏ thích (Unlike)
+        await existingLike.destroy();
+        return res.json({
+          success: true,
+          message: 'Bỏ phản ứng bài viết',
+          data: { isLiked: false, type: null }
+        });
+      } else {
+        // Nếu khác loại thì cập nhật loại phản ứng
+        await existingLike.update({ type });
+        return res.json({
+          success: true,
+          message: 'Cập nhật phản ứng bài viết',
+          data: { isLiked: true, type }
+        });
+      }
     } else {
-      // Like
+      // Create new reaction
       await Like.create({
         userId,
         postId: id,
-        type: 'like'
+        type
       });
 
       // Notify post author
@@ -517,6 +606,17 @@ const getUserPosts = async (req, res) => {
               attributes: ['id', 'firstName', 'lastName']
             }
           ]
+        },
+        {
+          model: Post,
+          as: 'sharedPost',
+          include: [
+            {
+              model: User,
+              as: 'author',
+              attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified']
+            }
+          ]
         }
       ],
       limit: parseInt(limit),
@@ -524,21 +624,13 @@ const getUserPosts = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    // Thêm thông tin đã like hay chưa
-    const postsWithLikeStatus = posts.rows.map(post => {
-      const userLike = post.likes.find(like => like.userId === currentUserId);
-      return {
-        ...post.toJSON(),
-        isLiked: !!userLike,
-        likesCount: post.likes.length,
-        commentsCount: post.comments.length
-      };
-    });
+    // Thêm thông tin stats
+    const postsWithStats = posts.rows.map(post => formatPostWithStats(post, currentUserId));
 
     res.json({
       success: true,
       data: {
-        posts: postsWithLikeStatus,
+        posts: postsWithStats,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),

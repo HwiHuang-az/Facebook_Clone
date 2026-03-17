@@ -25,6 +25,8 @@ const UserSession = require('./UserSession');
 const FriendList = require('./FriendList');
 const FriendListMember = require('./FriendListMember');
 const MessageAttachment = require('./MessageAttachment');
+const RecentSearch = require('./RecentSearch');
+const Ad = require('./Ad');
 
 // Define relationships
 
@@ -51,6 +53,9 @@ Like.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 // Post - Like relationship
 Post.hasMany(Like, { foreignKey: 'postId', as: 'likes' });
 Like.belongsTo(Post, { foreignKey: 'postId', as: 'post' });
+
+Post.belongsTo(Post, { as: 'sharedPost', foreignKey: 'sharedPostId' });
+Post.hasMany(Post, { as: 'shares', foreignKey: 'sharedPostId' });
 
 // Comment - Like relationship
 Comment.hasMany(Like, { foreignKey: 'commentId', as: 'likes' });
@@ -79,6 +84,12 @@ Message.belongsTo(User, { foreignKey: 'receiverId', as: 'receiver' });
 // Message - MessageAttachment relationship
 Message.hasMany(MessageAttachment, { foreignKey: 'messageId', as: 'attachments' });
 MessageAttachment.belongsTo(Message, { foreignKey: 'messageId', as: 'message' });
+
+// Message - Message (reply/forward) self-relations
+Message.belongsTo(Message, { foreignKey: 'replyToId', as: 'replyTo' });
+Message.hasMany(Message, { foreignKey: 'replyToId', as: 'replies' });
+Message.belongsTo(Message, { foreignKey: 'forwardedFromId', as: 'forwardedFrom' });
+Message.hasMany(Message, { foreignKey: 'forwardedFromId', as: 'forwards' });
 
 // User - Notification relationship (user receiving notification)
 User.hasMany(Notification, { foreignKey: 'userId', as: 'notifications' });
@@ -162,7 +173,7 @@ Like.belongsTo(Page, { foreignKey: 'pageId', as: 'page' });
 // User - PostShare relationship
 User.hasMany(PostShare, { foreignKey: 'userId', as: 'sharedPosts' });
 PostShare.belongsTo(User, { foreignKey: 'userId', as: 'user' });
-Post.hasMany(PostShare, { foreignKey: 'postId', as: 'shares' });
+Post.hasMany(PostShare, { foreignKey: 'postId', as: 'postShares' });
 PostShare.belongsTo(Post, { foreignKey: 'postId', as: 'post' });
 
 // User - BlockedUser relationship
@@ -199,6 +210,9 @@ FriendListMember.belongsTo(FriendList, { foreignKey: 'listId', as: 'list' });
 User.hasMany(FriendListMember, { foreignKey: 'friendId', as: 'friendListMemberships' });
 FriendListMember.belongsTo(User, { foreignKey: 'friendId', as: 'friend' });
 
+User.hasMany(RecentSearch, { foreignKey: 'userId', as: 'recentSearches' });
+RecentSearch.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
 module.exports = {
   sequelize,
   User,
@@ -225,5 +239,7 @@ module.exports = {
   UserSession,
   FriendList,
   FriendListMember,
-  MessageAttachment
+  MessageAttachment,
+  RecentSearch,
+  Ad
 };

@@ -24,4 +24,9 @@ router.get('/user/:id', auth, storyController.getUserStories);
 // @access  Private
 router.post('/:id/view', auth, storyController.viewStory);
 
+// @route   GET /api/stories/:id/viewers
+// @desc    Lấy danh sách người đã xem tin
+// @access  Private
+router.get('/:id/viewers', auth, storyController.getStoryViewers);
+
 module.exports = router;

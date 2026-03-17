@@ -6,28 +6,32 @@ import { Toaster } from 'react-hot-toast';
 
 
 // Pages
-import Login from './pages/Login';
-import Home from './pages/Home';
-import Profile from './pages/Profile';
-import Friends from './pages/Friends';
-import Messages from './pages/Messages';
-import Notifications from './pages/Notifications';
-import Settings from './pages/Settings';
-import Watch from './pages/Watch';
-import Marketplace from './pages/Marketplace';
-import Groups from './pages/Groups';
-import Pages from './pages/Pages';
-import SavedPostsPage from './pages/SavedPostsPage';
-import PrivacySettingsPage from './pages/PrivacySettingsPage';
-import EventsPage from './pages/EventsPage';
-import GroupDetail from './pages/GroupDetail';
-import PageDetail from './pages/PageDetail';
+const Login = React.lazy(() => import('./pages/Login'));
+const Home = React.lazy(() => import('./pages/Home'));
+const Profile = React.lazy(() => import('./pages/Profile'));
+const Friends = React.lazy(() => import('./pages/Friends'));
+const Messages = React.lazy(() => import('./pages/Messages'));
+const Notifications = React.lazy(() => import('./pages/Notifications'));
+const Settings = React.lazy(() => import('./pages/Settings'));
+const Watch = React.lazy(() => import('./pages/Watch'));
+const Marketplace = React.lazy(() => import('./pages/Marketplace'));
+const Groups = React.lazy(() => import('./pages/Groups'));
+const Pages = React.lazy(() => import('./pages/Pages'));
+const SavedPostsPage = React.lazy(() => import('./pages/SavedPostsPage'));
+const PrivacySettingsPage = React.lazy(() => import('./pages/PrivacySettingsPage'));
+const EventsPage = React.lazy(() => import('./pages/EventsPage'));
+const GroupDetail = React.lazy(() => import('./pages/GroupDetail'));
+const PageDetail = React.lazy(() => import('./pages/PageDetail'));
+const EventDetail = React.lazy(() => import('./pages/EventDetail'));
+const Search = React.lazy(() => import('./pages/Search'));
+const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 
 
 // Components
 import Layout from './components/Layout/Layout';
 import LoadingScreen from './components/UI/LoadingScreen';
+import ErrorBoundary from './components/Shared/ErrorBoundary';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -54,225 +58,258 @@ const PublicRoute = ({ children }) => {
 function AppRoutes() {
   return (
     <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route 
-          path="/login" 
-          element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          } 
-        />
-        
-        {/* Protected Routes */}
-        <Route 
-          path="/" 
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <Home />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/profile/:userId?" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <Profile />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/friends/*" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <Friends />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/messages/*" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <Messages />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/notifications" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <Notifications />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/events/*" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <EventsPage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/pages" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <Pages />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/pages/:id" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <PageDetail />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
+      <React.Suspense fallback={<LoadingScreen />}>
+        <Routes>
+          {/* Public Routes */}
+          <Route 
+            path="/login" 
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            } 
+          />
+          
+          {/* Protected Routes */}
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Home />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/profile/:userId?" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <Profile />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/friends/*" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <Friends />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/messages/*" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <Messages />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/notifications" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <Notifications />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/events/:id" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <EventDetail />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/events/*" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <EventsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/search" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Search />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/pages" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <Pages />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/saved" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <SavedPostsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/pages/:id" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <PageDetail />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
 
-        
-        <Route 
-          path="/groups" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <Groups />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/groups/:id" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <GroupDetail />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/marketplace/*" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <Marketplace />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/watch/*" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <Watch />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/settings/privacy" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <PrivacySettingsPage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/saved" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <SavedPostsPage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/settings/*" 
-          element={
-            <ProtectedRoute>
-              <Layout fullWidth={true}>
-                <Settings />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+          
+          <Route 
+            path="/groups" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <Groups />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/groups/:id" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <GroupDetail />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/marketplace/*" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <Marketplace />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/watch/*" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <Watch />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/settings/privacy" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <PrivacySettingsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/saved" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <SavedPostsPage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/settings/*" 
+            element={
+              <ProtectedRoute>
+                <Layout fullWidth={true}>
+                  <Settings />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Catch all route */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </React.Suspense>
     </Router>
   );
 }
 
 function App() {
   return (
-    <AuthProvider>
-      <SocketProvider>
-        <div className="App font-segoe bg-gray-100 min-h-screen">
-          <AppRoutes />
+    <ErrorBoundary>
+      <AuthProvider>
+        <SocketProvider>
+          <div className="App font-segoe bg-gray-100 min-h-screen">
+            <AppRoutes />
 
-        
-        {/* Toast Notifications */}
-        <Toaster
-          position="top-center"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#333',
-              color: '#fff',
-              borderRadius: '8px',
-              fontSize: '14px',
-              maxWidth: '400px',
-            },
-            success: {
+          
+          {/* Toast Notifications */}
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              duration: 4000,
               style: {
-                background: '#059669',
+                background: '#333',
+                color: '#fff',
+                borderRadius: '8px',
+                fontSize: '14px',
+                maxWidth: '400px',
               },
-            },
-            error: {
-              style: {
-                background: '#dc2626',
+              success: {
+                style: {
+                  background: '#059669',
+                },
               },
-            },
-          }}
-        />
-      </div>
-      </SocketProvider>
-    </AuthProvider>
-
+              error: {
+                style: {
+                  background: '#dc2626',
+                },
+              },
+            }}
+          />
+        </div>
+        </SocketProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

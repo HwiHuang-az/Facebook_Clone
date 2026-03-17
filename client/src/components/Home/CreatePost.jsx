@@ -50,7 +50,7 @@ const CreatePost = ({ onPostCreated, initialImage = null, groupId = null, pageId
                 formData.append('pageId', pageId);
             }
 
-            await api.post('/posts', formData, {
+            const res = await api.post('/posts', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -59,7 +59,7 @@ const CreatePost = ({ onPostCreated, initialImage = null, groupId = null, pageId
             setContent('');
             removeImage();
             toast.success('Đăng bài thành công!');
-            if (onPostCreated) onPostCreated();
+            if (onPostCreated) onPostCreated(res.data.data);
         } catch (error) {
             console.error('Create post error:', error);
             toast.error('Có lỗi xảy ra khi đăng bài');
