@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     BookmarkIcon,
     MagnifyingGlassIcon,
@@ -10,8 +10,23 @@ const SavedSidebar = ({
     collections,
     selectedCollection,
     setSelectedCollection,
+    searchTerm,
+    setSearchTerm,
     onShowCreateCollection
 }) => {
+    const [localSearch, setLocalSearch] = useState(searchTerm || '');
+
+    // Debounced search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (setSearchTerm) setSearchTerm(localSearch);
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [localSearch, setSearchTerm]);
+
+    useEffect(() => {
+        setLocalSearch(searchTerm);
+    }, [searchTerm]);
     return (
         <div className="w-full lg:w-90 bg-white dark:bg-gray-800 shadow-sm h-full overflow-y-auto p-4 border-r dark:border-gray-700 flex flex-col font-segoe">
             <div className="flex justify-between items-center mb-4">
@@ -37,6 +52,8 @@ const SavedSidebar = ({
                     <input
                         type="text"
                         placeholder="Tìm kiếm mục đã lưu"
+                        value={localSearch}
+                        onChange={(e) => setLocalSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-full border-0 focus:ring-0 focus:bg-white dark:focus:bg-gray-600 text-sm dark:text-white"
                     />
                 </div>
@@ -61,18 +78,22 @@ const SavedSidebar = ({
                     <button
                         key={coll.collectionName}
                         onClick={() => setSelectedCollection(coll.collectionName)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-semibold transition-colors ${selectedCollection === coll.collectionName
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold transition-all group ${selectedCollection === coll.collectionName
                                 ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600'
-                                : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50'
                             }`}
                     >
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center text-sm">
-                                {coll.collectionName.charAt(0)}
+                        <div className="flex items-center space-x-3 min-w-0">
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm shadow-sm transition-transform group-hover:scale-105 ${
+                                selectedCollection === coll.collectionName 
+                                ? 'bg-blue-600 text-white' 
+                                : 'bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 dark:text-gray-300'
+                            }`}>
+                                {coll.collectionName.charAt(0).toUpperCase()}
                             </div>
-                            <span>{coll.collectionName}</span>
+                            <span className="truncate">{coll.collectionName}</span>
                         </div>
-                        <span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full dark:text-gray-300">
+                        <span className="text-[10px] font-bold bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full dark:text-gray-400 group-hover:bg-gray-300 dark:group-hover:bg-gray-600 transition-colors">
                             {coll.count}
                         </span>
                     </button>

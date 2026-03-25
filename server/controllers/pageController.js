@@ -7,7 +7,13 @@ const { Op } = require('sequelize');
 exports.createPage = async (req, res) => {
   try {
     const ownerId = req.user.id;
-    const { name, category, description, profilePicture, coverPhoto, website, email, phone, address } = req.body;
+    const { name, category, description, website, email, phone, address } = req.body;
+    let { profilePicture, coverPhoto } = req.body;
+
+    // Handle file upload if present
+    if (req.file) {
+      profilePicture = req.file.path;
+    }
 
     const page = await Page.create({
       name,
@@ -84,18 +90,30 @@ exports.getLikedPages = async (req, res) => {
     const userId = req.user.id;
     const Like = require('../models/Like');
     
-    const likedPages = await Like.findAll({
-      where: { 
+    const { query } = req.query;
+    const where = { 
         userId,
         pageId: { [Op.ne]: null }
-      },
-      include: [
+    };
+
+    const include = [
         {
-          model: Page,
-          as: 'page'
+            model: Page,
+            as: 'page',
+            required: true
         }
-      ],
-      order: [['createdAt', 'DESC']]
+    ];
+
+    if (query) {
+        include[0].where = {
+            name: { [Op.like]: `%${query}%` }
+        };
+    }
+    
+    const likedPages = await Like.findAll({
+        where,
+        include,
+        order: [['createdAt', 'DESC']]
     });
 
     const pages = likedPages.map(l => l.page).filter(p => p !== null);
@@ -114,8 +132,15 @@ exports.getLikedPages = async (req, res) => {
 exports.getMyPages = async (req, res) => {
   try {
     const ownerId = req.user.id;
+    const { query } = req.query;
+    const where = { ownerId };
+    
+    if (query) {
+      where.name = { [Op.like]: `%${query}%` };
+    }
+
     const pages = await Page.findAll({
-      where: { ownerId }
+      where
     });
 
     res.status(200).json({

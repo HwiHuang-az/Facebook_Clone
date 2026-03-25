@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     TvIcon,
     VideoCameraIcon,
@@ -7,7 +7,16 @@ import {
     Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 
-const WatchSidebar = ({ activeSection, setActiveSection }) => {
+const WatchSidebar = ({ activeSection, setActiveSection, searchQuery, setSearchQuery }) => {
+    const [localSearch, setLocalSearch] = useState(searchQuery || '');
+
+    // Debounced search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (setSearchQuery) setSearchQuery(localSearch);
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [localSearch, setSearchQuery]);
     const navItems = [
         { id: 'home', label: 'Trang chủ', icon: TvIcon },
         { id: 'live', label: 'Trực tiếp', icon: VideoCameraIcon },
@@ -31,6 +40,8 @@ const WatchSidebar = ({ activeSection, setActiveSection }) => {
                     <input
                         type="text"
                         placeholder="Tìm kiếm video"
+                        value={localSearch}
+                        onChange={(e) => setLocalSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-full border-0 focus:ring-0 focus:bg-white dark:focus:bg-gray-600 text-sm dark:text-white"
                     />
                 </div>

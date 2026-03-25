@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BookmarkIcon, MagnifyingGlassIcon, Squares2X2Icon, ListBulletIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useLocation } from 'react-router-dom';
 import api from '../utils/api';
 import Post from '../components/Home/Post';
 import { toast } from 'react-hot-toast';
@@ -14,6 +15,16 @@ const SavedPostsPage = () => {
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.selectedCollection) {
+            setSelectedCollection(location.state.selectedCollection);
+        }
+        if (location.state?.searchTerm) {
+            setSearchTerm(location.state.searchTerm);
+        }
+    }, [location.state]);
 
     const fetchSavedPosts = async () => {
         try {
@@ -80,6 +91,8 @@ const SavedPostsPage = () => {
                     collections={collections}
                     selectedCollection={selectedCollection}
                     setSelectedCollection={setSelectedCollection}
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
                     onShowCreateCollection={() => setIsCreateModalOpen(true)}
                 />
             </div>

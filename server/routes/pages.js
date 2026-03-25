@@ -4,7 +4,7 @@ const pageController = require('../controllers/pageController');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
-router.post('/', auth, pageController.createPage);
+router.post('/', auth, upload.single('image'), pageController.createPage);
 router.get('/', auth, pageController.getPages);
 router.get('/my', auth, pageController.getMyPages);
 router.get('/liked', auth, pageController.getLikedPages);

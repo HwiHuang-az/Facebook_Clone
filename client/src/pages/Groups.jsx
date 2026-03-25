@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
     RectangleGroupIcon,
     MagnifyingGlassIcon,
@@ -11,6 +11,8 @@ import {
 } from '@heroicons/react/24/outline';
 
 import GroupSidebar from '../components/Groups/GroupSidebar';
+import CreateGroupModal from '../components/Groups/CreateGroupModal';
+import MemberRequestsModal from '../components/Groups/MemberRequestsModal';
 
 const Groups = () => {
     const [publicGroups, setPublicGroups] = useState([]);
@@ -20,13 +22,26 @@ const Groups = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [activeTab, setActiveTab] = useState('feed'); // feed, discover, yours
+    const location = useLocation();
 
-    const fetchData = async () => {
+    useEffect(() => {
+        if (location.state?.activeTab) {
+            setActiveTab(location.state.activeTab);
+        }
+        if (location.state?.showCreateModal) {
+            setShowCreateModal(true);
+        }
+        if (location.state?.searchQuery) {
+            setSearchQuery(location.state.searchQuery);
+        }
+    }, [location.state]);
+
+    const fetchData = useCallback(async () => {
         try {
             setLoading(true);
             const [publicRes, myRes, suggestRes] = await Promise.all([
                 api.get('/groups', { params: { query: searchQuery } }),
-                api.get('/groups/my'),
+                api.get('/groups/my', { params: { query: searchQuery } }),
                 api.get('/groups/suggestions')
             ]);
             
@@ -38,11 +53,11 @@ const Groups = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [searchQuery]);
 
     useEffect(() => {
         fetchData();
-    }, [searchQuery]);
+    }, [fetchData]);
 
     return (
         <div className="flex flex-col lg:flex-row min-h-screen bg-gray-100">
@@ -52,6 +67,8 @@ const Groups = () => {
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
                     onOpenCreateModal={() => setShowCreateModal(true)}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
                 />
             </div>
 

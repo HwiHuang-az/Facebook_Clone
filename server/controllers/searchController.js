@@ -163,3 +163,18 @@ exports.deleteRecentSearch = async (req, res) => {
     res.status(500).json({ success: false });
   }
 };
+
+exports.clearRecentSearches = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    await RecentSearch.destroy({
+      where: { userId }
+    });
+
+    res.json({ success: true, message: 'Đã xóa tất cả lịch sử tìm kiếm' });
+  } catch (error) {
+    console.error('Clear search history error:', error);
+    res.status(500).json({ success: false });
+  }
+};

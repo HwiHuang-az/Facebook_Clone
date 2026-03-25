@@ -69,7 +69,7 @@ const CreatePost = ({ onPostCreated, initialImage = null, groupId = null, pageId
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-facebook p-4 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none p-4 mb-4 border border-gray-100 dark:border-gray-700 font-segoe transition-all duration-200">
             <div className="flex items-start space-x-3 mb-3">
                 <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden flex-shrink-0">
                     {user?.profilePicture ? (
@@ -89,7 +89,7 @@ const CreatePost = ({ onPostCreated, initialImage = null, groupId = null, pageId
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         placeholder={`Bạn đang nghĩ gì, ${user?.lastName}?`}
-                        className="w-full bg-gray-100 rounded-lg px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[40px] resize-none"
+                        className="w-full bg-gray-100 dark:bg-gray-700 rounded-xl px-4 py-3 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-h-[40px] resize-none transition-all duration-200 text-[15px] font-medium"
                         rows={2}
                     />
 
@@ -119,11 +119,11 @@ const CreatePost = ({ onPostCreated, initialImage = null, groupId = null, pageId
                 </div>
             </div>
 
-            <div className="flex justify-between items-center border-t border-gray-200 pt-3">
+            <div className="flex justify-between items-center border-t border-gray-200 dark:border-gray-700 pt-3">
                 <div className="flex space-x-2">
-                    <label className="flex items-center space-x-2 text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-lg cursor-pointer transition-colors">
-                        <PhotoIcon className="h-6 w-6 text-green-500" />
-                        <span className="font-medium text-[15px]">Ảnh/Video</span>
+                    <label className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 px-4 py-2 rounded-xl cursor-pointer transition-all group">
+                        <PhotoIcon className="h-6 w-6 text-green-500 group-hover:scale-110 transition-transform" />
+                        <span className="font-bold text-[15px]">Ảnh/Video</span>
                         <input
                             type="file"
                             accept="image/*,video/*"
@@ -131,18 +131,18 @@ const CreatePost = ({ onPostCreated, initialImage = null, groupId = null, pageId
                             className="hidden"
                         />
                     </label>
-                    <button className="flex items-center space-x-2 text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-lg cursor-not-allowed opacity-50">
+                    <button className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 px-4 py-2 rounded-xl cursor-not-allowed opacity-50 transition-all">
                         <FaceSmileIcon className="h-6 w-6 text-yellow-500" />
-                        <span className="font-medium text-[15px]">Cảm giác</span>
+                        <span className="font-bold text-[15px]">Cảm giác</span>
                     </button>
                 </div>
 
                 <button
                     onClick={handleSubmit}
                     disabled={loading || (!content.trim() && !image)}
-                    className={`px-8 py-2 rounded-lg font-semibold text-white transition-colors ${loading || (!content.trim() && !image)
-                        ? 'bg-blue-300 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700'
+                    className={`px-8 py-2 rounded-xl font-bold text-white transition-all shadow-sm ${loading || (!content.trim() && !image)
+                        ? 'bg-blue-300 dark:bg-blue-900/50 cursor-not-allowed text-white/50'
+                        : 'bg-blue-600 hover:bg-blue-700 active:scale-95'
                         }`}
                 >
                     {loading ? 'Đang đăng...' : 'Đăng'}

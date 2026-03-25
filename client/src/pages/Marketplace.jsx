@@ -11,6 +11,7 @@ import {
     PlusIcon
 } from '@heroicons/react/24/outline';
 
+import { Link, useLocation } from 'react-router-dom';
 import MarketplaceSidebar from '../components/Marketplace/MarketplaceSidebar';
 import CreateMarketplaceItemModal from '../components/Marketplace/CreateMarketplaceItemModal';
 import MarketplaceItemDetailModal from '../components/Marketplace/MarketplaceItemDetailModal';
@@ -22,6 +23,16 @@ const Marketplace = () => {
     const [category, setCategory] = useState('');
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.category) {
+            setCategory(location.state.category);
+        }
+        if (location.state?.searchQuery) {
+            setSearchQuery(location.state.searchQuery);
+        }
+    }, [location.state]);
 
     const categories = [
         { id: 'vehicles', label: 'Xe cộ', icon: '🚗' },
@@ -54,7 +65,7 @@ const Marketplace = () => {
 
     useEffect(() => {
         fetchItems();
-    }, [category]);
+    }, [category, searchQuery]);
 
     const handleSearch = (e) => {
         e.preventDefault();

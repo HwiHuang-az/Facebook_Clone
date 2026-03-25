@@ -2,19 +2,32 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Post from '../components/Home/Post';
 import api from '../utils/api';
 import { toast } from 'react-hot-toast';
+import { useLocation } from 'react-router-dom';
 import WatchSidebar from '../components/Watch/WatchSidebar';
 
 const Watch = () => {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeSection, setActiveSection] = useState('home'); // home, live, reels, saved
+    const [searchQuery, setSearchQuery] = useState('');
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.activeSection) {
+            setActiveSection(location.state.activeSection);
+        }
+    }, [location.state]);
 
     const fetchVideos = useCallback(async () => {
         try {
             setLoading(true);
-            // Fetch posts and filter for videos/reels
-            // In a more advanced implementation, we'd have a specific /videos endpoint
-            const res = await api.get(`/posts?limit=20`);
+            const res = await api.get(`/posts`, {
+                params: {
+                    limit: 20,
+                    query: searchQuery,
+                    type: activeSection === 'reels' ? 'reel' : undefined
+                }
+            });
             if (res.data.success) {
                 // Filter posts that have either type='reel' or have image/video content that we want to show as video
                 // For simplicity, showing all posts that are reels or just all posts to mock a feed
@@ -31,7 +44,7 @@ const Watch = () => {
 
     useEffect(() => {
         fetchVideos();
-    }, [fetchVideos]);
+    }, [fetchVideos, searchQuery, activeSection]);
 
     return (
         <div className="flex h-[calc(100vh-56px)] overflow-hidden font-segoe">
@@ -40,6 +53,8 @@ const Watch = () => {
                 <WatchSidebar
                     activeSection={activeSection}
                     setActiveSection={setActiveSection}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
                 />
             </div>
 

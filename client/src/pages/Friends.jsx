@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import FriendSidebar from '../components/Friends/FriendSidebar';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useFriendships } from '../hooks/useFriendships';
 
 const Friends = () => {
   const [activeTab, setActiveTab] = useState('suggestions');
   const [searchTerm, setSearchTerm] = useState('');
   const [notification, setNotification] = useState(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+    if (location.state?.searchTerm) {
+      setSearchTerm(location.state.searchTerm);
+    }
+  }, [location.state]);
 
   const {
     loading,
@@ -115,6 +125,8 @@ const Friends = () => {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           counts={counts}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
         />
       </div>
 

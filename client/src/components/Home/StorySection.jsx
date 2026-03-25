@@ -72,23 +72,23 @@ const StorySection = () => {
     }, []);
 
     return (
-        <div className="bg-white rounded-lg shadow-facebook mb-4 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none mb-4 overflow-hidden border border-gray-100 dark:border-gray-700 font-segoe transition-all duration-200">
             {/* Tabs */}
-            <div className="flex border-b">
+            <div className="flex border-b border-gray-100 dark:border-gray-700">
                 <button
                     onClick={() => setActiveTab('stories')}
-                    className={`flex-1 py-3 font-semibold text-sm md:text-base flex items-center justify-center space-x-2 transition-colors ${activeTab === 'stories' ? 'text-blue-600 border-b-4 border-blue-600' : 'text-gray-500 hover:bg-gray-50'
+                    className={`flex-1 py-4 font-bold text-sm md:text-[15px] flex items-center justify-center space-x-2 transition-all ${activeTab === 'stories' ? 'text-facebook-600 dark:text-facebook-400 border-b-4 border-facebook-600 dark:border-facebook-400 bg-blue-50/50 dark:bg-blue-900/10' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                         }`}
                 >
-                    <span>📖</span>
+                    <span className="text-xl">📖</span>
                     <span>Tin</span>
                 </button>
                 <button
                     onClick={() => setActiveTab('reels')}
-                    className={`flex-1 py-3 font-semibold text-sm md:text-base flex items-center justify-center space-x-2 transition-colors ${activeTab === 'reels' ? 'text-blue-600 border-b-4 border-blue-600' : 'text-gray-500 hover:bg-gray-50'
+                    className={`flex-1 py-4 font-bold text-sm md:text-[15px] flex items-center justify-center space-x-2 transition-all ${activeTab === 'reels' ? 'text-facebook-600 dark:text-facebook-400 border-b-4 border-facebook-600 dark:border-facebook-400 bg-blue-50/50 dark:bg-blue-900/10' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                         }`}
                 >
-                    <span>🎬</span>
+                    <span className="text-xl">🎬</span>
                     <span>Reels</span>
                 </button>
             </div>
@@ -98,20 +98,20 @@ const StorySection = () => {
                     {/* Create Button */}
                     <div
                         onClick={() => activeTab === 'stories' ? setIsModalOpen(true) : setIsReelModalOpen(true)}
-                        className="relative w-28 h-48 bg-gray-100 rounded-xl overflow-hidden cursor-pointer group shadow-sm flex-shrink-0"
+                        className="relative w-28 h-48 bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden cursor-pointer group shadow-sm flex-shrink-0 transition-transform hover:scale-[1.02]"
                     >
                         <div className="h-3/4 overflow-hidden">
                             <img
                                 src={user?.profilePicture || `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}`}
-                                className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                className="w-full h-full object-cover transition-transform group-hover:scale-110"
                                 alt="My profile"
                             />
                         </div>
-                        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-blue-600 rounded-full border-4 border-white flex items-center justify-center text-white text-xl">
+                        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-9 h-9 bg-blue-600 rounded-full border-4 border-white dark:border-gray-800 flex items-center justify-center text-white text-xl shadow-md z-10 transition-transform group-hover:scale-110">
                             +
                         </div>
-                        <div className="h-1/4 flex items-end justify-center pb-2 bg-white">
-                            <span className="text-[11px] font-bold text-gray-900">
+                        <div className="h-1/4 flex items-end justify-center pb-2 bg-white dark:bg-gray-800 transition-colors">
+                            <span className="text-[11px] font-bold text-gray-900 dark:text-gray-100">
                                 {activeTab === 'stories' ? 'Tạo tin' : 'Tạo reel'}
                             </span>
                         </div>
@@ -136,7 +136,7 @@ const StorySection = () => {
                                         alt="Story"
                                     />
                                     <div className="absolute inset-0 bg-black bg-opacity-10 group-hover:bg-opacity-20 transition-all"></div>
-                                    <div className="absolute top-2 left-2 w-10 h-10 rounded-full border-4 border-blue-600 overflow-hidden shadow-lg z-10 bg-white">
+                                    <div className="absolute top-2 left-2 w-10 h-10 rounded-full border-4 border-facebook-600 overflow-hidden shadow-lg z-10 bg-white dark:bg-gray-800 transition-transform group-hover:scale-110">
                                         <img
                                             src={group.user.profilePicture || `https://ui-avatars.com/api/?name=${group.user.firstName}+${group.user.lastName}`}
                                             alt={group.user.firstName}

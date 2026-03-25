@@ -96,9 +96,12 @@ const Home = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1600px] mx-auto">
+      {/* Left Sidebar Spacer - Usually taken by the global Sidebar in Layout.jsx */}
+      <div className="hidden lg:block lg:col-span-3"></div>
+
       {/* Main Feed Column */}
-      <div className="lg:col-span-3 space-y-4 max-w-2xl mx-auto w-full">
+      <div className="col-span-1 lg:col-span-6 space-y-4 max-w-2xl mx-auto w-full">
         {/* Stories & Reels Section */}
         <StorySection />
 
@@ -114,7 +117,7 @@ const Home = () => {
               <PostSkeleton />
             </>
           ) : posts.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 bg-white rounded-lg shadow-facebook">
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 font-bold">
               Chưa có bài viết nào. Hãy là người đầu tiên đăng bài!
             </div>
           ) : (
@@ -149,7 +152,7 @@ const Home = () => {
       </div>
 
       {/* Right Sidebar Column */}
-      <div className="hidden lg:block lg:col-span-1">
+      <div className="hidden lg:block lg:col-span-3 sticky top-24 self-start">
         <RightSidebar />
       </div>
     </div>

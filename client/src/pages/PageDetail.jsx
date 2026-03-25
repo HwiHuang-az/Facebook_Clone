@@ -206,7 +206,17 @@ const PageDetail = () => {
         <div className="flex h-[calc(100vh-56px)] overflow-hidden font-segoe">
             {/* Left Sidebar */}
             <div className="hidden lg:block w-90 flex-shrink-0 border-r bg-white h-full sticky top-0 overflow-y-auto">
-                <PageSidebar activeTab="likes" onTabChange={() => { }} />
+                <PageSidebar 
+                    activeTab="none" 
+                    onTabChange={(tab) => navigate('/pages', { state: { activeTab: tab } })}
+                    onCreatePage={() => navigate('/pages', { state: { showCreateModal: true } })}
+                    searchQuery=""
+                    onSearchChange={(query) => {
+                        if (query) {
+                            navigate('/pages', { state: { searchQuery: query, activeTab: 'discover' } });
+                        }
+                    }}
+                />
             </div>
 
             {/* Main Content Area */}

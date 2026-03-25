@@ -9,7 +9,7 @@ import {
     StarIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid, CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import api from '../utils/api';
 import { toast } from 'react-hot-toast';
 import CreateEventModal from '../components/Events/CreateEventModal';
@@ -19,12 +19,28 @@ const EventsPage = () => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming', 'past', 'my_events'
+    const [searchQuery, setSearchQuery] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.activeTab) {
+            setActiveTab(location.state.activeTab);
+        }
+        if (location.state?.searchQuery) {
+            setSearchQuery(location.state.searchQuery);
+        }
+    }, [location.state]);
 
     const fetchEvents = async () => {
         try {
             setLoading(true);
-            const res = await api.get(`/events?type=${activeTab}`);
+            const res = await api.get(`/events`, {
+                params: {
+                    type: activeTab,
+                    query: searchQuery
+                }
+            });
             if (res.data.success) {
                 setEvents(res.data.data);
             }
@@ -38,7 +54,7 @@ const EventsPage = () => {
 
     useEffect(() => {
         fetchEvents();
-    }, [activeTab]);
+    }, [activeTab, searchQuery]);
 
     const handleResponse = async (eventId, response) => {
         try {
@@ -60,6 +76,8 @@ const EventsPage = () => {
                 <EventSidebar
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
                     onShowCreateModal={() => setIsCreateModalOpen(true)}
                 />
             </div>

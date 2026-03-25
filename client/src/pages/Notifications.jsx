@@ -106,7 +106,7 @@ const Notifications = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-900 p-6">
+      <div className="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-900 p-4 md:p-6 transition-colors duration-200">
         <div className="max-w-3xl mx-auto">
           {/* Mobile Header (Hidden on Desktop) */}
           <div className="mb-6 flex items-center justify-between lg:hidden text-gray-900 dark:text-white">
@@ -119,49 +119,58 @@ const Notifications = () => {
             </button>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-facebook overflow-hidden border border-gray-100 dark:border-gray-700 transition-all duration-200">
             <div className="divide-y dark:divide-gray-700">
               {loading ? (
                 <div className="flex justify-center items-center py-20">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
               ) : filteredNotifications.length === 0 ? (
-                <div className="p-20 text-center text-gray-500 dark:text-gray-400">
-                  <BellIconOutline className="h-16 w-16 mx-auto mb-4 opacity-20" />
-                  <p className="text-lg font-semibold">Bạn chưa có thông báo nào.</p>
+                <div className="p-20 text-center text-gray-500 dark:text-gray-400 font-segoe">
+                  <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <BellIconOutline className="h-10 w-10 opacity-40" />
+                  </div>
+                  <p className="text-xl font-bold">Bạn chưa có thông báo nào.</p>
+                  <p className="text-sm mt-2 opacity-70">Chúng tôi sẽ thông báo cho bạn khi có tin mới!</p>
                 </div>
               ) : (
                 filteredNotifications.map((notification) => (
                   <div
                     key={notification.id}
                     onClick={() => markRead(notification.id)}
-                    className={`flex items-start space-x-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition ${!notification.isRead ? 'bg-blue-50 dark:bg-blue-900/10' : ''}`}
+                    className={`flex items-start space-x-4 p-4 hover:bg-gray-100 dark:hover:bg-gray-700/50 cursor-pointer transition-all relative group ${!notification.isRead ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
                   >
                     <div className="relative flex-shrink-0">
                       <img
-                        src={notification.fromUser?.profilePicture || 'https://via.placeholder.com/40'}
+                        src={notification.fromUser?.profilePicture || `https://ui-avatars.com/api/?name=${notification.fromUser?.firstName}+${notification.fromUser?.lastName}`}
                         alt=""
-                        className="w-14 h-14 rounded-full object-cover border dark:border-gray-600"
+                        className="w-16 h-16 rounded-full object-cover border-2 border-white dark:border-gray-800 shadow-sm transition-transform group-hover:scale-105"
                       />
-                      <div className="absolute -right-1 -bottom-1">
+                      <div className="absolute right-0 bottom-0 transform translate-x-1 translate-y-1">
                         {getIcon(notification.type)}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0 pt-1">
-                      <p className="text-gray-900 dark:text-gray-100 text-sm md:text-base leading-snug">
-                        <span className="font-bold">{notification.fromUser?.firstName} {notification.fromUser?.lastName}</span>
-                        {' '}{notification.message}
+                      <p className="text-gray-900 dark:text-gray-100 text-sm md:text-[15px] leading-relaxed">
+                        <span className="font-bold hover:underline">{notification.fromUser?.firstName} {notification.fromUser?.lastName}</span>
+                        {' '}<span className="font-medium text-gray-800 dark:text-gray-200">{notification.message}</span>
                       </p>
-                      <span className={`text-[13px] ${!notification.isRead ? 'font-bold text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                        {moment(notification.createdAt).fromNow()}
-                      </span>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className={`text-[12px] font-bold ${!notification.isRead ? 'text-facebook-600 dark:text-facebook-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {moment(notification.createdAt).fromNow()}
+                        </span>
+                        {!notification.isRead && <span className="w-1.5 h-1.5 bg-facebook-600 rounded-full"></span>}
+                      </div>
                     </div>
+                    {/* Unread indicator dot */}
                     {!notification.isRead && (
-                      <div className="mt-6 w-3 h-3 bg-blue-600 rounded-full flex-shrink-0 self-center"></div>
+                      <div className="w-3 h-3 bg-facebook-600 rounded-full flex-shrink-0 self-center shadow-lg shadow-blue-500/50"></div>
                     )}
-                    <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full self-center">
-                      <EllipsisHorizontalIcon className="h-5 w-5 text-gray-500" />
-                    </button>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity self-center ml-2">
+                        <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full">
+                            <EllipsisHorizontalIcon className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+                        </button>
+                    </div>
                   </div>
                 ))
               )}

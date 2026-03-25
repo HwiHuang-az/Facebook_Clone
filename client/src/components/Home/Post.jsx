@@ -224,7 +224,7 @@ const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-facebook mb-4 transition-all duration-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none mb-4 border border-gray-100 dark:border-gray-700 transition-all duration-200 overflow-hidden font-segoe">
             {/* Post Header */}
             <div className="p-4 flex items-center justify-between relative">
                 <div className="flex items-center space-x-3">
@@ -242,7 +242,7 @@ const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
                         )}
                     </div>
                     <div>
-                        <h3 className="font-semibold text-gray-900 hover:underline cursor-pointer">
+                        <h3 className="font-bold text-gray-900 dark:text-gray-100 hover:underline cursor-pointer flex items-center">
                             {post.author.firstName} {post.author.lastName}
                             {post.author.isVerified && <span className="text-blue-500 ml-1">✓</span>}
                             {(post.type === 'profile_update' || post.type === 'cover_update') && (
@@ -267,7 +267,7 @@ const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
                 <div className="relative" ref={menuRef}>
                     <button
                         onClick={() => setShowMenu(!showMenu)}
-                        className="text-gray-400 hover:bg-gray-100 p-2 rounded-full transition-colors"
+                        className="text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50 p-2 rounded-full transition-colors"
                     >
                         <EllipsisHorizontalIcon className="h-5 w-5" />
                     </button>
@@ -353,7 +353,7 @@ const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
             ) : (
                 (post.type === 'normal' || post.type === 'share') && displayContent && (
                     <div className="px-4 pb-3">
-                        <p className="text-gray-900 whitespace-pre-wrap text-sm md:text-base">{displayContent}</p>
+                        <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap text-sm md:text-base leading-relaxed">{displayContent}</p>
                     </div>
                 )
             )}
@@ -397,7 +397,7 @@ const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
 
             {/* Post Media (Image or Video) */}
             {(post.imageUrl || post.videoUrl) && (
-                <div className={`bg-gray-50 border-y border-gray-100 ${post.type === 'profile_update' ? 'bg-gradient-to-b from-gray-50 to-white py-4' : ''} flex justify-center`}>
+                <div className={`bg-gray-50 dark:bg-gray-900/50 border-y border-gray-100 dark:border-gray-700 ${post.type === 'profile_update' ? 'bg-gradient-to-b from-gray-50 to-white dark:from-gray-900/50 dark:to-gray-800 py-4' : ''} flex justify-center`}>
                     {post.type === 'reel' || isVideo(post.imageUrl) || post.videoUrl ? (
                         <VideoPlayer
                             src={post.imageUrl || post.videoUrl}
@@ -420,7 +420,7 @@ const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
             )}
 
             {/* Post Actions Stats */}
-            <div className="px-4 py-2 flex items-center justify-between text-gray-500 text-sm">
+            <div className="px-4 py-2.5 flex items-center justify-between text-gray-500 dark:text-gray-400 text-sm">
                 <div className="flex items-center space-x-1">
                     {likesCount > 0 && (
                         <div className="flex items-center -space-x-1 mr-2">
@@ -453,8 +453,8 @@ const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="px-4 border-t border-gray-100 mx-1">
-                <div className="flex justify-between py-1">
+            <div className="px-4 border-t border-gray-100 dark:border-gray-700/50 mx-1">
+                <div className="flex justify-between py-1 my-1">
                     <div 
                         className="relative flex-1"
                         onMouseEnter={handleMouseEnter}
@@ -480,34 +480,36 @@ const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
                         <button
                             onClick={() => handleReactionSelect(userReaction || 'like')}
                             className={classNames(
-                                "flex items-center space-x-2 px-3 py-2 rounded-lg w-full justify-center transition-colors",
-                                isLiked ? (reactionConfig[userReaction]?.color || "text-blue-600 font-semibold") : "text-gray-600 hover:bg-gray-100"
+                                "flex items-center space-x-2 px-3 py-2 rounded-xl w-full justify-center transition-all group",
+                                isLiked ? (reactionConfig[userReaction]?.color || "text-blue-600 font-bold") : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
                             )}
                         >
-                            {isLiked && userReaction ? (
-                                <span className="text-xl">{reactionConfig[userReaction].icon}</span>
-                            ) : (
-                                <HandThumbUpIcon className="h-5 w-5" />
-                            )}
-                            <span>{isLiked && userReaction ? reactionConfig[userReaction].label : 'Thích'}</span>
+                            <div className="group-hover:scale-110 transition-transform flex items-center space-x-2">
+                                {isLiked && userReaction ? (
+                                    <span className="text-xl">{reactionConfig[userReaction].icon}</span>
+                                ) : (
+                                    <HandThumbUpIcon className="h-5 w-5" />
+                                )}
+                                <span className="font-bold">{isLiked && userReaction ? reactionConfig[userReaction].label : 'Thích'}</span>
+                            </div>
                         </button>
                     </div>
                     <button
                         onClick={toggleComments}
                         className={classNames(
-                            "flex items-center space-x-2 text-gray-600 px-3 py-2 rounded-lg flex-1 justify-center transition-colors",
-                            showComments ? "bg-gray-100" : "hover:bg-gray-100"
+                            "flex items-center space-x-2 text-gray-600 dark:text-gray-400 px-3 py-2 rounded-xl flex-1 justify-center transition-all group",
+                            showComments ? "bg-gray-100 dark:bg-gray-700" : "hover:bg-gray-100 dark:hover:bg-gray-700/50"
                         )}
                     >
-                        <ChatBubbleOvalLeftIcon className="h-5 w-5" />
-                        <span>Bình luận</span>
+                        <ChatBubbleOvalLeftIcon className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                        <span className="font-bold">Bình luận</span>
                     </button>
                     <button
                         onClick={() => setShowShareModal(true)}
-                        className="flex items-center space-x-2 text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-lg flex-1 justify-center transition-colors"
+                        className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 px-3 py-2 rounded-xl flex-1 justify-center transition-all group"
                     >
-                        <ArrowUturnRightIcon className="h-5 w-5" />
-                        <span>Chia sẻ</span>
+                        <ArrowUturnRightIcon className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                        <span className="font-bold">Chia sẻ</span>
                     </button>
 
                     <SavePostButton postId={post.id} className="flex-1 justify-center" />
@@ -516,8 +518,8 @@ const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
 
             {/* Comments Section */}
             {showComments && (
-                <div className="px-4 pb-4 bg-gray-50 rounded-b-lg border-t border-gray-100 transition-all duration-300">
-                    <div className="pt-3 flex space-x-2 mb-4">
+                <div className="px-4 pb-4 bg-gray-50 dark:bg-gray-900/30 rounded-b-xl border-t border-gray-100 dark:border-gray-700 transition-all duration-300">
+                    <div className="pt-4 flex space-x-2 mb-4">
                         <div className="w-8 h-8 bg-gray-300 rounded-full overflow-hidden flex-shrink-0">
                             {user?.profilePicture ? (
                                 <img
@@ -537,7 +539,7 @@ const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
                                 value={commentText}
                                 onChange={(e) => setCommentText(e.target.value)}
                                 placeholder="Viết bình luận..."
-                                className="w-full bg-gray-200 rounded-full px-4 py-2 pr-10 text-sm focus:outline-none focus:bg-gray-300 transition-colors"
+                                className="w-full bg-gray-200 dark:bg-gray-700 rounded-full px-4 py-2.5 pr-10 text-sm focus:outline-none focus:bg-gray-300 dark:focus:bg-gray-600 transition-all dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                             />
                             <button
                                 type="submit"

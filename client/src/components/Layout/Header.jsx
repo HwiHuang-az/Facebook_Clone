@@ -124,6 +124,17 @@ const Header = () => {
     }
   };
 
+  const clearRecentSearches = async () => {
+    try {
+      const res = await api.delete('/search/clear');
+      if (res.data.success) {
+        setRecentSearches([]);
+      }
+    } catch (err) {
+      console.error('Clear searches error:', err);
+    }
+  };
+
   const toggleMessenger = () => {
     if (!showMessengerMenu) fetchRecentConversations();
     setShowMessengerMenu(!showMessengerMenu);
@@ -223,7 +234,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 font-segoe">
       <div className="max-w-full mx-auto">
         <div className="flex items-center justify-between h-14 px-4">
 
@@ -250,17 +261,27 @@ const Header = () => {
                       setShowSearchDropdown(true);
                       fetchRecentSearches();
                     }}
-                    className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-full border-0 focus:outline-none focus:ring-0 focus:bg-white focus:shadow-md transition-all duration-200 text-sm"
+                    className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-full border-0 focus:outline-none focus:ring-0 focus:bg-white dark:focus:bg-gray-600 focus:shadow-md transition-all duration-200 text-sm dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </div>
               </form>
 
               {/* Search Dropdown */}
               {showSearchDropdown && (
-                <div className="absolute top-0 -left-2 -right-2 bg-white rounded-b-lg shadow-dropdown border border-gray-200 pt-14 z-40 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-0 -left-2 -right-2 bg-white dark:bg-gray-800 rounded-b-xl shadow-dropdown border border-gray-200 dark:border-gray-700 pt-14 z-40 animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="px-4 py-2 flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900 text-sm">Tìm kiếm gần đây</h3>
-                    <Link to="/search" className="text-facebook-600 hover:bg-gray-100 px-2 py-1 rounded text-xs transition-colors">Chỉnh sửa</Link>
+                    <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm">Tìm kiếm gần đây</h3>
+                    <div className="flex items-center space-x-2">
+                      {recentSearches.length > 0 && (
+                        <button 
+                          onClick={(e) => { e.preventDefault(); clearRecentSearches(); }}
+                          className="text-gray-500 hover:bg-gray-100 px-2 py-1 rounded text-xs transition-colors"
+                        >
+                          Xóa tất cả
+                        </button>
+                      )}
+                      <Link to="/search" className="text-facebook-600 hover:bg-gray-100 px-2 py-1 rounded text-xs transition-colors">Chỉnh sửa</Link>
+                    </div>
                   </div>
                   <div className="py-2 max-h-96 overflow-y-auto">
                     {loadingSearch ? (
@@ -271,7 +292,7 @@ const Header = () => {
                       recentSearches.map((search) => (
                         <div
                           key={search.id}
-                          className="flex items-center justify-between px-2 mx-2 py-2 hover:bg-gray-100 rounded-lg cursor-pointer group transition-colors"
+                          className="flex items-center justify-between px-2 mx-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-xl cursor-pointer group transition-colors"
                           onClick={() => {
                             setSearchQuery(search.query);
                             navigate(`/search?q=${encodeURIComponent(search.query)}`);
@@ -279,16 +300,16 @@ const Header = () => {
                           }}
                         >
                           <div className="flex items-center space-x-3 flex-1 min-w-0">
-                            <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                              <ClockIcon className="h-5 w-5 text-gray-500" />
+                            <div className="w-9 h-9 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
+                              <ClockIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                             </div>
-                            <span className="text-sm text-gray-700 truncate">{search.query}</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{search.query}</span>
                           </div>
                           <button
                             onClick={(e) => deleteRecentSearch(search.id, e)}
-                            className="p-1.5 hover:bg-gray-200 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <XMarkIconOutline className="h-4 w-4 text-gray-500" />
+                            <XMarkIconOutline className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                           </button>
                         </div>
                       ))
@@ -308,7 +329,7 @@ const Header = () => {
                   <Link
                     key={path}
                     to={path}
-                    className={`flex items-center justify-center h-12 px-8 rounded-lg transition-colors duration-200 relative group ${isActive ? 'bg-gray-100' : 'hover:bg-gray-50'
+                    className={`flex items-center justify-center h-12 px-8 rounded-xl transition-all duration-200 relative group ${isActive ? 'text-facebook-600' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400'
                       }`}
                     title={label}
                   >
@@ -329,10 +350,10 @@ const Header = () => {
             <div className="relative" ref={createMenuRef}>
               <button
                 onClick={() => setShowCreateMenu(!showCreateMenu)}
-                className="flex items-center justify-center w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-full transition-colors duration-200"
+                className="flex items-center justify-center w-10 h-10 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-full transition-all duration-200 text-gray-700 dark:text-gray-200"
                 title="Tạo"
               >
-                <PlusIcon className="h-5 w-5 text-gray-700" />
+                <PlusIcon className="h-5 w-5" />
               </button>
 
               {showCreateMenu && (
@@ -377,11 +398,10 @@ const Header = () => {
             <div className="relative" ref={messengerMenuRef}>
               <button
                 onClick={toggleMessenger}
-                className="flex items-center justify-center w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-full transition-colors duration-200 relative"
-
+                className="flex items-center justify-center w-10 h-10 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-full transition-all duration-200 relative text-gray-700 dark:text-gray-200"
                 title="Messenger"
               >
-                <ChatBubbleLeftRightIcon className="h-5 w-5 text-gray-700" />
+                <ChatBubbleLeftRightIcon className="h-5 w-5" />
                 {unreadMessages > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                     {unreadMessages > 9 ? '9+' : unreadMessages}
@@ -438,11 +458,10 @@ const Header = () => {
             <div className="relative" ref={notificationMenuRef}>
               <button
                 onClick={toggleNotifications}
-                className="flex items-center justify-center w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-full transition-colors duration-200 relative"
-
+                className="flex items-center justify-center w-10 h-10 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-full transition-all duration-200 relative text-gray-700 dark:text-gray-200"
                 title="Thông báo"
               >
-                <BellIcon className="h-5 w-5 text-gray-700" />
+                <BellIcon className="h-5 w-5" />
                 {unreadNotifications > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                     {unreadNotifications > 9 ? '9+' : unreadNotifications}
@@ -490,19 +509,19 @@ const Header = () => {
             <div className="relative" ref={accountMenuRef}>
               <button
                 onClick={() => setShowAccountMenu(!showAccountMenu)}
-                className="flex items-center space-x-1 hover:bg-gray-100 rounded-lg p-1 transition-colors duration-200"
+                className="flex items-center space-x-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl p-1 transition-all duration-200"
                 title="Tài khoản"
               >
                 <img
                   src={user?.profilePicture || `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=1877f2&color=fff`}
                   alt={user?.firstName}
-                  className="w-8 h-8 rounded-full"
+                  className="w-8 h-8 rounded-full shadow-sm border border-gray-100 dark:border-gray-700"
                 />
-                <ChevronDownIcon className="h-4 w-4 text-gray-600" />
+                <ChevronDownIcon className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </button>
 
               {showAccountMenu && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-dropdown border border-gray-200 py-2 z-50">
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-dropdown border border-gray-200 dark:border-gray-700 py-2 z-50">
                   {/* Profile Section */}
                   <div className="px-4 py-3 border-b border-gray-200">
                     <Link to={`/profile/${user?.id}`} className="flex items-center hover:bg-gray-100 rounded-lg p-2 -m-2">

@@ -4,7 +4,7 @@ const groupController = require('../controllers/groupController');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
-router.post('/', auth, groupController.createGroup);
+router.post('/', auth, upload.single('image'), groupController.createGroup);
 router.get('/', auth, groupController.getGroups);
 router.get('/my', auth, groupController.getMyGroups);
 router.get('/suggestions', auth, groupController.getGroupSuggestions);

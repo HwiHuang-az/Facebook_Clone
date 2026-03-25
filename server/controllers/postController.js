@@ -79,16 +79,31 @@ const getAllPosts = async (req, res) => {
     // Thêm user hiện tại vào danh sách để xem posts của chính mình
     filteredFriendIds.push(userId);
 
+    // Filter by type, groupId, or pageId
     const whereClause = {
-        [Op.or]: [
-          { userId: { [Op.in]: filteredFriendIds } },
-          {
-            privacy: 'public',
-            userId: { [Op.notIn]: blockedUserIds }
-          }
-        ],
         isActive: true
     };
+
+    if (req.query.groupId) {
+        whereClause.groupId = req.query.groupId;
+    } else if (req.query.pageId) {
+        whereClause.pageId = req.query.pageId;
+    } else {
+        // Default newsfeed: posts from friends/public and NOT in groups/pages
+        whereClause[Op.and] = [
+            {
+                [Op.or]: [
+                    { userId: { [Op.in]: filteredFriendIds } },
+                    {
+                        privacy: 'public',
+                        userId: { [Op.notIn]: blockedUserIds }
+                    }
+                ]
+            },
+            { groupId: null },
+            { pageId: null }
+        ];
+    }
 
     if (type) {
         whereClause.type = type;
@@ -176,7 +191,13 @@ const getAllPosts = async (req, res) => {
 const createPost = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { content, privacy, imageUrl, videoUrl, type } = req.body;
+    const { content, privacy, videoUrl, type, groupId, pageId } = req.body;
+    let { imageUrl } = req.body;
+
+    // Nếu có file upload từ multer
+    if (req.file) {
+      imageUrl = req.file.path;
+    }
 
     // Validate input
     if (!content && !imageUrl && !videoUrl) {
@@ -204,6 +225,8 @@ const createPost = async (req, res) => {
       privacy: finalPrivacy,
       imageUrl,
       videoUrl,
+      groupId: groupId || null,
+      pageId: pageId || null,
       type: type || 'normal'
     });
 

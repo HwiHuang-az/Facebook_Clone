@@ -8,7 +8,13 @@ const { Op } = require('sequelize');
 exports.createGroup = async (req, res) => {
   try {
     const adminId = req.user.id;
-    const { name, description, privacy, coverPhoto } = req.body;
+    const { name, description, privacy } = req.body;
+    let { coverPhoto } = req.body;
+
+    // Handle file upload if present
+    if (req.file) {
+      coverPhoto = req.file.path;
+    }
 
     const group = await Group.create({
       name,
@@ -72,9 +78,24 @@ exports.getGroups = async (req, res) => {
 exports.getMyGroups = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { query } = req.query;
+    const where = { userId };
+    
+    const include = [{ 
+      model: Group, 
+      as: 'group',
+      required: true
+    }];
+
+    if (query) {
+      include[0].where = {
+        name: { [Op.like]: `%${query}%` }
+      };
+    }
+
     const memberships = await GroupMember.findAll({
-      where: { userId },
-      include: [{ model: Group, as: 'group' }]
+      where,
+      include
     });
 
     const groups = memberships.map(m => m.group);

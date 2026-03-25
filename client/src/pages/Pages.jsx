@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import {
     FlagIcon,
@@ -24,14 +24,27 @@ const Pages = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [activeTab, setActiveTab] = useState('discover');
     const [likingPages, setLikingPages] = useState(new Set());
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.activeTab) {
+            setActiveTab(location.state.activeTab);
+        }
+        if (location.state?.showCreateModal) {
+            setShowCreateModal(true);
+        }
+        if (location.state?.searchQuery) {
+            setSearchQuery(location.state.searchQuery);
+        }
+    }, [location.state]);
 
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
             const [discoverRes, myRes, likedRes] = await Promise.all([
                 api.get('/pages', { params: { query: searchQuery } }),
-                api.get('/pages/my'),
-                api.get('/pages/liked')
+                api.get('/pages/my', { params: { query: searchQuery } }),
+                api.get('/pages/liked', { params: { query: searchQuery } })
             ]);
 
             if (discoverRes.data.success) setPages(discoverRes.data.data);

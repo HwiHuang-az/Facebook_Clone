@@ -26,10 +26,10 @@ const SaveToCollectionModal = ({ postId, onClose, onSave }) => {
         fetchCollections();
     }, []);
 
-    const handleSaveToCollection = async (collectionId) => {
+    const handleSaveToCollection = async (collectionName) => {
         setSaving(true);
         try {
-            const res = await api.post('/saved-posts', { postId, collectionId });
+            const res = await api.post('/saved-posts', { postId, collectionName });
             if (res.data.success) {
                 toast.success('Đã lưu bài viết');
                 if (onSave) onSave();
@@ -88,24 +88,30 @@ const SaveToCollectionModal = ({ postId, onClose, onSave }) => {
                         <div className="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
                             <button
                                 onClick={() => handleSaveToCollection(null)}
-                                className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                                className="w-full flex items-center space-x-4 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-600 group"
                             >
-                                <div className="p-2 bg-gray-200 dark:bg-gray-600 rounded-md">
+                                <div className="p-2.5 bg-gray-200 dark:bg-gray-600 rounded-xl group-hover:scale-105 transition-transform shadow-sm">
                                     <FolderIcon className="h-6 w-6 text-gray-600 dark:text-gray-300" />
                                 </div>
-                                <span className="font-semibold text-gray-700 dark:text-gray-200">Mục đã lưu (Mặc định)</span>
+                                <div className="flex-1 text-left">
+                                    <span className="font-bold text-gray-800 dark:text-gray-200 block">Mục đã lưu</span>
+                                    <span className="text-xs text-gray-500 font-medium">Bộ sưu tập mặc định</span>
+                                </div>
                             </button>
 
                             {collections.map((col) => (
                                 <button
-                                    key={col.id}
-                                    onClick={() => handleSaveToCollection(col.id)}
-                                    className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                                    key={col.collectionName}
+                                    onClick={() => handleSaveToCollection(col.collectionName)}
+                                    className="w-full flex items-center space-x-4 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-600 group"
                                 >
-                                    <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-md">
+                                    <div className="p-2.5 bg-blue-100 dark:bg-blue-900/40 rounded-xl group-hover:scale-105 transition-transform shadow-sm">
                                         <FolderIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                                     </div>
-                                    <span className="font-semibold text-gray-700 dark:text-gray-200">{col.name}</span>
+                                    <div className="flex-1 text-left">
+                                        <span className="font-bold text-gray-800 dark:text-gray-200 block">{col.collectionName}</span>
+                                        <span className="text-xs text-gray-500 font-medium">Bộ sưu tập cá nhân</span>
+                                    </div>
                                 </button>
                             ))}
                         </div>

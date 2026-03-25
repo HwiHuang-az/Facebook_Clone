@@ -6,5 +6,6 @@ const auth = require('../middleware/auth');
 router.get('/', auth, searchController.unifiedSearch);
 router.get('/recent', auth, searchController.getRecentSearches);
 router.delete('/recent/:id', auth, searchController.deleteRecentSearch);
+router.delete('/clear', auth, searchController.clearRecentSearches);
 
 module.exports = router;

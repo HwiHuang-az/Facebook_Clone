@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     CalendarIcon,
     PlusIcon,
@@ -7,7 +7,20 @@ import {
     Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 
-const EventSidebar = ({ activeTab, setActiveTab, onShowCreateModal }) => {
+const EventSidebar = ({ activeTab, setActiveTab, searchQuery, setSearchQuery, onShowCreateModal }) => {
+    const [localSearch, setLocalSearch] = useState(searchQuery || '');
+
+    // Debounced search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (setSearchQuery) setSearchQuery(localSearch);
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [localSearch, setSearchQuery]);
+
+    useEffect(() => {
+        setLocalSearch(searchQuery);
+    }, [searchQuery]);
     const navItems = [
         { id: 'upcoming', label: 'Khám phá', icon: MagnifyingGlassIcon },
         { id: 'my_events', label: 'Sự kiện của bạn', icon: CalendarIcon },
@@ -39,6 +52,8 @@ const EventSidebar = ({ activeTab, setActiveTab, onShowCreateModal }) => {
                     <input
                         type="text"
                         placeholder="Tìm kiếm sự kiện"
+                        value={localSearch}
+                        onChange={(e) => setLocalSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-full border-0 focus:ring-0 focus:bg-white dark:focus:bg-gray-600 text-sm dark:text-white"
                     />
                 </div>

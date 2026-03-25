@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuth } from '../hooks/useAuth';
 import Post from '../components/Home/Post';
@@ -23,6 +23,7 @@ import {
 
 const GroupDetail = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const { user: currentUser } = useAuth();
     const [group, setGroup] = useState(null);
     const [posts, setPosts] = useState([]);
@@ -186,10 +187,17 @@ const GroupDetail = () => {
     return (
         <div className="flex h-[calc(100vh-56px)] overflow-hidden">
             {/* Left Sidebar */}
-            <div className="hidden lg:block w-90 flex-shrink-0 border-r bg-white h-full sticky top-0">
+            <div className="hidden lg:block w-90 flex-shrink-0 border-r bg-white h-full sticky top-0 overflow-y-auto">
                 <GroupSidebar 
-                    activeTab="yours" 
-                    onOpenCreateModal={() => setShowCreateModal(true)}
+                    activeTab="none" 
+                    onTabChange={(tab) => navigate('/groups', { state: { activeTab: tab } })}
+                    onOpenCreateModal={() => navigate('/groups', { state: { showCreateModal: true } })}
+                    searchQuery=""
+                    onSearchChange={(query) => {
+                        if (query) {
+                            navigate('/groups', { state: { searchQuery: query, activeTab: 'discover' } });
+                        }
+                    }}
                 />
             </div>
 

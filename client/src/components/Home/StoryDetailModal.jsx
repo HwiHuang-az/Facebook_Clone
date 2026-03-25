@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, EyeIcon } from '@heroicons/react/24/outline';
 import api from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
+import { toast } from 'react-hot-toast';
 
 const StoryDetailModal = ({ groupedStories, initialGroupIndex, onClose }) => {
     const [currentGroupIndex, setCurrentGroupIndex] = useState(initialGroupIndex);
@@ -10,6 +11,8 @@ const StoryDetailModal = ({ groupedStories, initialGroupIndex, onClose }) => {
     const [viewers, setViewers] = useState([]);
     const [loadingViewers, setLoadingViewers] = useState(false);
     const [showViewersList, setShowViewersList] = useState(false);
+    const [replyText, setReplyText] = useState('');
+    const [sendingReply, setSendingReply] = useState(false);
     const { user } = useAuth();
 
     const currentGroup = groupedStories[currentGroupIndex];
@@ -88,6 +91,27 @@ const StoryDetailModal = ({ groupedStories, initialGroupIndex, onClose }) => {
             fetchViewers();
         }
         setShowViewersList(!showViewersList);
+    };
+
+    const handleReply = async (e) => {
+        if (e.key !== 'Enter' || !replyText.trim() || sendingReply) return;
+
+        try {
+            setSendingReply(true);
+            const res = await api.post('/messages', {
+                receiverId: currentGroup.user.id,
+                content: `[Phản hồi tin] ${replyText.trim()}`
+            });
+            if (res.data.success) {
+                toast.success('Đã gửi phản hồi');
+                setReplyText('');
+            }
+        } catch (error) {
+            console.error('Reply story error:', error);
+            // Non-critical if it fails, but nice to notify
+        } finally {
+            setSendingReply(false);
+        }
     };
 
     if (!currentGroup || !currentStory) return null;
@@ -245,11 +269,20 @@ const StoryDetailModal = ({ groupedStories, initialGroupIndex, onClose }) => {
                             )}
                         </div>
                     ) : (
-                        <input
-                            type="text"
-                            placeholder="Trả lời..."
-                            className="w-full bg-transparent border border-white/50 rounded-full px-4 py-2 text-white text-sm focus:outline-none focus:border-white transition-all placeholder-white/70"
-                        />
+                        <div className="relative group/reply text-white">
+                            <input
+                                type="text"
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                onKeyDown={handleReply}
+                                disabled={sendingReply}
+                                placeholder={sendingReply ? 'Đang gửi...' : 'Trả lời...'}
+                                className="w-full bg-white/10 border border-white/30 rounded-full px-5 py-2.5 text-white text-sm focus:outline-none focus:border-white focus:bg-white/20 transition-all placeholder-white/60 backdrop-blur-md"
+                            />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center space-x-2 text-white/50 group-focus-within/reply:text-white transition-colors">
+                                <span className="text-[10px] font-bold border border-current px-1 rounded uppercase tracking-tighter opacity-70">Enter</span>
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>

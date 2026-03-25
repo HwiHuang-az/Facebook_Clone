@@ -150,7 +150,7 @@ function AppRoutes() {
             path="/search" 
             element={
               <ProtectedRoute>
-                <Layout>
+                <Layout fullWidth={true}>
                   <Search />
                 </Layout>
               </ProtectedRoute>

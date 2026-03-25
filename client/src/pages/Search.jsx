@@ -11,6 +11,7 @@ import {
     CalendarIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
+import SearchSidebar from '../components/Layout/SearchSidebar';
 
 const Search = () => {
     const [searchParams] = useSearchParams();
@@ -23,6 +24,8 @@ const Search = () => {
         pages: { rows: [] }
     });
     const [loading, setLoading] = useState(false);
+    const [recentSearches, setRecentSearches] = useState([]);
+    const [loadingRecent, setLoadingRecent] = useState(false);
     const navigate = useNavigate();
 
     const fetchResults = useCallback(async () => {
@@ -44,9 +47,51 @@ const Search = () => {
         }
     }, [query, activeTab]);
 
+    const fetchRecentSearches = useCallback(async () => {
+        try {
+            setLoadingRecent(true);
+            const res = await api.get('/search/recent');
+            if (res.data.success) {
+                setRecentSearches(res.data.data);
+            }
+        } catch (error) {
+            console.error('Fetch recent searches error:', error);
+        } finally {
+            setLoadingRecent(false);
+        }
+    }, []);
+
+    const deleteRecentSearch = async (id, e) => {
+        e.stopPropagation();
+        try {
+            const res = await api.delete(`/search/recent/${id}`);
+            if (res.data.success) {
+                setRecentSearches(prev => prev.filter(s => s.id !== id));
+            }
+        } catch (error) {
+            console.error('Delete search error:', error);
+        }
+    };
+
+    const clearAllSearches = async () => {
+        try {
+            const res = await api.delete('/search/clear');
+            if (res.data.success) {
+                setRecentSearches([]);
+                toast.success('Đã xóa tất cả tìm kiếm');
+            }
+        } catch (error) {
+            console.error('Clear searches error:', error);
+        }
+    };
+
     useEffect(() => {
-        fetchResults();
-    }, [fetchResults]);
+        if (query) {
+            fetchResults();
+        } else {
+            fetchRecentSearches();
+        }
+    }, [fetchResults, fetchRecentSearches, query]);
 
     const tabs = [
         { id: 'all', label: 'Tất cả', icon: NewspaperIcon },
@@ -89,26 +134,25 @@ const Search = () => {
     );
 
     return (
-        <div className="max-w-4xl mx-auto py-6 px-4">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold dark:text-white">Kết quả tìm kiếm cho "{query}"</h1>
+        <div className="flex h-[calc(100vh-56px)] overflow-hidden font-segoe">
+            {/* Sidebar */}
+            <div className="hidden lg:block w-90 flex-shrink-0 border-r bg-white dark:bg-gray-800 h-full sticky top-0">
+                <SearchSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
             </div>
 
-            {/* Tabs */}
-            <div className="flex space-x-1 mb-6 border-b dark:border-gray-700 pb-0.5">
-                {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`px-4 py-3 text-sm font-bold transition-all relative ${activeTab === tab.id ? 'text-blue-600' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-t-lg'}`}
-                    >
-                        {tab.label}
-                        {activeTab === tab.id && (
-                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full"></div>
-                        )}
-                    </button>
-                ))}
-            </div>
+            {/* Main Content Area */}
+            <div className="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-900 p-6">
+                <div className="max-w-4xl mx-auto">
+                    <div className="mb-6 lg:hidden flex items-center justify-between">
+                        <h1 className="text-2xl font-bold dark:text-white">Tìm kiếm</h1>
+                    </div>
+                    
+                    <div className="mb-6">
+                        <h1 className="text-2xl font-bold dark:text-white">
+                            {query ? `Kết quả tìm kiếm cho "${query}"` : 'Tìm kiếm'}
+                        </h1>
+                    </div>
+
 
             {loading && (
                 <div className="flex justify-center py-20">
@@ -164,15 +208,65 @@ const Search = () => {
                         </div>
                     )}
 
-                    {/* Empty State */}
-                    {!loading && activeTab !== 'all' && results[activeTab]?.rows?.length === 0 && (
+                    {/* Recent Searches (when query is empty) */}
+                    {!query && !loading && (
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
+                            <div className="px-6 py-4 border-b dark:border-gray-700 flex items-center justify-between">
+                                <h2 className="font-bold text-gray-900 dark:text-white">Tìm kiếm gần đây</h2>
+                                {recentSearches.length > 0 && (
+                                    <button 
+                                        onClick={clearAllSearches}
+                                        className="text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1 rounded-lg transition"
+                                    >
+                                        Xóa tất cả
+                                    </button>
+                                )}
+                            </div>
+                            
+                            <div className="p-2">
+                                {loadingRecent ? (
+                                    <div className="py-10 text-center text-gray-500 italic">Đang tải...</div>
+                                ) : recentSearches.length === 0 ? (
+                                    <div className="py-10 text-center text-gray-500 italic">Không có tìm kiếm nào gần đây</div>
+                                ) : (
+                                    <div className="space-y-1">
+                                        {recentSearches.map((search) => (
+                                            <div
+                                                key={search.id}
+                                                className="flex items-center justify-between px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg cursor-pointer group transition-colors"
+                                                onClick={() => {
+                                                    navigate(`/search?q=${encodeURIComponent(search.query)}`);
+                                                }}
+                                            >
+                                                <div className="flex items-center space-x-4 flex-1 min-w-0">
+                                                    <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
+                                                        <MagnifyingGlassIcon className="h-5 w-5 text-gray-500" />
+                                                    </div>
+                                                    <span className="text-gray-700 dark:text-gray-200 font-medium truncate">{search.query}</span>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => deleteRecentSearch(search.id, e)}
+                                                    className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <XMarkIcon className="h-5 w-5 text-gray-500" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Empty State (when query exists but no results) */}
+                    {query && !loading && activeTab !== 'all' && results[activeTab]?.rows?.length === 0 && (
                         <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700">
                             <MagnifyingGlassIcon className="h-16 w-16 mx-auto text-gray-300 mb-4" />
                             <p className="text-gray-500">Không tìm thấy kết quả phù hợp với tìm kiếm của bạn.</p>
                         </div>
                     )}
 
-                    {!loading && activeTab === 'all' && 
+                    {query && !loading && activeTab === 'all' && 
                      results.users?.rows?.length === 0 && 
                      results.posts?.rows?.length === 0 && 
                      results.groups?.rows?.length === 0 && (
@@ -182,7 +276,9 @@ const Search = () => {
                         </div>
                     )}
                 </div>
-            )}
+              )}
+            </div>
+          </div>
         </div>
     );
 };
