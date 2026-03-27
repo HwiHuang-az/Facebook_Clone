@@ -15,6 +15,7 @@ import ProfileFriends from '../components/Profile/ProfileFriends';
 import ProfileFeed from '../components/Profile/ProfileFeed';
 import ProfileAbout from '../components/Profile/ProfileAbout';
 
+import { MagnifyingGlassIcon, PlusIcon } from '@heroicons/react/24/outline';
 import CreatePostModal from '../components/Home/CreatePostModal';
 import ProfileReels from '../components/Profile/ProfileReels';
 
@@ -24,23 +25,23 @@ const FriendItem = ({ friend }) => {
   return (
     <div
       onClick={() => window.location.href = `/profile/${friend.id}`}
-      className="flex items-center space-x-4 p-4 border rounded-xl hover:bg-gray-50 cursor-pointer transition-colors"
+      className="flex items-center space-x-4 p-4 border border-gray-100 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800 hover:shadow-lg hover:border-facebook-600/30 cursor-pointer transition-all active:scale-[0.98] group"
     >
       {friend.profilePicture && !imgError ? (
         <img
           src={friend.profilePicture}
-          className="w-20 h-20 rounded-lg object-cover"
+          className="w-20 h-20 rounded-xl object-cover shadow-sm group-hover:scale-105 transition-transform"
           alt={friend.firstName}
           onError={() => setImgError(true)}
         />
       ) : (
-        <div className="w-20 h-20 rounded-lg bg-blue-600 flex items-center justify-center text-white text-2xl font-bold uppercase shrink-0">
+        <div className="w-20 h-20 rounded-xl bg-facebook-600 flex items-center justify-center text-white text-3xl font-extrabold uppercase shrink-0 shadow-inner group-hover:scale-105 transition-transform">
           {(friend.firstName?.charAt(0) || '')}{(friend.lastName?.charAt(0) || '')}
         </div>
       )}
-      <div className="flex-1">
-        <p className="font-bold text-[17px] hover:underline">{friend.firstName} {friend.lastName}</p>
-        <p className="text-sm text-gray-500">10 bạn chung</p>
+      <div className="flex-1 min-w-0">
+        <p className="font-extrabold text-[17px] group-hover:text-facebook-600 transition-colors truncate">{friend.firstName} {friend.lastName}</p>
+        <p className="text-sm font-bold text-gray-500">10 bạn chung</p>
       </div>
     </div>
   );
@@ -225,8 +226,8 @@ const Profile = () => {
 
   if (loading && !profileData) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex justify-center items-center h-96 bg-gray-100 dark:bg-gray-900 transition-colors">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-facebook-600"></div>
       </div>
     );
   }
@@ -234,7 +235,7 @@ const Profile = () => {
   const { user, friendshipStatus, isOwnProfile, friendsCount } = profileData || {};
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-200">
       {/* Hidden File Inputs */}
       <input type="file" ref={profileInputRef} onChange={(e) => handleFileSelect(e, 'profile')} className="hidden" accept="image/*" />
       <input type="file" ref={coverInputRef} onChange={(e) => handleFileSelect(e, 'cover')} className="hidden" accept="image/*" />
@@ -302,29 +303,31 @@ const Profile = () => {
 
             {/* Friends Tab Content - Keeping inline for now as it's simple enough or could be another component */}
             {activeTab === 'friends' && (
-              <div className="bg-white rounded-lg shadow-sm p-6 min-h-[400px]">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold">Bạn bè</h2>
-                  <div className="flex items-center space-x-4">
-                    <div className="relative">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-facebook p-8 min-h-[400px] border border-gray-100 dark:border-gray-700">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                  <h2 className="text-2xl font-extrabold dark:text-white tracking-tight">Bạn bè</h2>
+                  <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 md:flex-none">
                       <input
                         type="text"
                         placeholder="Tìm kiếm bạn bè"
-                        className="bg-gray-100 rounded-full py-1.5 px-4 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        className="bg-gray-100 dark:bg-gray-700 rounded-xl py-2.5 px-10 text-[15px] font-medium w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-facebook-600/50 dark:text-white transition-all border-none"
                       />
+                      <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     </div>
-                    <button className="text-blue-600 font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-50">Lời mời kết bạn</button>
-                    <button className="text-blue-600 font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-50">Tìm bạn bè</button>
+                    <button className="text-facebook-600 dark:text-facebook-400 font-bold px-4 py-2.5 rounded-xl hover:bg-facebook-50 dark:hover:bg-facebook-900/20 transition-all active:scale-95">Lời mời kết bạn</button>
+                    <button className="text-facebook-600 dark:text-facebook-400 font-bold px-4 py-2.5 rounded-xl hover:bg-facebook-50 dark:hover:bg-facebook-900/20 transition-all active:scale-95">Tìm bạn bè</button>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {friends.length > 0 ? (
                     friends.map((friend) => (
                       <FriendItem key={friend.id} friend={friend} />
                     ))
                   ) : (
-                    <div className="col-span-2 text-center py-20 text-gray-500 font-bold">
-                      Chưa có bạn bè nào để hiển thị
+                    <div className="col-span-2 text-center py-24 bg-gray-50 dark:bg-gray-700/30 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-700">
+                      <div className="text-5xl mb-4">👥</div>
+                      <p className="text-gray-500 dark:text-gray-400 font-extrabold text-lg">Chưa có bạn bè nào để hiển thị</p>
                     </div>
                   )}
                 </div>
@@ -333,14 +336,15 @@ const Profile = () => {
 
             {/* Photos Tab Content */}
             {activeTab === 'photos' && (
-              <div className="bg-white rounded-lg shadow-sm p-6 min-h-[400px]">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold">Ảnh</h2>
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-facebook p-8 min-h-[400px] border border-gray-100 dark:border-gray-700">
+                <div className="flex justify-between items-center mb-8">
+                  <h2 className="text-2xl font-extrabold dark:text-white tracking-tight">Ảnh</h2>
                   <div className="flex space-x-2">
                     <button
                       onClick={() => photoInputRef.current?.click()}
-                      className="text-blue-600 font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-50 flex items-center space-x-1"
+                      className="text-facebook-600 dark:text-facebook-400 font-bold px-4 py-2.5 rounded-xl hover:bg-facebook-50 dark:hover:bg-facebook-900/20 transition-all flex items-center space-x-2 active:scale-95"
                     >
+                      <PlusIcon className="h-5 w-5" />
                       <span>Thêm ảnh</span>
                     </button>
                     <input
@@ -352,16 +356,18 @@ const Profile = () => {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                   {posts.filter(p => p.imageUrl).length > 0 ? (
                     posts.filter(p => p.imageUrl).map((post) => (
-                      <div key={post.id} className="aspect-square rounded-lg overflow-hidden border cursor-pointer hover:opacity-95 transition-opacity">
-                        <img src={post.imageUrl} className="w-full h-full object-cover" alt="" />
+                      <div key={post.id} className="aspect-square rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 cursor-pointer group relative shadow-sm">
+                        <img src={post.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       </div>
                     ))
                   ) : (
-                    <div className="col-span-full text-center py-20 text-gray-500 font-bold">
-                      Chưa có ảnh nào để hiển thị
+                    <div className="col-span-full text-center py-24 bg-gray-50 dark:bg-gray-700/30 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-700">
+                      <div className="text-5xl mb-4">📸</div>
+                      <p className="text-gray-500 dark:text-gray-400 font-extrabold text-lg">Chưa có ảnh nào để hiển thị</p>
                     </div>
                   )}
                 </div>

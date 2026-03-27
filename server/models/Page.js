@@ -70,6 +70,11 @@ const Page = sequelize.define('Page', {
     defaultValue: false,
     field: 'is_verified'
   },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    field: 'is_active'
+  },
   createdAt: {
     type: DataTypes.DATE,
     field: 'created_at'

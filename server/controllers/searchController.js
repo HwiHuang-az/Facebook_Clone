@@ -48,12 +48,14 @@ exports.unifiedSearch = async (req, res) => {
             {
               [Op.or]: [
                 { firstName: { [Op.like]: `%${q}%` } },
-                { lastName: { [Op.like]: `%${q}%` } }
+                { lastName: { [Op.like]: `%${q}%` } },
+                { email: { [Op.like]: `%${q}%` } },
+                { location: { [Op.like]: `%${q}%` } }
               ]
             }
           ]
         },
-        attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified'],
+        attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'isVerified', 'location'],
         limit: parseInt(limit),
         offset: parseInt(offset)
       });
@@ -107,11 +109,60 @@ exports.unifiedSearch = async (req, res) => {
         offset: parseInt(offset)
       });
     };
+    
+    // Helper to search Marketplace Items
+    const searchMarketplace = async () => {
+      return await MarketplaceItem.findAndCountAll({
+        where: {
+          [Op.and]: [
+            { isSold: false },
+            {
+              [Op.or]: [
+                { title: { [Op.like]: `%${q}%` } },
+                { description: { [Op.like]: `%${q}%` } },
+                { location: { [Op.like]: `%${q}%` } }
+              ]
+            }
+          ]
+        },
+        include: [{
+          model: User,
+          as: 'seller',
+          attributes: ['id', 'firstName', 'lastName', 'profilePicture']
+        }],
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        order: [['createdAt', 'DESC']]
+      });
+    };
+
+    // Helper to search Events
+    const searchEvents = async () => {
+      return await Event.findAndCountAll({
+        where: {
+          [Op.and]: [
+            { privacy: 'public' },
+            {
+              [Op.or]: [
+                { name: { [Op.like]: `%${q}%` } },
+                { description: { [Op.like]: `%${q}%` } },
+                { location: { [Op.like]: `%${q}%` } }
+              ]
+            }
+          ]
+        },
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        order: [['startDate', 'ASC']]
+      });
+    };
 
     if (type === 'all' || type === 'users') results.users = await searchUsers();
     if (type === 'all' || type === 'posts') results.posts = await searchPosts();
     if (type === 'all' || type === 'groups') results.groups = await searchGroups();
     if (type === 'all' || type === 'pages') results.pages = await searchPages();
+    if (type === 'all' || type === 'marketplace') results.marketplace = await searchMarketplace();
+    if (type === 'all' || type === 'events') results.events = await searchEvents();
 
     res.json({
       success: true,

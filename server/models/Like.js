@@ -46,11 +46,14 @@ const Like = sequelize.define('Like', {
   type: {
     type: DataTypes.ENUM('like', 'love', 'haha', 'wow', 'sad', 'angry'),
     defaultValue: 'like'
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    field: 'created_at'
   }
 }, {
   tableName: 'likes',
   timestamps: true,
-  createdAt: 'created_at', // ← Sửa thành snake_case
   updatedAt: false, // ← SQL không có updatedAt cho bảng likes
   indexes: [
     {

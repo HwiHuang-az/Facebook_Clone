@@ -25,6 +25,10 @@ const authenticateToken = async (req, res, next) => {
     }
 
     req.user = user;
+    
+    // Update last active status (async background)
+    user.update({ lastActive: new Date() }).catch(err => console.error('Error updating lastActive:', err));
+    
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {

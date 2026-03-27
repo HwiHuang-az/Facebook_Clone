@@ -165,7 +165,7 @@ const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
         try {
             const res = await createComment(post.id, commentText);
             if (res.success) {
-                setComments(prev => [res.data, ...prev]);
+                setComments(prev => [res.data.comment, ...prev]);
                 setCommentText('');
                 setCommentsCount(prev => prev + 1);
                 toast.success('Đã gửi bình luận');

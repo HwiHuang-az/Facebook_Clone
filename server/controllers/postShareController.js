@@ -49,6 +49,18 @@ exports.sharePost = async (req, res) => {
     // Increment shares count on original post
     await post.increment('sharesCount');
 
+    // Create notification for original author
+    if (post.userId !== userId) {
+      const { createNotification } = require('./notificationController');
+      await createNotification({
+        userId: post.userId,
+        fromUserId: userId,
+        type: 'share',
+        targetId: post.id,
+        message: 'đã chia sẻ bài viết của bạn'
+      });
+    }
+
     // Get share with details
     const shareWithDetails = await PostShare.findByPk(share.id, {
       include: [
@@ -198,6 +210,15 @@ exports.deleteShare = async (req, res) => {
     if (post && post.sharesCount > 0) {
       await post.decrement('sharesCount');
     }
+
+    // Delete associated newsfeed post
+    await Post.destroy({
+      where: {
+        userId,
+        sharedPostId: share.postId,
+        type: 'share'
+      }
+    });
 
     await share.destroy();
 

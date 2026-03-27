@@ -88,24 +88,24 @@ const Marketplace = () => {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-900 p-6">
+            <div className="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-900 p-6 transition-colors duration-200">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold">Lựa chọn hàng đầu hiện nay</h2>
-                    <div className="flex items-center space-x-2 text-blue-600 cursor-pointer hover:underline font-semibold">
+                    <h2 className="text-xl font-bold dark:text-white">Lựa chọn hàng đầu hiện nay</h2>
+                    <div className="flex items-center space-x-2 text-facebook-600 dark:text-facebook-400 cursor-pointer hover:underline font-bold bg-white dark:bg-gray-800 px-4 py-2 rounded-xl shadow-sm transition-all active:scale-95 border border-gray-100 dark:border-gray-700">
                         <MapPinIcon className="h-5 w-5" />
-                        <span>Hà Nội · 60 km</span>
+                        <span className="text-sm">Hà Nội · 60 km</span>
                     </div>
                 </div>
 
                 {loading ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                            <div key={i} className="bg-white rounded-lg shadow-sm border overflow-hidden animate-pulse">
-                                <div className="aspect-square bg-gray-200"></div>
-                                <div className="p-3 space-y-2">
-                                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
+                            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-facebook border border-gray-100 dark:border-gray-700 overflow-hidden animate-pulse">
+                                <div className="aspect-square bg-gray-200 dark:bg-gray-700"></div>
+                                <div className="p-4 space-y-3">
+                                    <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-lg w-1/2"></div>
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-lg w-3/4"></div>
+                                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-lg w-1/3"></div>
                                 </div>
                             </div>
                         ))}
@@ -116,28 +116,38 @@ const Marketplace = () => {
                             <div 
                                 key={item.id} 
                                 onClick={() => setSelectedItem(item)}
-                                className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
+                                className="bg-white dark:bg-gray-800 rounded-2xl shadow-facebook border border-transparent dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group active:scale-[0.98]"
                             >
-                                <div className="aspect-square overflow-hidden bg-gray-100">
+                                <div className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-700 relative">
                                     {item.images && item.images.length > 0 ? (
-                                        <img src={item.images[0]} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                        <img src={item.images[0]} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-5xl">📦</div>
+                                        <div className="w-full h-full flex items-center justify-center text-5xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600">📦</div>
                                     )}
+                                    <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                                        Xem chi tiết
+                                    </div>
                                 </div>
-                                <div className="p-3">
-                                    <p className="font-bold text-gray-900 line-clamp-1">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</p>
-                                    <p className="text-sm text-gray-800 line-clamp-1 mt-0.5">{item.title}</p>
-                                    <p className="text-xs text-gray-500 mt-1 line-clamp-1">{item.location}</p>
+                                <div className="p-4 bg-white dark:bg-gray-800 transition-colors">
+                                    <p className="font-extrabold text-facebook-600 dark:text-facebook-400 text-lg tracking-tight">
+                                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}
+                                    </p>
+                                    <p className="text-[15px] font-bold text-gray-800 dark:text-gray-100 line-clamp-1 mt-1 group-hover:text-facebook-600 transition-colors">{item.title}</p>
+                                    <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400 mt-1 line-clamp-1 flex items-center">
+                                        <MapPinIcon className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
+                                        {item.location}
+                                    </p>
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-20">
-                        <div className="text-5xl mb-4">🛒</div>
-                        <p className="text-xl font-bold text-gray-800">Không tìm thấy mặt hàng nào</p>
-                        <p className="text-gray-500 mt-2">Thử thay đổi bộ lọc hoặc tìm kiếm theo từ khóa khác.</p>
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-facebook p-20 text-center border border-gray-100 dark:border-gray-700 transition-all duration-200">
+                        <div className="bg-gray-100 dark:bg-gray-700 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <BuildingStorefrontIcon className="h-12 w-12 text-gray-400" />
+                        </div>
+                        <h3 className="text-2xl font-bold dark:text-white mb-2 tracking-tight">Không tìm thấy mặt hàng nào</h3>
+                        <p className="text-gray-500 dark:text-gray-400 text-lg max-w-md mx-auto">Thử thay đổi bộ lọc hoặc tìm kiếm theo từ khóa khác để tìm thấy những gì bạn cần.</p>
                     </div>
                 )}
             </div>

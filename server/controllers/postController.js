@@ -33,8 +33,8 @@ const formatPostWithStats = (post, currentUserId) => {
     isLiked: !!userReaction,
     userReaction,
     reactionStats,
-    likesCount: reactions.length,
-    commentsCount: post.comments?.length || 0
+    likesCount: jsonPost.likesCount || reactions.length,
+    commentsCount: jsonPost.commentsCount || 0
   };
 };
 
@@ -513,6 +513,7 @@ const toggleLikePost = async (req, res) => {
       if (existingLike.type === type) {
         // Nếu cùng loại thì bỏ thích (Unlike)
         await existingLike.destroy();
+        await post.decrement('likesCount');
         return res.json({
           success: true,
           message: 'Bỏ phản ứng bài viết',
@@ -534,6 +535,8 @@ const toggleLikePost = async (req, res) => {
         postId: id,
         type
       });
+      
+      await post.increment('likesCount');
 
       // Notify post author
       if (post.userId !== userId) {

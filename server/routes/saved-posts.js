@@ -15,6 +15,12 @@ router.get('/collections', auth, savedPostController.getCollections);
 // Create empty collection
 router.post('/collections', auth, savedPostController.createCollection);
 
+// Update collection name
+router.put('/collections', auth, savedPostController.updateCollection);
+
+// Delete collection
+router.delete('/collections/:name', auth, savedPostController.deleteCollection);
+
 // Check if post is saved
 router.get('/check/:postId', auth, savedPostController.checkSaved);
 

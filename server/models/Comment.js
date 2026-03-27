@@ -70,6 +70,11 @@ const Comment = sequelize.define('Comment', {
     defaultValue: 0,
     field: 'replies_count'
   },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    field: 'is_active'
+  },
   createdAt: {
     type: DataTypes.DATE,
     field: 'created_at'

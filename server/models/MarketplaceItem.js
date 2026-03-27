@@ -62,6 +62,11 @@ const MarketplaceItem = sequelize.define('MarketplaceItem', {
     defaultValue: 0,
     field: 'views_count'
   },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    field: 'is_active'
+  },
   createdAt: {
     type: DataTypes.DATE,
     field: 'created_at'

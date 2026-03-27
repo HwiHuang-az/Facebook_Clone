@@ -253,10 +253,22 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    // TODO: Implement email sending logic
+    // Generate a reset token (simple implementation)
+    const resetToken = jwt.sign(
+      { userId: user.id, type: 'password_reset' },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    // In a real app, you would send this via email.
+    // For now, we'll just log it and return success.
+    console.log(`🔑 Password reset token for ${email}: ${resetToken}`);
+
     res.json({
       success: true,
-      message: 'Nếu email tồn tại, chúng tôi đã gửi link reset mật khẩu'
+      message: 'Nếu email tồn tại, chúng tôi đã gửi link reset mật khẩu',
+      // For demo purposes, we might want to return it, but usually not.
+      debugToken: process.env.NODE_ENV === 'development' ? resetToken : undefined
     });
 
   } catch (error) {

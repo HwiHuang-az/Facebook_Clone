@@ -73,34 +73,43 @@ const getPostComments = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['createdAt', 'ASC']]
+      order: [['createdAt', 'ASC']],
+      distinct: true
     });
 
-    // Thêm thông tin đã like hay chưa cho comments và replies
-    const commentsWithLikeStatus = comments.rows.map(comment => {
-      const userLike = comment.likes.find(like => like.userId === userId);
+    // Helper to format comment with reaction stats
+    const formatCommentWithStats = (comment, currentUserId) => {
+      const jsonComment = comment.toJSON();
+      const reactions = comment.likes || [];
       
-      const repliesWithLikeStatus = comment.replies.map(reply => {
-        const replyUserLike = reply.likes.find(like => like.userId === userId);
-        return {
-          ...reply.toJSON(),
-          isLiked: !!replyUserLike,
-          likesCount: reply.likes.length
-        };
+      const reactionStats = {
+        like: 0, love: 0, haha: 0, wow: 0, sad: 0, angry: 0
+      };
+      
+      let userReaction = null;
+      reactions.forEach(like => {
+        if (reactionStats[like.type] !== undefined) reactionStats[like.type]++;
+        if (like.userId === currentUserId) userReaction = like.type;
       });
 
+      const repliesWithStats = (comment.replies || []).map(reply => formatCommentWithStats(reply, currentUserId));
+
       return {
-        ...comment.toJSON(),
-        isLiked: !!userLike,
-        likesCount: comment.likes.length,
-        replies: repliesWithLikeStatus
+        ...jsonComment,
+        isLiked: !!userReaction,
+        userReaction,
+        reactionStats,
+        likesCount: reactions.length,
+        replies: repliesWithStats
       };
-    });
+    };
+
+    const commentsWithStats = comments.rows.map(comment => formatCommentWithStats(comment, userId));
 
     res.json({
       success: true,
       data: {
-        comments: commentsWithLikeStatus,
+        comments: commentsWithStats,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
@@ -161,6 +170,9 @@ const createComment = async (req, res) => {
       content: content.trim(),
       parentCommentId: parentCommentId || null
     });
+
+    // Increment comments count on post
+    await post.increment('commentsCount');
 
     // Lấy comment vừa tạo kèm thông tin author
     const comment = await Comment.findByPk(newComment.id, {
@@ -312,6 +324,12 @@ const deleteComment = async (req, res) => {
       message: 'Xóa bình luận thành công'
     });
 
+    // Decrement comments count on post (fire and forget)
+    if (comment.postId) {
+      Post.findByPk(comment.postId).then(p => {
+        if (p && p.commentsCount > 0) p.decrement('commentsCount');
+      });
+    }
   } catch (error) {
     console.error('Delete comment error:', error);
     res.status(500).json({
@@ -327,6 +345,7 @@ const toggleLikeComment = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
+    const { type = 'like' } = req.body;
 
     // Kiểm tra comment có tồn tại không
     const comment = await Comment.findByPk(id);
@@ -337,30 +356,52 @@ const toggleLikeComment = async (req, res) => {
       });
     }
 
-    // Kiểm tra đã like chưa
+    // Kiểm tra đã phản ứng chưa
     const existingLike = await Like.findOne({
       where: { userId, commentId: id }
     });
 
     if (existingLike) {
-      // Unlike
-      await existingLike.destroy();
-      res.json({
-        success: true,
-        message: 'Bỏ thích bình luận',
-        data: { isLiked: false }
-      });
+      if (existingLike.type === type) {
+        // Nếu cùng loại thì bỏ thích (Unlike)
+        await existingLike.destroy();
+        return res.json({
+          success: true,
+          message: 'Bỏ phản ứng bình luận',
+          data: { isLiked: false, type: null }
+        });
+      } else {
+        // Nếu khác loại thì cập nhật loại phản ứng
+        await existingLike.update({ type });
+        return res.json({
+          success: true,
+          message: 'Cập nhật phản ứng bình luận',
+          data: { isLiked: true, type }
+        });
+      }
     } else {
-      // Like
+      // Create new reaction
       await Like.create({
         userId,
         commentId: id,
-        type: 'like'
+        type
       });
+
+      // Notify comment author
+      if (comment.userId !== userId) {
+        await createNotification({
+          userId: comment.userId,
+          fromUserId: userId,
+          type: 'like',
+          commentId: comment.id,
+          message: 'đã thích bình luận của bạn'
+        });
+      }
+
       res.json({
         success: true,
         message: 'Thích bình luận',
-        data: { isLiked: true }
+        data: { isLiked: true, type }
       });
     }
 
@@ -417,7 +458,8 @@ const getCommentReplies = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['createdAt', 'ASC']]
+      order: [['createdAt', 'ASC']],
+      distinct: true
     });
 
     // Thêm thông tin đã like hay chưa

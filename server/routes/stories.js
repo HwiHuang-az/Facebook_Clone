@@ -29,4 +29,9 @@ router.post('/:id/view', auth, storyController.viewStory);
 // @access  Private
 router.get('/:id/viewers', auth, storyController.getStoryViewers);
 
+// @route   DELETE /api/stories/:id
+// @desc    Xóa tin
+// @access  Private
+router.delete('/:id', auth, storyController.deleteStory);
+
 module.exports = router;

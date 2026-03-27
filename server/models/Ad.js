@@ -30,6 +30,11 @@ const Ad = sequelize.define('Ad', {
     field: 'sponsor_name',
     allowNull: false
   },
+  targetLocation: {
+    type: DataTypes.STRING(100),
+    field: 'target_location',
+    allowNull: true
+  },
   budget: {
     type: DataTypes.DECIMAL(10, 2),
     defaultValue: 0.00

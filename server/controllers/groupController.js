@@ -260,11 +260,31 @@ exports.getGroupMembers = async (req, res) => {
 
     const friendIds = friendships.map(f => f.user1Id === currentUserId ? f.user2Id : f.user1Id);
 
-    const membersWithFriendship = members.map(member => {
+    // Get current user friends list once
+    const myFriendships = await Friendship.findAll({
+      where: {
+        [Op.or]: [{ user1Id: currentUserId }, { user2Id: currentUserId }],
+        status: 'accepted'
+      }
+    });
+    const myFriendIds = myFriendships.map(f => f.user1Id === currentUserId ? f.user2Id : f.user1Id);
+
+    const membersWithFriendship = await Promise.all(members.map(async (member) => {
       const memberJson = member.toJSON();
       memberJson.isFriend = friendIds.includes(member.userId);
+      
+      // Calculate mutual friends status
+      const theirFriendships = await Friendship.findAll({
+        where: {
+          [Op.or]: [{ user1Id: member.userId }, { user2Id: member.userId }],
+          status: 'accepted'
+        }
+      });
+      const theirFriendIds = theirFriendships.map(f => f.user1Id === member.userId ? f.user2Id : f.user1Id);
+      memberJson.mutualFriendsCount = myFriendIds.filter(fid => theirFriendIds.includes(fid)).length;
+      
       return memberJson;
-    });
+    }));
 
     res.status(200).json({
       success: true,

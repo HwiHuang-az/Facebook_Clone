@@ -123,7 +123,8 @@ exports.updateItem = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 
-    await item.update(req.body);
+    const { sellerId, id: _, createdAt, updatedAt, ...updateData } = req.body;
+    await item.update(updateData);
 
     res.status(200).json({
       success: true,
@@ -155,7 +156,43 @@ exports.deleteItem = async (req, res) => {
       message: 'Item deleted'
     });
   } catch (error) {
-    console.error('Delete marketplace item error:', error);
+    res.status(500).json({ success: false, message: 'Delete marketplace item error' });
+  }
+};
+
+// Toggle save marketplace item
+exports.toggleSaveItem = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const marketplaceItemId = req.params.id;
+    const { SavedPost } = require('../models');
+
+    const existingSave = await SavedPost.findOne({
+      where: { userId, marketplaceItemId }
+    });
+
+    if (existingSave) {
+      await existingSave.destroy();
+      return res.json({
+        success: true,
+        isSaved: false,
+        message: 'Item unsaved'
+      });
+    } else {
+      const savedItem = await SavedPost.create({
+        userId,
+        marketplaceItemId,
+        collectionName: 'Saved Items'
+      });
+      return res.json({
+        success: true,
+        isSaved: true,
+        message: 'Item saved',
+        data: savedItem
+      });
+    }
+  } catch (error) {
+    console.error('Toggle save item error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };

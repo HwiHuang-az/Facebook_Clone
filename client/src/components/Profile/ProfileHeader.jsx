@@ -97,7 +97,7 @@ const ProfileHeader = ({
                 <button
                     onClick={() => handleFriendAction('send')}
                     disabled={actionLoading}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                    className="bg-facebook-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-facebook-700 transition-all shadow-md active:scale-95"
                 >
                     {actionLoading ? 'Đang gửi...' : 'Thêm bạn bè'}
                 </button>
@@ -108,7 +108,7 @@ const ProfileHeader = ({
                 <button
                     onClick={() => handleFriendAction('cancel')}
                     disabled={actionLoading}
-                    className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                    className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-5 py-2.5 rounded-xl font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all active:scale-95 shadow-sm"
                 >
                     {actionLoading ? 'Đang hủy...' : 'Hủy yêu cầu'}
                 </button>
@@ -120,14 +120,14 @@ const ProfileHeader = ({
                     <button
                         onClick={() => handleFriendAction('accept')}
                         disabled={actionLoading}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                        className="bg-facebook-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-facebook-700 transition-all shadow-md active:scale-95"
                     >
                         Chấp nhận
                     </button>
                     <button
                         onClick={() => handleFriendAction('reject')}
                         disabled={actionLoading}
-                        className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                        className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-5 py-2.5 rounded-xl font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all active:scale-95 shadow-sm"
                     >
                         Từ chối
                     </button>
@@ -139,7 +139,7 @@ const ProfileHeader = ({
                 <button
                     onClick={() => handleFriendAction('unfriend')}
                     disabled={actionLoading}
-                    className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                    className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-5 py-2.5 rounded-xl font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all active:scale-95 shadow-sm"
                 >
                     {actionLoading ? 'Đang hủy...' : '🔒 Bạn bè'}
                 </button>
@@ -149,11 +149,11 @@ const ProfileHeader = ({
     };
 
     return (
-        <div className="bg-white shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 shadow-facebook overflow-hidden transition-colors duration-200">
             <div className="max-w-5xl mx-auto">
                 {/* Cover Photo Area */}
                 <div className="relative group">
-                    <div className="h-48 md:h-[350px] w-full bg-gray-200 rounded-b-lg overflow-hidden relative">
+                    <div className="h-48 md:h-[350px] w-full bg-gray-200 dark:bg-gray-700 rounded-b-2xl overflow-hidden relative shadow-inner">
                         {user?.coverPhoto ? (
                             <img src={user.coverPhoto} alt="Cover" className="w-full h-full object-cover" />
                         ) : (
@@ -166,10 +166,10 @@ const ProfileHeader = ({
                                     setPickerType('cover');
                                     setIsPhotoPickerOpen(true);
                                 }}
-                                className="absolute bottom-4 right-4 bg-white text-gray-900 px-3 py-2 rounded-lg font-semibold shadow-md hover:bg-gray-100 transition-colors flex items-center space-x-2 z-20"
+                                className="absolute bottom-4 right-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-2 rounded-xl font-bold shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all flex items-center space-x-2 z-20 active:scale-95 border border-gray-100 dark:border-gray-700"
                             >
                                 <CameraIcon className="h-5 w-5" />
-                                <span className="hidden md:inline font-semibold">Chỉnh sửa ảnh bìa</span>
+                                <span className="hidden md:inline">Chỉnh sửa ảnh bìa</span>
                             </button>
                         )}
                     </div>
@@ -184,37 +184,37 @@ const ProfileHeader = ({
                             <div className="relative group">
                                 <div className="w-40 h-40 md:w-[168px] md:h-[168px] rounded-full border-4 border-white bg-white overflow-hidden shadow-sm">
                                     {user?.profilePicture ? (
-                                        <img src={user.profilePicture} alt={user.firstName} className="w-full h-full object-cover" />
+                                        <img src={user.profilePicture} alt={user.firstName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-blue-600 text-white text-5xl font-bold select-none uppercase">
+                                        <div className="w-full h-full flex items-center justify-center bg-facebook-600 text-white text-5xl font-extrabold select-none uppercase tracking-tighter shadow-inner">
                                             {(user?.firstName?.charAt(0) || '')}{(user?.lastName?.charAt(0) || '')}
                                         </div>
                                     )}
                                 </div>
                                 {isOwnProfile && (
-                                    <button
+                                <button
                                         onClick={() => {
                                             setPickerType('profile');
                                             setIsPhotoPickerOpen(true);
                                         }}
-                                        className="absolute bottom-2 right-2 p-2 bg-white rounded-full hover:bg-gray-100 transition-colors shadow-sm border border-gray-200"
+                                        className="absolute bottom-2 right-2 p-2.5 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-all shadow-lg border border-white dark:border-gray-800 active:scale-90"
                                     >
-                                        <CameraIcon className="h-5 w-5 text-gray-900" />
+                                        <CameraIcon className="h-5 w-5 text-gray-900 dark:text-white" />
                                     </button>
                                 )}
                             </div>
 
                             {/* User Info */}
                             <div className="text-center md:text-left pb-2">
-                                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+                                <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight tracking-tight">
                                     {user?.firstName} {user?.lastName}
                                 </h1>
                                 <div className="flex flex-col md:flex-row items-center md:space-x-2 mt-1">
-                                    <span className="text-gray-600 font-bold text-[15px]">{friendsCount || 0} bạn bè</span>
+                                    <span className="text-gray-500 dark:text-gray-400 font-bold text-[15px]">{friendsCount || 0} bạn bè</span>
                                     {user?.location && (
                                         <>
                                             <span className="hidden md:inline text-gray-400">•</span>
-                                            <div className="flex items-center text-gray-400">
+                                            <div className="flex items-center text-gray-500 dark:text-gray-400">
                                                 <MapPinIcon className="h-4 w-4 mr-0.5" />
                                                 <span className="text-[14px] font-bold">{user.location}</span>
                                             </div>
@@ -232,20 +232,20 @@ const ProfileHeader = ({
                                 <>
                                     <button
                                         onClick={() => setIsStoryModalOpen(true)}
-                                        className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors flex items-center space-x-1.5"
+                                        className="bg-facebook-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-facebook-700 transition-all shadow-md active:scale-95 flex items-center space-x-2"
                                     >
-                                        <PlusIcon className="h-4 w-4" />
+                                        <PlusIcon className="h-5 w-5" />
                                         <span>Thêm vào tin</span>
                                     </button>
                                     <button
                                         onClick={() => setIsEditModalOpen(true)}
-                                        className="bg-gray-200 text-gray-900 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-gray-300 transition-colors flex items-center space-x-1.5"
+                                        className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition-all active:scale-95 flex items-center space-x-2 shadow-sm border border-gray-200 dark:border-gray-600"
                                     >
                                         <PencilIcon className="h-4 w-4" />
                                         <span>Chỉnh sửa</span>
                                     </button>
-                                    <button className="bg-gray-200 p-1.5 rounded-lg hover:bg-gray-300 transition-colors">
-                                        <ChevronDownIcon className="h-4 w-4 text-gray-900" />
+                                    <button className="bg-gray-100 dark:bg-gray-700 p-2 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all active:scale-95 shadow-sm border border-gray-200 dark:border-gray-600">
+                                        <ChevronDownIcon className="h-5 w-5 text-gray-900 dark:text-white" />
                                     </button>
                                 </>
                             ) : (
@@ -253,20 +253,20 @@ const ProfileHeader = ({
                                     {renderFriendButtons()}
                                     <button
                                         onClick={handleMessageClick}
-                                        className="bg-gray-200 text-gray-900 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-gray-300 transition-colors"
+                                        className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition-all active:scale-95 shadow-sm border border-gray-200 dark:border-gray-600"
                                     >
                                         Nhắn tin
                                     </button>
                                     <button
                                         onClick={handleBlockToggle}
                                         disabled={loadingBlock}
-                                        className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-colors ${isBlocked ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'}`}
+                                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 shadow-sm ${isBlocked ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-200' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600'}`}
                                     >
                                         {isBlocked ? 'Bỏ chặn' : 'Chặn'}
                                     </button>
                                     <button
                                         onClick={() => setIsReportModalOpen(true)}
-                                        className="bg-gray-200 text-gray-900 p-1.5 rounded-lg hover:bg-gray-300 transition-colors"
+                                        className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white p-2 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all active:scale-95 shadow-sm border border-gray-200 dark:border-gray-600"
                                         title="Báo cáo người dùng"
                                     >
                                         <FlagIcon className="h-5 w-5" />
@@ -285,7 +285,7 @@ const ProfileHeader = ({
                         targetName={`${user?.firstName} ${user?.lastName}`}
                     />
 
-                    <div className="border-t mt-4"></div>
+                    <div className="border-t dark:border-gray-700 mt-4"></div>
 
                     {/* Desktop Navigation */}
                     <div className="flex flex-col md:flex-row items-center justify-between">
@@ -302,8 +302,8 @@ const ProfileHeader = ({
                                     key={tab.id}
                                     onClick={() => tab.id !== 'more' && setActiveTab(tab.id)}
                                     className={classNames(
-                                        "px-4 py-4 text-[15px] font-semibold transition-colors relative whitespace-nowrap",
-                                        activeTab === tab.id ? "text-blue-600" : "text-gray-600 hover:bg-gray-100 rounded-lg my-1"
+                                        "px-4 py-4 text-[15px] font-bold transition-all relative whitespace-nowrap",
+                                        activeTab === tab.id ? "text-facebook-600 dark:text-facebook-400" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl my-1"
                                     )}
                                 >
                                     <div className="flex items-center space-x-1">
@@ -311,7 +311,7 @@ const ProfileHeader = ({
                                         {tab.hasArrow && <ChevronDownIcon className="h-4 w-4" />}
                                     </div>
                                     {activeTab === tab.id && (
-                                        <div className="absolute bottom-0 left-4 right-4 h-1 bg-blue-600 rounded-t-lg"></div>
+                                        <div className="absolute bottom-0 left-4 right-4 h-1 bg-facebook-600 dark:bg-facebook-400 rounded-t-xl shadow-[0_-2px_8px_rgba(24,119,242,0.3)]"></div>
                                     )}
                                 </button>
                             ))}
@@ -319,8 +319,8 @@ const ProfileHeader = ({
 
                         {/* More Desktop Actions */}
                         <div className="hidden md:flex py-1 items-center">
-                            <div className="bg-gray-200 p-2 rounded-lg hover:bg-gray-300 cursor-pointer flex items-center justify-center">
-                                <EllipsisHorizontalIcon className="h-5 w-5 text-gray-900" />
+                            <div className="bg-gray-100 dark:bg-gray-700 p-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer flex items-center justify-center shadow-sm border border-gray-200 dark:border-gray-600 transition-all active:scale-95">
+                                <EllipsisHorizontalIcon className="h-6 w-6 text-gray-900 dark:text-white" />
                             </div>
                         </div>
                     </div>

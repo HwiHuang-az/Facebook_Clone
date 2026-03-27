@@ -276,10 +276,89 @@ const getConversationMedia = async (req, res) => {
   }
 };
 
+// Delete message for self
+const deleteMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const message = await Message.findByPk(id);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+
+    if (message.senderId !== userId && message.receiverId !== userId) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    // Note: This deletes for everyone in this simplified schema.
+    // In a real app, you'd use a separate state to hide it for one user.
+    await message.destroy();
+
+    res.json({ success: true, message: 'Message deleted' });
+  } catch (error) {
+    console.error('Delete message error:', error);
+    res.status(500).json({ success: false });
+  }
+};
+
+// Unsend message (delete for everyone)
+const unsendMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const message = await Message.findByPk(id);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+
+    if (message.senderId !== userId) {
+      return res.status(403).json({ success: false, message: 'Only sender can unsend messages' });
+    }
+
+    await MessageAttachment.destroy({ where: { messageId: id } });
+    await message.destroy();
+
+    // Notify receiver
+    sendToUser(message.receiverId, 'messageUnsent', { messageId: id, senderId: userId });
+
+    res.json({ success: true, message: 'Message unsent' });
+  } catch (error) {
+    console.error('Unsend message error:', error);
+    res.status(500).json({ success: false });
+  }
+};
+
+// Delete conversation
+const deleteConversation = async (req, res) => {
+  try {
+    const { partnerId } = req.params;
+    const userId = req.user.id;
+
+    await Message.destroy({
+      where: {
+        [Op.or]: [
+          { senderId: userId, receiverId: partnerId },
+          { senderId: partnerId, receiverId: userId }
+        ]
+      }
+    });
+
+    res.json({ success: true, message: 'Conversation deleted' });
+  } catch (error) {
+    console.error('Delete conversation error:', error);
+    res.status(500).json({ success: false });
+  }
+};
+
 module.exports = {
   getConversations,
   getMessages,
   sendMessage,
   getUnreadCounts,
-  getConversationMedia
+  getConversationMedia,
+  deleteMessage,
+  unsendMessage,
+  deleteConversation
 };

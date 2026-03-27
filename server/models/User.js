@@ -72,6 +72,11 @@ const User = sequelize.define('User', {
     defaultValue: false,
     field: 'is_verified'
   },
+  lastActive: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+    field: 'last_active'
+  },
   createdAt: {
     type: DataTypes.DATE,
     field: 'created_at'

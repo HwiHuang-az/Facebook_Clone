@@ -11,8 +11,8 @@ router.get('/liked', auth, pageController.getLikedPages);
 router.get('/:id', auth, pageController.getPageById);
 router.post('/:id/like', auth, pageController.toggleLikePage);
 router.put('/:id', auth, pageController.updatePage);
-router.get('/:id/members', pageController.getPageMembers);
-router.get('/:id/media', pageController.getPageMedia);
+router.get('/:id/members', auth, pageController.getPageMembers);
+router.get('/:id/media', auth, pageController.getPageMedia);
 router.post('/:id/cover-photo', auth, upload.single('image'), pageController.updatePageCover);
 router.post('/:id/profile-picture', auth, upload.single('image'), pageController.updatePageProfile);
 

@@ -66,7 +66,7 @@ exports.getPages = async (req, res) => {
       where,
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['createdAt', 'DESC']]
+      order: [['created_at', 'DESC']]
     });
 
     res.status(200).json({
@@ -113,7 +113,7 @@ exports.getLikedPages = async (req, res) => {
     const likedPages = await Like.findAll({
         where,
         include,
-        order: [['createdAt', 'DESC']]
+        order: [['created_at', 'DESC']]
     });
 
     const pages = likedPages.map(l => l.page).filter(p => p !== null);
@@ -347,7 +347,7 @@ exports.getPageMembers = async (req, res) => {
           attributes: ['id', 'firstName', 'lastName', 'profilePicture', 'work', 'education']
         }
       ],
-      order: [['createdAt', 'DESC']]
+      order: [['created_at', 'DESC']]
     });
 
     // Check friendship status

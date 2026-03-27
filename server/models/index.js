@@ -166,6 +166,10 @@ SavedPost.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 Post.hasMany(SavedPost, { foreignKey: 'postId', as: 'savedBy' });
 SavedPost.belongsTo(Post, { foreignKey: 'postId', as: 'post' });
 
+// MarketplaceItem - SavedPost relationship
+MarketplaceItem.hasMany(SavedPost, { foreignKey: 'marketplaceItemId', as: 'savedBy' });
+SavedPost.belongsTo(MarketplaceItem, { foreignKey: 'marketplaceItemId', as: 'marketplaceItem' });
+
 // Page - Like relationship
 Page.hasMany(Like, { foreignKey: 'pageId', as: 'likes' });
 Like.belongsTo(Page, { foreignKey: 'pageId', as: 'page' });

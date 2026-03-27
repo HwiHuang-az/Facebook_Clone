@@ -103,6 +103,31 @@ const getUserProfile = async (req, res) => {
     }
 
     // Tính số lượng bạn bè
+    // Tính số lượng bạn bè chung (Mutual Friends)
+    let mutualFriendsCount = 0;
+    if (currentUserId !== parseInt(id)) {
+      // Lấy danh sách bạn bè của user hiện tại
+      const myFriendships = await Friendship.findAll({
+        where: {
+          [Op.or]: [{ user1Id: currentUserId }, { user2Id: currentUserId }],
+          status: 'accepted'
+        }
+      });
+      const myFriendIds = myFriendships.map(f => f.user1Id === currentUserId ? f.user2Id : f.user1Id);
+
+      // Lấy danh sách bạn bè của target user
+      const targetFriendships = await Friendship.findAll({
+        where: {
+          [Op.or]: [{ user1Id: id }, { user2Id: id }],
+          status: 'accepted'
+        }
+      });
+      const targetFriendIds = targetFriendships.map(f => f.user1Id === parseInt(id) ? f.user2Id : f.user1Id);
+
+      // Đếm số lượng trùng nhau
+      mutualFriendsCount = myFriendIds.filter(fid => targetFriendIds.includes(fid)).length;
+    }
+
     // Thường thì số lượng bạn bè là công khai, nhưng có thể ẩn danh sách
     const friendsCount = await Friendship.count({
       where: {
@@ -130,7 +155,8 @@ const getUserProfile = async (req, res) => {
         friendshipId: friendship ? friendship.id : null,
         isOwnProfile: currentUserId === parseInt(id),
         friendsCount,
-        postsCount
+        postsCount,
+        mutualFriendsCount
       }
     });
 
@@ -280,18 +306,38 @@ const searchUsers = async (req, res) => {
       }
     });
 
-    // Map friendship status
-    const usersWithFriendship = filteredUsers.map(user => {
+    // Map friendship status and calculate mutual friends
+    // To be efficient in search, we'll only do this for the limited search result set
+    const myFriends = await Friendship.findAll({
+      where: {
+        [Op.or]: [{ user1Id: currentUserId }, { user2Id: currentUserId }],
+        status: 'accepted'
+      }
+    });
+    const myFriendIds = myFriends.map(f => f.user1Id === currentUserId ? f.user2Id : f.user1Id);
+
+    const usersWithFriendship = await Promise.all(filteredUsers.map(async (user) => {
       const friendship = friendships.find(f => 
         (f.user1Id === currentUserId && f.user2Id === user.id) ||
         (f.user1Id === user.id && f.user2Id === currentUserId)
       );
 
+      // Calculate mutual friends status for this user
+      const theirFriendships = await Friendship.findAll({
+        where: {
+          [Op.or]: [{ user1Id: user.id }, { user2Id: user.id }],
+          status: 'accepted'
+        }
+      });
+      const theirFriendIds = theirFriendships.map(f => f.user1Id === user.id ? f.user2Id : f.user1Id);
+      const mutualFriendsCount = myFriendIds.filter(fid => theirFriendIds.includes(fid)).length;
+
       return {
         ...user.toJSON(),
-        friendshipStatus: friendship ? friendship.status : 'none'
+        friendshipStatus: friendship ? friendship.status : 'none',
+        mutualFriendsCount
       };
-    });
+    }));
 
     res.json({
       success: true,

@@ -119,6 +119,10 @@ app.use('/api/*', (req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('❌ Global error:', err);
+  const fs = require('fs');
+  const path = require('path');
+  const errorLog = `[${new Date().toISOString()}] ${req.method} ${req.path}\n${err.stack}\n\n`;
+  fs.appendFileSync(path.join(__dirname, 'error_debug.log'), errorLog);
 
   // Handle Sequelize validation errors
   if (err.name === 'SequelizeValidationError' || err.name === 'SequelizeUniqueConstraintError') {

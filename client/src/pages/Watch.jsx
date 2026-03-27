@@ -59,22 +59,24 @@ const Watch = () => {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-900">
+            <div className="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
                 <div className="max-w-2xl mx-auto space-y-4">
                     {loading ? (
-                        <div className="text-center py-20">
-                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                            <p className="mt-2 text-gray-500 font-bold">Đang tải video...</p>
+                        <div className="flex flex-col items-center justify-center py-24 bg-white dark:bg-gray-800 rounded-2xl shadow-facebook m-6 border border-gray-100 dark:border-gray-700">
+                            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-facebook-600"></div>
+                            <p className="mt-4 text-gray-500 dark:text-gray-400 font-bold text-lg">Đang tải video của bạn...</p>
                         </div>
                     ) : posts.length > 0 ? (
                         posts.map((post) => (
                             <Post key={post.id} post={post} />
                         ))
                     ) : (
-                        <div className="bg-white rounded-lg shadow-sm p-10 text-center flex flex-col items-center justify-center border">
-                            <div className="text-5xl mb-4">🎬</div>
-                            <p className="font-bold text-xl text-gray-800">Không có video nào để hiển thị</p>
-                            <p className="text-gray-500 mt-2">Hãy thử theo dõi thêm bạn bè để xem video của họ.</p>
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-facebook p-20 m-6 text-center flex flex-col items-center justify-center border border-gray-100 dark:border-gray-700 transition-all duration-200">
+                            <div className="bg-gray-100 dark:bg-gray-700 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <span className="text-5xl">🎬</span>
+                            </div>
+                            <h3 className="text-2xl font-bold dark:text-white mb-2 tracking-tight">Không có video nào để hiển thị</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-lg max-w-md mx-auto">Hãy thử theo dõi thêm bạn bè hoặc khám phá các nội dung mới để xem video của họ ở đây.</p>
                         </div>
                     )}
                 </div>

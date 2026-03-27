@@ -373,21 +373,28 @@ const Messages = () => {
   };
 
   return (
-    <div className="h-full flex bg-white dark:bg-gray-900 border-t dark:border-gray-800">
+    <div className="h-full flex bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 transition-all duration-200">
       {/* Sidebar */}
       <div className="w-1/4 min-w-[300px] border-r dark:border-gray-800 flex flex-col">
-        <div className="p-4 border-b dark:border-gray-800">
-          <h1 className="text-2xl font-bold dark:text-white">Chat</h1>
-          <div className="relative mt-3">
+        <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold dark:text-white">Chat</h1>
+            <div className="flex space-x-2">
+                <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                    <svg className="w-5 h-5 text-gray-700 dark:text-gray-200" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/></svg>
+                </div>
+            </div>
+          </div>
+          <div className="relative">
             <input
               type="text"
               placeholder="Tìm kiếm trên Messenger"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-2 pl-9 bg-gray-100 dark:bg-gray-800 rounded-full text-sm focus:outline-none dark:text-white"
+              className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl text-[15px] font-medium border-none focus:ring-2 focus:ring-facebook-600/50 outline-none transition-all dark:text-white dark:placeholder-gray-400"
             />
-            <svg className="w-4 h-4 absolute left-3 top-2.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
         </div>
@@ -396,38 +403,44 @@ const Messages = () => {
             <div
               key={conv.user.id}
               onClick={() => setSelectedChat(conv)}
-              className={`flex items-center space-x-3 p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition ${selectedChat?.user.id === conv.user.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+              className={`flex items-center space-x-3 mx-2 p-3 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-all group ${selectedChat?.user.id === conv.user.id ? 'bg-blue-50 dark:bg-blue-900/30' : ''}`}
             >
-              <div className="relative">
+              <div className="relative flex-shrink-0">
                 <img
-                  src={conv.user.profilePicture || 'https://via.placeholder.com/40'}
+                  src={conv.user.profilePicture || `https://ui-avatars.com/api/?name=${conv.user.firstName}+${conv.user.lastName}`}
                   alt=""
-                  className="w-14 h-14 rounded-full object-cover"
+                  className="w-14 h-14 rounded-full object-cover border border-gray-100 dark:border-gray-700 shadow-sm transition-transform group-hover:scale-105"
                 />
                 {onlineUsers.has(Number(conv.user.id)) && (
-                  <div className="absolute right-0 bottom-0 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>
+                  <div className="absolute right-0.5 bottom-0.5 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full shadow-sm"></div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold dark:text-white truncate">{conv.user.firstName} {conv.user.lastName}</h3>
-                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                  <p className={`truncate ${conv.lastMessage && !conv.lastMessage?.isRead && conv.lastMessage?.receiverId === user.id ? 'font-bold text-gray-900 dark:text-white' : ''}`}>
+                <div className="flex justify-between items-baseline">
+                    <h3 className={`font-bold dark:text-white truncate text-[15px] ${selectedChat?.user.id === conv.user.id ? 'text-facebook-600 dark:text-facebook-400' : ''}`}>
+                        {conv.user.firstName} {conv.user.lastName}
+                    </h3>
+                    {conv.lastMessage && (
+                        <span className="text-[11px] text-gray-400 text-right ml-2 flex-shrink-0">
+                            {moment(conv.lastMessage.createdAt).fromNow(true)}
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-center text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">
+                  <p className={`truncate ${conv.lastMessage && !conv.lastMessage?.isRead && conv.lastMessage?.receiverId === user.id ? 'font-bold text-gray-900 dark:text-white' : 'font-medium'}`}>
                     {conv.lastMessage ? (
                       <>
                         {conv.lastMessage.senderId === user.id ? 'Bạn: ' : ''}{conv.lastMessage.content}
                       </>
                     ) : (
-                      <span className="italic text-blue-500">Bắt đầu cuộc trò chuyện</span>
+                      <span className="italic text-facebook-500">Bắt đầu trò chuyện</span>
                     )}
                   </p>
-                  {conv.lastMessage && (
-                    <>
-                      <span className="mx-1">·</span>
-                      <span>{moment(conv.lastMessage.createdAt).fromNow(true)}</span>
-                    </>
-                  )}
                 </div>
               </div>
+              {conv.lastMessage && !conv.lastMessage?.isRead && conv.lastMessage?.receiverId === user.id && (
+                  <div className="w-2.5 h-2.5 bg-facebook-600 rounded-full flex-shrink-0 shadow-sm"></div>
+              )}
             </div>
           ))}
         </div>
@@ -438,12 +451,17 @@ const Messages = () => {
         {selectedChat ? (
           <>
             {/* Header */}
-            <div className="p-4 border-b dark:border-gray-800 flex items-center justify-between shadow-sm">
+            <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between shadow-sm bg-white/80 dark:bg-gray-900/80 backdrop-blur-md sticky top-0 z-20">
               <div className="flex items-center space-x-3">
-                <img src={selectedChat.user.profilePicture || 'https://via.placeholder.com/40'} alt="" className="w-10 h-10 rounded-full" />
+                <div className="relative">
+                    <img src={selectedChat.user.profilePicture || `https://ui-avatars.com/api/?name=${selectedChat.user.firstName}+${selectedChat.user.lastName}`} alt="" className="w-10 h-10 rounded-full border border-gray-100 dark:border-gray-700 shadow-sm" />
+                    {onlineUsers.has(Number(selectedChat.user.id)) && (
+                        <div className="absolute right-0 bottom-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full shadow-sm"></div>
+                    )}
+                </div>
                 <div>
-                  <h3 className="font-bold dark:text-white">{selectedChat.user.firstName} {selectedChat.user.lastName}</h3>
-                  <p className="text-xs text-gray-500">
+                  <h3 className="font-bold dark:text-white text-[17px] leading-tight">{selectedChat.user.firstName} {selectedChat.user.lastName}</h3>
+                  <p className={`text-[12px] font-bold ${onlineUsers.has(Number(selectedChat.user.id)) ? 'text-green-500' : 'text-gray-500'}`}>
                     {onlineUsers.has(Number(selectedChat.user.id)) ? 'Đang hoạt động' : 'Ngoại tuyến'}
                   </p>
                 </div>
@@ -451,7 +469,7 @@ const Messages = () => {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={toggleMediaSidebar}
-                  className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-blue-600 transition ${isMediaSidebarOpen ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                  className={`p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-facebook-600 transition-all active:scale-95 ${isMediaSidebarOpen ? 'bg-blue-50 dark:bg-blue-900/30' : ''}`}
                   title="Thông tin cuộc hội thoại"
                 >
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -462,8 +480,8 @@ const Messages = () => {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 p-4 overflow-y-auto bg-gray-50 dark:bg-gray-900 no-scrollbar">
-              <div className="space-y-4">
+            <div className="flex-1 p-4 overflow-y-auto bg-gray-50 dark:bg-gray-900/50 no-scrollbar transition-colors duration-200">
+              <div className="space-y-6 max-w-5xl mx-auto">
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.senderId === user.id ? 'justify-end' : 'justify-start'}`}>
                     {msg.senderId !== user.id && (
@@ -478,7 +496,7 @@ const Messages = () => {
                             {msg.attachments.map((att, idx) => (
                               <div
                                 key={att.id || idx}
-                                className={`relative rounded-lg overflow-hidden border dark:border-gray-700 ${count === 3 && idx === 0 ? 'row-span-2' : ''}`}
+                                className={`relative rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-[1.02] ${count === 3 && idx === 0 ? 'row-span-2' : ''}`}
                               >
                                 {att.fileType === 'image' ? (
                                   <img src={att.fileUrl} alt="" className="w-full h-full object-cover" />
@@ -501,15 +519,15 @@ const Messages = () => {
                       })()}
                         {/* Quoted reply rendering */}
                         {msg.replyTo && (
-                          <div className="mt-1 p-2 bg-gray-100 dark:bg-gray-800 rounded-md text-xs text-gray-700 dark:text-gray-200">
-                            <div className="font-semibold text-xs text-gray-600 dark:text-gray-300">Trả lời</div>
-                            <div className="truncate">{msg.replyTo.content || (msg.replyTo.attachments && msg.replyTo.attachments[0]?.fileName) || '...'}</div>
+                          <div className="mt-1 p-3 bg-gray-100 dark:bg-gray-800 rounded-xl text-xs text-gray-700 dark:text-gray-200 border-l-4 border-facebook-600 shadow-sm">
+                            <div className="font-bold text-xs text-facebook-600 dark:text-facebook-400 mb-1">Trả lời</div>
+                            <div className="truncate opacity-80">{msg.replyTo.content || (msg.replyTo.attachments && msg.replyTo.attachments[0]?.fileName) || '...'}</div>
                           </div>
                         )}
                       {msg.content && (
-                        <div className={`p-3 rounded-2xl text-sm ${msg.senderId === user.id
-                          ? 'bg-blue-600 text-white rounded-br-none'
-                          : 'bg-white dark:bg-gray-800 dark:text-white rounded-bl-none shadow-sm'
+                        <div className={`p-3 px-4 rounded-2xl text-[15px] font-medium leading-relaxed shadow-sm transition-all ${msg.senderId === user.id
+                          ? 'bg-facebook-600 text-white rounded-br-none'
+                          : 'bg-white dark:bg-gray-800 dark:text-white rounded-bl-none border border-gray-100 dark:border-gray-700'
                           }`}>
                           {msg.content}
                         </div>
@@ -555,9 +573,9 @@ const Messages = () => {
             <div className="border-t dark:border-gray-800 relative">
               {/* File Previews */}
               {filePreviews.length > 0 && (
-                <div className="p-4 flex flex-wrap gap-2 bg-gray-50 dark:bg-gray-900 border-b dark:border-gray-800">
+                <div className="p-4 flex flex-wrap gap-3 bg-gray-50/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
                   {filePreviews.map((file, idx) => (
-                    <div key={idx} className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-blue-500">
+                    <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-facebook-600 shadow-md transition-transform hover:scale-105">
                       {file.type.startsWith('image/') ? (
                         <img src={file.url} alt="" className="w-full h-full object-cover" />
                       ) : file.type.startsWith('audio/') ? (
@@ -582,12 +600,12 @@ const Messages = () => {
 
               {/* Reply preview */}
               {replyingTo && (
-                <div className="p-3 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700 flex items-start justify-between">
+                <div className="p-4 bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-100 dark:border-gray-700 flex items-start justify-between">
                   <div className="flex items-start space-x-3">
-                    <img src={replyingTo.sender?.profilePicture || 'https://via.placeholder.com/40'} alt="" className="w-8 h-8 rounded" />
+                    <img src={replyingTo.sender?.profilePicture || `https://ui-avatars.com/api/?name=${replyingTo.sender?.firstName}+${replyingTo.sender?.lastName}`} alt="" className="w-10 h-10 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600" />
                     <div className="text-sm">
-                      <div className="font-semibold text-xs">{replyingTo.sender ? `${replyingTo.sender.firstName} ${replyingTo.sender.lastName}` : 'Bạn'}</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-300 truncate max-w-xs">{replyingTo.content || (replyingTo.attachments && replyingTo.attachments[0]?.fileName) || '...'}</div>
+                      <div className="font-bold text-facebook-600 dark:text-facebook-400 text-xs">Phản hồi {replyingTo.sender ? `${replyingTo.sender.firstName}` : 'bạn'}</div>
+                      <div className="text-[13px] font-medium text-gray-700 dark:text-gray-200 truncate max-w-md opacity-80">{replyingTo.content || (replyingTo.attachments && replyingTo.attachments[0]?.fileName) || '...'}</div>
                     </div>
                   </div>
                   <button onClick={() => setReplyingTo(null)} className="text-gray-500 hover:text-gray-700">Hủy</button>
@@ -601,10 +619,10 @@ const Messages = () => {
                 </div>
               )}
 
-              <form onSubmit={handleSendMessage} className="p-4 flex items-center space-x-3">
-                <div className="flex space-x-2 text-blue-600">
-                  <button type="button" onClick={() => fileInputRef.current?.click()}>
-                    <PhotoIcon className="h-6 w-6 cursor-pointer hover:text-blue-700" />
+              <form onSubmit={handleSendMessage} className="p-4 flex items-center space-x-3 bg-white dark:bg-gray-900">
+                <div className="flex space-x-2 text-facebook-600 dark:text-facebook-400">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
+                    <PhotoIcon className="h-6 w-6 cursor-pointer" />
                   </button>
                   <input
                     type="file"
@@ -614,17 +632,17 @@ const Messages = () => {
                     className="hidden"
                     accept="image/*,video/*"
                   />
-                  <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
-                    <FaceSmileIcon className={`h-6 w-6 cursor-pointer hover:text-blue-700 ${showEmojiPicker ? 'text-blue-800' : ''}`} />
+                  <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
+                    <FaceSmileIcon className={`h-6 w-6 cursor-pointer ${showEmojiPicker ? 'text-facebook-800' : ''}`} />
                   </button>
                   <button
                     type="button"
                     onMouseDown={startRecording}
                     onMouseUp={stopRecording}
                     onMouseLeave={stopRecording}
-                    className={`${isRecording ? 'text-red-500 animate-pulse' : 'text-blue-600'}`}
+                    className={`p-2 rounded-xl transition-all ${isRecording ? 'text-red-500 bg-red-50 dark:bg-red-900/20 animate-pulse' : 'text-facebook-600 dark:text-facebook-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
                   >
-                    <MicrophoneIcon className="h-6 w-6 cursor-pointer hover:text-blue-700" title="Nhấn giữ để ghi âm" />
+                    <MicrophoneIcon className="h-6 w-6 cursor-pointer" title="Nhấn giữ để ghi âm" />
                   </button>
                 </div>
                 <input
@@ -632,10 +650,10 @@ const Messages = () => {
                   value={messageText}
                   onChange={handleTyping}
                   placeholder="Soạn tin nhắn..."
-                  className="flex-1 bg-gray-100 dark:bg-gray-800 p-2 rounded-full focus:outline-none dark:text-white"
+                  className="flex-1 bg-gray-100 dark:bg-gray-800 px-5 py-2.5 rounded-xl border-none focus:ring-2 focus:ring-facebook-600/50 outline-none text-[15px] font-medium dark:text-white dark:placeholder-gray-400 transition-all"
                 />
-                <button type="submit">
-                  <PaperAirplaneIcon className={`h-6 w-6 transition ${messageText.trim() || selectedFiles.length > 0 ? 'text-blue-600' : 'text-gray-300'}`} />
+                <button type="submit" className={`p-2.5 rounded-xl transition-all active:scale-90 ${messageText.trim() || selectedFiles.length > 0 ? 'bg-facebook-600 text-white shadow-md' : 'text-gray-300 dark:text-gray-700 cursor-not-allowed'}`}>
+                  <PaperAirplaneIcon className="h-6 w-6" />
                 </button>
               </form>
             </div>
@@ -654,21 +672,26 @@ const Messages = () => {
       {/* Shared Media Sidebar */}
       {isMediaSidebarOpen && selectedChat && (
         <div className="w-1/4 min-w-[300px] border-l dark:border-gray-800 flex flex-col bg-white dark:bg-gray-900">
-          <div className="p-4 border-b dark:border-gray-800 flex justify-between items-center">
-            <h2 className="font-bold dark:text-white">Thông tin</h2>
-            <button onClick={() => setIsMediaSidebarOpen(false)}>
+          <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-md">
+            <h2 className="font-bold dark:text-white text-[17px]">Thông tin</h2>
+            <button onClick={() => setIsMediaSidebarOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
               <XMarkIcon className="w-5 h-5 text-gray-500" />
             </button>
           </div>
 
-          <div className="p-4 flex flex-col items-center">
+          <div className="p-6 flex flex-col items-center border-b border-gray-100 dark:border-gray-800">
             <img
-              src={selectedChat.user.profilePicture || 'https://via.placeholder.com/100'}
+              src={selectedChat.user.profilePicture || `https://ui-avatars.com/api/?name=${selectedChat.user.firstName}+${selectedChat.user.lastName}`}
               alt=""
-              className="w-20 h-20 rounded-full object-cover mb-2"
+              className="w-24 h-24 rounded-full object-cover mb-3 border-4 border-white dark:border-gray-800 shadow-lg transition-transform hover:scale-105"
             />
-            <h3 className="font-bold dark:text-white text-lg">{selectedChat.user.firstName} {selectedChat.user.lastName}</h3>
-            <p className="text-sm text-gray-500">Facebook</p>
+            <h3 className="font-bold dark:text-white text-xl tracking-tight">{selectedChat.user.firstName} {selectedChat.user.lastName}</h3>
+            <div className="flex items-center mt-2 space-x-2">
+                <div className={`w-2.5 h-2.5 rounded-full ${onlineUsers.has(Number(selectedChat.user.id)) ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-gray-400'}`}></div>
+                <p className="text-[13px] font-bold text-gray-500 dark:text-gray-400">
+                    {onlineUsers.has(Number(selectedChat.user.id)) ? 'Đang hoạt động' : 'Ngoại tuyến'}
+                </p>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto no-scrollbar">
@@ -698,25 +721,43 @@ const Messages = () => {
 
       {/* Forward Modal */}
       {forwardModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white dark:bg-gray-900 w-full max-w-md p-4 rounded-lg">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="font-bold">Chuyển tiếp đến</h3>
-              <button onClick={() => setForwardModalOpen(false)} className="text-gray-500">Đóng</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-900 w-full max-w-md p-0 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in duration-200">
+            <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+              <h3 className="text-xl font-bold dark:text-white">Chuyển tiếp đến</h3>
+              <button 
+                onClick={() => setForwardModalOpen(false)} 
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-gray-500"
+              >
+                  <XMarkIcon className="w-5 h-5" />
+              </button>
             </div>
-            <div className="max-h-80 overflow-y-auto">
+            <div className="max-h-[60vh] overflow-y-auto no-scrollbar p-2">
               {displayConversations.map(conv => (
-                <div key={conv.user.id} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <img src={conv.user.profilePicture || 'https://via.placeholder.com/40'} alt="" className="w-10 h-10 rounded-full" />
-                    <div>
-                      <div className="font-medium">{conv.user.firstName} {conv.user.lastName}</div>
-                      <div className="text-xs text-gray-500 truncate">{conv.lastMessage?.content || ''}</div>
+                <div key={conv.user.id} className="p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl flex items-center justify-between group transition-all">
+                  <div className="flex items-center space-x-4">
+                    <img src={conv.user.profilePicture || `https://ui-avatars.com/api/?name=${conv.user.firstName}+${conv.user.lastName}`} alt="" className="w-12 h-12 rounded-full border border-gray-100 dark:border-gray-700 shadow-sm transition-transform group-hover:scale-105" />
+                    <div className="min-w-0">
+                      <div className="font-bold dark:text-white text-[15px] group-hover:text-facebook-600 transition-colors">{conv.user.firstName} {conv.user.lastName}</div>
+                      <div className="text-[13px] text-gray-500 dark:text-gray-400 truncate max-w-[200px] font-medium">{conv.lastMessage?.content || ''}</div>
                     </div>
                   </div>
-                  <button onClick={() => handleForwardTo(conv)} className="text-blue-600">Gửi</button>
+                  <button 
+                    onClick={() => handleForwardTo(conv)} 
+                    className="px-5 py-2 bg-facebook-600 hover:bg-facebook-700 text-white rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95"
+                  >
+                        Gửi
+                  </button>
                 </div>
               ))}
+            </div>
+            <div className="p-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end">
+                <button 
+                    onClick={() => setForwardModalOpen(false)}
+                    className="px-6 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-xl font-bold transition-all"
+                >
+                    Đóng
+                </button>
             </div>
           </div>
         </div>

@@ -101,30 +101,30 @@ const SavedPostsPage = () => {
             <div className="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-900 p-6">
                 <div className="max-w-4xl mx-auto">
                     {/* Toolbar */}
-                    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border dark:border-gray-700">
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-facebook mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-gray-100 dark:border-gray-700 transition-all duration-200">
                         <div className="relative flex-1">
-                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                            <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                             <input
                                 type="text"
                                 placeholder="Tìm kiếm trong mục đã lưu"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-full focus:ring-2 focus:ring-blue-500 outline-none text-sm dark:text-white"
+                                className="w-full pl-11 pr-4 py-2.5 bg-gray-100 dark:bg-gray-700 border-none rounded-xl focus:ring-2 focus:ring-facebook-600/50 outline-none text-[15px] font-medium transition-all dark:text-white dark:placeholder-gray-400"
                             />
                         </div>
 
-                        <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg self-end md:self-auto">
+                        <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 p-1.5 rounded-xl self-end md:self-auto shadow-inner">
                             <button
                                 onClick={() => setViewMode('list')}
-                                className={`p-2 rounded-md transition ${viewMode === 'list' ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-500'}`}
+                                className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-gray-600 shadow-md text-facebook-600 dark:text-facebook-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-500'}`}
                             >
-                                <ListBulletIcon className="h-5 w-5" />
+                                <ListBulletIcon className="h-5 w-5 stroke-2" />
                             </button>
                             <button
                                 onClick={() => setViewMode('grid')}
-                                className={`p-2 rounded-md transition ${viewMode === 'grid' ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-500'}`}
+                                className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-gray-600 shadow-md text-facebook-600 dark:text-facebook-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-500'}`}
                             >
-                                <Squares2X2Icon className="h-5 w-5" />
+                                <Squares2X2Icon className="h-5 w-5 stroke-2" />
                             </button>
                         </div>
                     </div>
@@ -150,12 +150,12 @@ const SavedPostsPage = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-12 text-center border dark:border-gray-700">
-                            <div className="bg-gray-100 dark:bg-gray-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <BookmarkIcon className="h-8 w-8 text-gray-400" />
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-facebook p-16 text-center border border-gray-100 dark:border-gray-700 transition-all duration-200">
+                            <div className="bg-gray-100 dark:bg-gray-700 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <BookmarkIcon className="h-12 w-12 text-gray-400" />
                             </div>
-                            <h3 className="text-xl font-bold dark:text-white mb-2">Chưa có mục nào</h3>
-                            <p className="text-gray-500 dark:text-gray-400">Những bài viết bạn đã lưu sẽ xuất hiện ở đây.</p>
+                            <h3 className="text-2xl font-bold dark:text-white mb-2">Chưa có mục nào</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-lg">Những bài viết bạn đã lưu sẽ xuất hiện ở đây.</p>
                         </div>
                     )}
                 </div>

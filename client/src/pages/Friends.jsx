@@ -108,14 +108,17 @@ const Friends = () => {
   };
 
   return (
-    <div className="flex h-[calc(100vh-56px)] overflow-hidden font-segoe">
+    <div className="flex h-[calc(100vh-56px)] overflow-hidden font-segoe bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
       {/* Notification */}
       {notification && (
-        <div className={`fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg ${notification.type === 'error'
-          ? 'bg-red-100 border border-red-400 text-red-700'
-          : 'bg-green-100 border border-green-400 text-green-700'
+        <div className={`fixed top-20 right-4 z-[999] p-4 px-6 rounded-xl shadow-2xl animate-in fade-in slide-in-from-right duration-300 font-bold ${notification.type === 'error'
+          ? 'bg-red-500 text-white'
+          : 'bg-green-500 text-white'
           }`}>
-          {notification.message}
+          <div className="flex items-center space-x-2">
+            <span className="text-lg">{notification.type === 'error' ? 'Oops!' : 'Thành công!'}</span>
+            <span className="font-medium">{notification.message}</span>
+          </div>
         </div>
       )}
 
@@ -135,8 +138,8 @@ const Friends = () => {
         <div className="max-w-6xl mx-auto">
           {/* Loading */}
           {loading && (
-            <div className="flex justify-center items-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-facebook-600"></div>
             </div>
           )}
 
@@ -145,36 +148,40 @@ const Friends = () => {
             <div>
               <h2 className="text-xl font-bold dark:text-white mb-6">Những người bạn có thể biết</h2>
               {suggestions.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm py-20 text-center">
-                  <p className="text-gray-500">Không có gợi ý kết bạn nào</p>
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-facebook py-24 text-center border border-gray-100 dark:border-gray-700">
+                    <div className="bg-gray-100 dark:bg-gray-700 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <span className="text-5xl">👋</span>
+                    </div>
+                  <p className="text-gray-500 dark:text-gray-400 text-lg font-bold">Không có gợi ý kết bạn nào</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {suggestions.map((suggestion) => (
-                    <div key={suggestion.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
-                      <Link to={`/profile/${suggestion.id}`} className="block h-48 bg-gray-200">
+                    <div key={suggestion.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-facebook border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 group active:scale-[0.98]">
+                      <Link to={`/profile/${suggestion.id}`} className="block h-56 bg-gray-200 dark:bg-gray-700 overflow-hidden relative">
                         {suggestion.profilePicture ? (
-                          <img src={suggestion.profilePicture} className="w-full h-full object-cover" />
+                          <img src={suggestion.profilePicture} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400 text-4xl font-bold">
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-400 text-5xl font-extrabold uppercase tracking-widest">
                             {suggestion.firstName.charAt(0)}{suggestion.lastName.charAt(0)}
                           </div>
                         )}
+                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       </Link>
-                      <div className="p-4">
-                        <Link to={`/profile/${suggestion.id}`} className="font-bold text-gray-900 dark:text-white hover:underline block mb-3">
+                      <div className="p-5">
+                        <Link to={`/profile/${suggestion.id}`} className="font-extrabold text-gray-900 dark:text-white hover:text-facebook-600 dark:hover:text-facebook-400 transition-colors text-lg block mb-4 truncate">
                           {suggestion.firstName} {suggestion.lastName}
                         </Link>
-                        <div className="space-y-2">
+                        <div className="space-y-2.5">
                           <button
                             onClick={() => handleSendRequest(suggestion.id)}
-                            className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition"
+                            className="w-full bg-facebook-600 text-white py-2.5 rounded-xl font-bold hover:bg-facebook-700 transition-all shadow-md active:scale-95"
                           >
                             Thêm bạn bè
                           </button>
                           <button
                             onClick={() => removeSuggestion(suggestion.id)}
-                            className="w-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 rounded-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                            className="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2.5 rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition-all active:scale-95"
                           >
                             Xóa
                           </button>
@@ -198,31 +205,32 @@ const Friends = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {requests.map((request) => (
-                    <div key={request.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
-                      <Link to={`/profile/${request.user1?.id}`} className="block h-48 bg-gray-200">
+                    <div key={request.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-facebook border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 group active:scale-[0.98]">
+                      <Link to={`/profile/${request.user1?.id}`} className="block h-56 bg-gray-200 dark:bg-gray-700 overflow-hidden relative">
                         {request.user1?.profilePicture ? (
-                          <img src={request.user1?.profilePicture} className="w-full h-full object-cover" />
+                          <img src={request.user1?.profilePicture} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400 text-4xl font-bold">
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-400 text-5xl font-extrabold uppercase tracking-widest">
                             {request.user1?.firstName.charAt(0)}{request.user1?.lastName.charAt(0)}
                           </div>
                         )}
+                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       </Link>
-                      <div className="p-4">
-                        <Link to={`/profile/${request.user1?.id}`} className="font-bold text-gray-900 dark:text-white hover:underline block mb-1">
+                      <div className="p-5">
+                        <Link to={`/profile/${request.user1?.id}`} className="font-extrabold text-gray-900 dark:text-white hover:text-facebook-600 dark:hover:text-facebook-400 transition-colors text-lg block mb-1 truncate">
                           {request.user1?.firstName} {request.user1?.lastName}
                         </Link>
-                        <p className="text-xs text-gray-500 mb-4">{new Date(request.createdAt).toLocaleDateString('vi-VN')}</p>
-                        <div className="space-y-2">
+                        <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-4">{new Date(request.createdAt).toLocaleDateString('vi-VN')}</p>
+                        <div className="space-y-2.5">
                           <button
                             onClick={() => handleAcceptRequest(request.id)}
-                            className="w-full bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition"
+                            className="w-full bg-facebook-600 text-white py-2.5 rounded-xl font-bold hover:bg-facebook-700 transition-all shadow-md active:scale-95"
                           >
                             Xác nhận
                           </button>
                           <button
                             onClick={() => handleRejectRequest(request.id)}
-                            className="w-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 rounded-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                            className="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2.5 rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition-all active:scale-95"
                           >
                             Xóa
                           </button>
@@ -240,14 +248,14 @@ const Friends = () => {
             <div>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold dark:text-white">Tất cả bạn bè ({friends.length})</h2>
-                <div className="relative w-64">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <div className="relative w-72">
+                  <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <input
                     type="text"
                     placeholder="Tìm kiếm bạn bè"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm dark:text-white"
+                    className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-gray-800 border-none rounded-xl text-[15px] font-medium focus:ring-2 focus:ring-facebook-600/50 outline-none shadow-facebook dark:text-white transition-all"
                   />
                 </div>
               </div>
@@ -258,29 +266,29 @@ const Friends = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {friends.map((friendship) => (
-                    <div key={friendship.friendshipId} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-4 transition-all hover:shadow-md flex flex-col items-center">
-                      <Link to={`/profile/${friendship.friend.id}`} className="w-24 h-24 bg-gray-300 rounded-full mb-3 overflow-hidden group">
+                    <div key={friendship.friendshipId} className="bg-white dark:bg-gray-800 rounded-2xl shadow-facebook border border-gray-100 dark:border-gray-700 p-6 transition-all hover:shadow-xl flex flex-col items-center group active:scale-[0.98]">
+                      <Link to={`/profile/${friendship.friend.id}`} className="w-28 h-28 bg-gray-300 dark:bg-gray-700 rounded-full mb-4 overflow-hidden shadow-md border-4 border-white dark:border-gray-800">
                         {friendship.friend.profilePicture ? (
-                          <img src={friendship.friend.profilePicture} className="w-full h-full object-cover group-hover:scale-110 transition duration-300" />
+                          <img src={friendship.friend.profilePicture} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400 text-2xl font-bold">
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-400 text-3xl font-extrabold uppercase">
                             {friendship.friend.firstName.charAt(0)}{friendship.friend.lastName.charAt(0)}
                           </div>
                         )}
                       </Link>
-                      <Link to={`/profile/${friendship.friend.id}`} className="font-bold text-gray-900 dark:text-white hover:underline mb-4 text-center">
+                      <Link to={`/profile/${friendship.friend.id}`} className="font-extrabold text-gray-900 dark:text-white text-lg hover:text-facebook-600 dark:hover:text-facebook-400 transition-colors mb-5 text-center truncate w-full">
                         {friendship.friend.firstName} {friendship.friend.lastName}
                       </Link>
-                      <div className="w-full space-y-2">
+                      <div className="w-full space-y-2.5">
                         <Link
                           to={`/messenger/${friendship.friend.id}`}
-                          className="w-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 py-2 rounded-lg font-bold text-sm block text-center hover:bg-blue-200 transition"
+                          className="w-full bg-blue-50 dark:bg-blue-900/30 text-facebook-600 dark:text-facebook-400 py-2.5 rounded-xl font-bold text-sm block text-center hover:bg-facebook-600 hover:text-white dark:hover:bg-facebook-600 dark:hover:text-white transition-all shadow-sm active:scale-95"
                         >
                           Nhắn tin
                         </Link>
                         <button
                           onClick={() => handleUnfriend(friendship.friend.id)}
-                          className="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 rounded-lg font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                          className="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-all active:scale-95"
                         >
                           Hủy kết bạn
                         </button>

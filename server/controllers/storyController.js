@@ -48,9 +48,25 @@ const getStories = async (req, res) => {
   try {
     const now = new Date();
     
-    // Facebook style: Gom nhóm stories theo user
+    const currentUserId = req.user.id;
+    const { Friendship, PrivacySetting } = require('../models');
+
+    // 1. Get current user's friends
+    const friendships = await Friendship.findAll({
+      where: {
+        [Op.or]: [{ user1Id: currentUserId }, { user2Id: currentUserId }],
+        status: 'accepted'
+      }
+    });
+    const friendIds = friendships.map(f => f.user1Id === currentUserId ? f.user2Id : f.user1Id);
+    
+    // Include self
+    const allowedAuthors = [...friendIds, currentUserId];
+
+    // 2. Lấy stories từ bạn bè hoặc bản thân
     const stories = await Story.findAll({
       where: {
+        userId: { [Op.in]: allowedAuthors },
         expiresAt: { [Op.gt]: now }
       },
       include: [
@@ -177,10 +193,38 @@ const getStoryViewers = async (req, res) => {
   }
 };
 
+// Xóa story
+const deleteStory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const story = await Story.findByPk(id);
+    if (!story) {
+      return res.status(404).json({ success: false, message: 'Tin không tồn tại' });
+    }
+
+    if (story.userId !== userId) {
+      return res.status(403).json({ success: false, message: 'Bạn không có quyền xóa tin này' });
+    }
+
+    await story.destroy();
+
+    res.json({
+      success: true,
+      message: 'Xóa tin thành công'
+    });
+  } catch (error) {
+    console.error('Delete story error:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server khi xóa tin' });
+  }
+};
+
 module.exports = {
   createStory,
   getStories,
   getUserStories,
   viewStory,
-  getStoryViewers
+  getStoryViewers,
+  deleteStory
 };

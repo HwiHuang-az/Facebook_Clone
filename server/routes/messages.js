@@ -13,4 +13,9 @@ router.get('/media/:partnerId', auth, messageController.getConversationMedia);
 // Allow up to 20 files per message
 router.post('/', auth, upload.array('files', 20), messageController.sendMessage);
 
+// Message management
+router.delete('/:id', auth, messageController.deleteMessage);
+router.delete('/:id/unsend', auth, messageController.unsendMessage);
+router.delete('/conversation/:partnerId', auth, messageController.deleteConversation);
+
 module.exports = router;

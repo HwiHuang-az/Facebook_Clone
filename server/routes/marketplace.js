@@ -8,5 +8,6 @@ router.get('/', auth, marketplaceController.getItems);
 router.get('/:id', auth, marketplaceController.getItemById);
 router.put('/:id', auth, marketplaceController.updateItem);
 router.delete('/:id', auth, marketplaceController.deleteItem);
+router.post('/:id/save', auth, marketplaceController.toggleSaveItem);
 
 module.exports = router;

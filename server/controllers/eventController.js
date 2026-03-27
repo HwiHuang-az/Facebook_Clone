@@ -221,9 +221,70 @@ const respondToEvent = async (req, res) => {
   }
 };
 
+// Update an event
+const updateEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const event = await Event.findByPk(id);
+
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    if (event.creatorId !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Not authorized to update this event' });
+    }
+
+    // Exclude restricted fields
+    const { id: _, creatorId, createdAt, updatedAt, ...updateData } = req.body;
+    
+    if (req.file) {
+      updateData.coverPhoto = req.file.path;
+    }
+
+    await event.update(updateData);
+
+    res.json({
+      success: true,
+      data: event
+    });
+  } catch (error) {
+    console.error('Update event error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update event' });
+  }
+};
+
+// Delete an event
+const deleteEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const event = await Event.findByPk(id);
+
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    if (event.creatorId !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Not authorized to delete this event' });
+    }
+
+    await event.destroy();
+
+    res.json({
+      success: true,
+      message: 'Event deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete event error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete event' });
+  }
+};
+
 module.exports = {
   createEvent,
   getEvents,
   getEventDetails,
-  respondToEvent
+  respondToEvent,
+  updateEvent,
+  deleteEvent
 };
