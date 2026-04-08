@@ -35,6 +35,7 @@ const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
     const [isLiked, setIsLiked] = useState(post.isLiked);
     const [likesCount, setLikesCount] = useState(post.likesCount);
     const [commentsCount, setCommentsCount] = useState(post.commentsCount);
+    const [sortBy, setSortBy] = useState('top');
     const [sharesCount, setSharesCount] = useState(post.sharesCount || 0);
     const [loadingComments, setLoadingComments] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
@@ -551,15 +552,35 @@ const Post = ({ post, onPostUpdate, onPostDeleted, isAdmin = false }) => {
                         </form>
                     </div>
 
+                    <div className="flex justify-end mb-2">
+                        <select 
+                            value={sortBy} 
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="text-sm bg-transparent font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer focus:outline-none"
+                        >
+                            <option value="top">Bình luận nổi bật</option>
+                            <option value="newest">Mới nhất</option>
+                        </select>
+                    </div>
+
                     <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
                         {loadingComments ? (
                             <div className="text-center py-2 text-gray-500 text-sm">Đang tải bình luận...</div>
                         ) : comments.length === 0 ? (
                             <div className="text-center py-2 text-gray-500 text-sm">Chưa có bình luận nào.</div>
                         ) : (
-                            comments.map(comment => (
-                                <Comment key={comment.id} comment={comment} />
-                            ))
+                            (() => {
+                                const sortedComments = [...comments].sort((a, b) => {
+                                    if (sortBy === 'top') {
+                                        return (b.likesCount || 0) - (a.likesCount || 0);
+                                    } else {
+                                        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                                    }
+                                });
+                                return sortedComments.map(comment => (
+                                    <Comment key={comment.id} comment={comment} onCommentCreated={() => setCommentsCount(prev => prev + 1)} />
+                                ));
+                            })()
                         )}
                     </div>
                 </div>
